@@ -1,0 +1,14 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Temp files
+temp_xlsx/
+temp_reserva/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Antigravity / editor
+.gemini/

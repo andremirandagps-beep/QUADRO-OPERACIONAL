@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GRUPO GPS - Quadro Operacional de Postos de Trabalho</title>
+  <link rel="icon" type="image/png" href="logo-gps.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-dark">
+  <!-- Top Navigation & Header -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-logo gps-logo-wrapper">
+        <img src="logo-gps.png" alt="Logo Grupo GPS" class="gps-logo-img">
+      </div>
+      <div class="brand-info">
+        <h1>GRUPO GPS &bull; QUADRO OPERACIONAL DE EFETIVO</h1>
+        <p class="subtitle">Gestão de Postos, Crachás e Escalas Noturnas / Diurnas</p>
+      </div>
+    </div>
+
+    <!-- Quick Stats in Header -->
+    <div class="header-stats">
+      <div class="stat-pill" title="Total de postos cadastrados">
+        <span class="stat-label">Postos:</span>
+        <span class="stat-value" id="stat-posts">0</span>
+      </div>
+      <div class="stat-pill" title="Total de colaboradores alocados">
+        <span class="stat-label">Colaboradores:</span>
+        <span class="stat-value" id="stat-colabs">0</span>
+      </div>
+      <div class="stat-pill stat-success" title="Colaboradores em atividade">
+        <span class="stat-dot green"></span>
+        <span class="stat-label">Ativos:</span>
+        <span class="stat-value" id="stat-ativos">0</span>
+      </div>
+      <div class="stat-pill stat-warning" title="Colaboradores em período de férias">
+        <span class="stat-dot yellow"></span>
+        <span class="stat-label">Férias:</span>
+        <span class="stat-value" id="stat-ferias">0</span>
+      </div>
+      <div class="stat-pill stat-info" title="Colaboradores no banco de reserva / folguistas">
+        <span class="stat-dot blue"></span>
+        <span class="stat-label">Reserva:</span>
+        <span class="stat-value" id="stat-reserva">0</span>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="btn btn-primary" id="btn-add-colab" title="Cadastrar novo colaborador com foto">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="8.5" cy="7" r="4"/>
+          <line x1="20" y1="8" x2="20" y2="14"/>
+          <line x1="23" y1="11" x2="17" y2="11"/>
+        </svg>
+        <span>Novo Crachá</span>
+      </button>
+
+      <button class="btn btn-secondary" id="btn-add-posto" title="Adicionar novo posto de trabalho">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>Novo Posto</span>
+      </button>
+
+      <div class="dropdown">
+        <button class="btn btn-outline" id="btn-more-options" title="Mais opções, relatórios e exportação">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="1"/>
+            <circle cx="19" cy="12" r="1"/>
+            <circle cx="5" cy="12" r="1"/>
+          </svg>
+          <span>Ações</span>
+        </button>
+        <div class="dropdown-menu" id="dropdown-menu-actions">
+          <button class="dropdown-item" id="btn-print-crachas">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9"/>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Imprimir Crachás (Folha A4)
+          </button>
+          <button class="dropdown-item" id="btn-export-excel">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            Exportar para Excel (CSV)
+          </button>
+          <button class="dropdown-item" id="btn-export-backup">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Fazer Backup (JSON)
+          </button>
+          <label class="dropdown-item" style="cursor:pointer;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Restaurar Backup (JSON)
+            <input type="file" id="file-import-backup" accept=".json" style="display:none;">
+          </label>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item text-danger" id="btn-reset-data">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            Restaurar Dados da Planilha Original
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-icon" id="btn-undo" title="Desfazer última alteração de arrastar (Ctrl+Z)" disabled>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+        </svg>
+      </button>
+
+      <button class="btn btn-icon" id="btn-toggle-theme" title="Alternar tema Claro / Escuro">
+        <svg id="icon-theme" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Controls Bar (Search, Filters, Layout Views) -->
+  <section class="controls-bar">
+    <div class="controls-left">
+      <!-- Search Input -->
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="input-search" placeholder="Buscar colaborador por nome, matrícula, posto ou função..." autocomplete="off">
+        <button class="search-clear" id="btn-search-clear" style="display:none;">&times;</button>
+      </div>
+
+      <!-- Equipe Filter -->
+      <div class="filter-group">
+        <label for="filter-equipe">Equipe:</label>
+        <select id="filter-equipe" class="select-filter">
+          <option value="all">Todas as Equipes</option>
+          <option value="Equipe 1 (Ímpares)">Equipe 1 (Ímpares)</option>
+          <option value="Equipe 2 (Pares)">Equipe 2 (Pares)</option>
+          <option value="Reserva">Reserva / Folga</option>
+        </select>
+      </div>
+
+      <!-- Role / Função Filter -->
+      <div class="filter-group">
+        <label for="filter-funcao">Função:</label>
+        <select id="filter-funcao" class="select-filter">
+          <option value="all">Todas as Funções</option>
+          <option value="VIGILANTE">Vigilante</option>
+          <option value="PORTEIRO">Porteiro</option>
+          <option value="LIDER">Líder / Supervisor</option>
+          <option value="FOLGUISTA">Folguista / Ferista</option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="filter-group">
+        <label for="filter-status">Status:</label>
+        <select id="filter-status" class="select-filter">
+          <option value="all">Todos</option>
+          <option value="Ativo">Apenas Ativos</option>
+          <option value="Férias">Em Férias</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="controls-right">
+      <!-- Layout Mode Toggle -->
+      <div class="view-switch-group">
+        <button class="view-btn active" id="view-mode-dual" title="Separar postos em colunas Equipe 1 e Equipe 2">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="8" height="18" rx="1"/>
+            <rect x="13" y="3" width="8" height="18" rx="1"/>
+          </svg>
+          Colunas 1 e 2
+        </button>
+        <button class="view-btn" id="view-mode-compact" title="Visualização Unificada dos Crachás">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <line x1="3" y1="9" x2="21" y2="9"/>
+            <line x1="9" y1="21" x2="9" y2="9"/>
+          </svg>
+          Geral
+        </button>
+      </div>
+
+      <!-- Card Size Zoom Slider -->
+      <div class="zoom-control" title="Ajustar tamanho dos crachás">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <line x1="8" y1="11" x2="14" y2="11"/>
+        </svg>
+        <input type="range" id="zoom-range" min="80" max="120" value="100" step="5">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <line x1="11" y1="8" x2="11" y2="14"/>
+          <line x1="8" y1="11" x2="14" y2="11"/>
+        </svg>
+      </div>
+
+      <!-- Quick Toggle for Reserve Drawer -->
+      <button class="btn btn-outline" id="btn-toggle-reserve" title="Abrir banco de reserva / colaboradores disponíveis">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <span>Banco de Reserva (<span id="btn-reserve-badge">0</span>)</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Notification Banner for Drag and Auto-save -->
+  <div class="auto-save-indicator" id="save-indicator">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    <span>Alterações salvas automaticamente no navegador</span>
+  </div>
+
+  <!-- Main Canvas: Operational Workstations Grid -->
+  <main class="board-container" id="board-container">
+    <div class="posts-grid" id="posts-grid">
+      <!-- Workstation cards generated here by JS -->
+    </div>
+  </main>
+
+  <!-- Reserve Pool Drawer (Floating / Bottom Dock) -->
+  <aside class="reserve-drawer collapsed" id="reserve-drawer">
+    <div class="reserve-header" id="reserve-header">
+      <div class="reserve-title">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <h3>BANCO DE RESERVA &amp; FOLGUISTAS</h3>
+        <span class="reserve-count" id="reserve-count-tag">0 colaboradores</span>
+      </div>
+      <div class="reserve-actions">
+        <span class="reserve-hint">Arraste crachás para cá para retirar de postos ou puxe daqui para qualquer posto</span>
+        <button class="btn btn-sm btn-outline" id="btn-add-reserve-colab">+ Adicionar à Reserva</button>
+        <button class="btn-icon-sm" id="btn-collapse-reserve" title="Recolher / Expandir gaveta">
+          <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Drop Zone for Reserve -->
+    <div class="reserve-body drop-zone" id="reserve-dropzone" data-posto-id="reserva">
+      <!-- Reserve cards rendered here -->
+    </div>
+  </aside>
+
+  <!-- Modal: Cadastrar / Editar Colaborador -->
+  <div class="modal-overlay" id="modal-colab-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-colab-title">Editar Crachá do Colaborador</h3>
+        <button class="btn-modal-close" id="btn-close-colab-modal">&times;</button>
+      </div>
+      <form id="form-colab" class="modal-body">
+        <input type="hidden" id="colab-id">
+        <input type="hidden" id="colab-current-posto-id">
+
+        <div class="colab-edit-layout">
+          <!-- Photo section with upload & preview -->
+          <div class="colab-photo-picker">
+            <div class="photo-preview-box" id="modal-photo-preview">
+              <img id="modal-photo-img" src="" alt="Foto" style="display:none;">
+              <div id="modal-photo-placeholder" class="photo-placeholder-large">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Sem Foto</span>
+              </div>
+            </div>
+            
+            <div class="photo-controls">
+              <label class="btn btn-sm btn-primary btn-upload-photo" title="Carregar foto do computador">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                Carregar Foto
+                <input type="file" id="input-colab-photo" accept="image/*" style="display:none;">
+              </label>
+              <button type="button" class="btn btn-sm btn-outline text-danger" id="btn-remove-photo" style="display:none;">
+                Remover Foto
+              </button>
+            </div>
+            <p class="photo-hint">Aceita JPG, PNG ou WEBP. A foto é ajustada automaticamente para o crachá.</p>
+          </div>
+
+          <!-- Fields section -->
+          <div class="colab-fields">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="colab-nome">Nome Completo *</label>
+                <input type="text" id="colab-nome" required placeholder="Ex: FABIANO DINAROSKI">
+              </div>
+              <div class="form-group flex-1">
+                <label for="colab-matricula">Matrícula / Código</label>
+                <input type="text" id="colab-matricula" placeholder="Ex: 011159">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="colab-funcao">Função / Cargo *</label>
+                <input type="text" id="colab-funcao" list="funcoes-list" required placeholder="Ex: VIGILANTE">
+                <datalist id="funcoes-list">
+                  <option value="VIGILANTE">
+                  <option value="PORTEIRO">
+                  <option value="VIGILANTE (LIDER)">
+                  <option value="VIGILANTE FOLGUISTA">
+                  <option value="VIGILANTE FERISTA">
+                  <option value="PORTEIRO FOLGUISTA">
+                  <option value="SUPERVISOR">
+                  <option value="CONTROLADOR DE ACESSO">
+                </datalist>
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="colab-data-admissao">Data de Admissão *</label>
+                <input type="text" id="colab-data-admissao" required placeholder="DD/MM/AAAA" maxlength="10">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="colab-escala">Escala / Horário</label>
+                <input type="text" id="colab-escala" list="escalas-list" placeholder="Ex: ESCALA 12X36 - 19:00 ÀS 07:00">
+                <datalist id="escalas-list">
+                  <option value="ESCALA 12X36 - 19:00 ÀS 07:00">
+                  <option value="ESCALA 12X36 - 07:00 ÀS 19:00">
+                  <option value="ESCALA 5X2 - 08:00 ÀS 17:00">
+                  <option value="ESCALA 6X1 - 14:00 ÀS 22:00">
+                  <option value="ESCALA 12X36">
+                </datalist>
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="colab-equipe">Equipe / Turno</label>
+                <select id="colab-equipe">
+                  <option value="Equipe 1 (Ímpares)">Equipe 1 (Ímpares)</option>
+                  <option value="Equipe 2 (Pares)">Equipe 2 (Pares)</option>
+                  <option value="Reserva">Reserva / Folga</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="colab-status">Status Operacional</label>
+                <select id="colab-status">
+                  <option value="Ativo">Ativo (Em Operação)</option>
+                  <option value="Férias">Férias</option>
+                  <option value="Afastado">Afastado / Licença</option>
+                  <option value="Disponível">Disponível (Reserva)</option>
+                </select>
+              </div>
+
+              <div class="form-group flex-1">
+                <label for="colab-posto-select">Posto de Trabalho</label>
+                <select id="colab-posto-select">
+                  <!-- Populated by JS -->
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="colab-obs">Observações / Telefone / Contato</label>
+              <input type="text" id="colab-obs" placeholder="Ex: Contato (41) 99999-9999, cobertura, etc.">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline text-danger" id="btn-delete-colab">Excluir Colaborador</button>
+          <div class="footer-buttons-right">
+            <button type="button" class="btn btn-outline" id="btn-cancel-colab">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btn-save-colab">Salvar Crachá</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Cadastrar / Editar Posto de Trabalho -->
+  <div class="modal-overlay" id="modal-posto-overlay">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3 id="modal-posto-title">Novo Posto de Trabalho</h3>
+        <button class="btn-modal-close" id="btn-close-posto-modal">&times;</button>
+      </div>
+      <form id="form-posto" class="modal-body">
+        <input type="hidden" id="posto-id">
+
+        <div class="form-group">
+          <label for="posto-codigo">Código do Posto (Opcional)</label>
+          <input type="text" id="posto-codigo" placeholder="Ex: 00527">
+        </div>
+
+        <div class="form-group">
+          <label for="posto-nome">Nome do Posto / Cliente *</label>
+          <input type="text" id="posto-nome" required placeholder="Ex: 00527 - PR - SEG - TEGMA">
+        </div>
+
+        <div class="form-group">
+          <label for="posto-categoria">Categoria do Serviço</label>
+          <select id="posto-categoria">
+            <option value="Segurança / Vigilância">Segurança / Vigilância</option>
+            <option value="Portaria">Portaria / Condomínio</option>
+            <option value="Facilities / Apoio">Facilities / Apoio</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="posto-endereco">Endereço / Localidade</label>
+          <input type="text" id="posto-endereco" placeholder="Ex: Av. Volkswagen Audi, 2001 - Campo Largo da Roseira">
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline text-danger" id="btn-delete-posto" style="display:none;">Excluir Posto</button>
+          <div class="footer-buttons-right">
+            <button type="button" class="btn btn-outline" id="btn-cancel-posto">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btn-save-posto">Salvar Posto</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Prévia para Impressão de Crachás -->
+  <div class="modal-overlay" id="modal-print-overlay">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3>Impressão de Crachás - Folhas para Corte</h3>
+        <button class="btn-modal-close" id="btn-close-print-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="print-filter-bar">
+          <label>Imprimir Crachás de:</label>
+          <select id="print-select-scope">
+            <option value="all">Todos os Colaboradores</option>
+            <option value="selected-post">Posto Específico</option>
+            <option value="reserva">Apenas Reserva</option>
+          </select>
+          <select id="print-select-post" style="display:none;">
+            <!-- filled by js -->
+          </select>
+          <button class="btn btn-primary" id="btn-trigger-print">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9"/>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Imprimir Agora (Ctrl+P)
+          </button>
+        </div>
+        <div class="print-preview-container" id="print-sheet-area">
+          <!-- Rendered printable badges -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification element -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Embedded Initial Data and Main Script -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
