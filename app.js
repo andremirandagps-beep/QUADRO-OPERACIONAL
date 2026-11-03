@@ -6,9 +6,13 @@
 (function () {
   'use strict';
 
+  const STORAGE_KEY = 'quadro_operacional_state_v2';
+
   // Application State
   const THEME_KEY = 'quadro_operacional_theme';
   const API_BASE = '/api';
+
+  let isOfflineMode = false;
 
   let state = {
     posts: [],
@@ -135,22 +139,40 @@
   }
 
   async function loadFromAPI() {
+    // Primeiro tenta carregar do backend local
     try {
-      showLoadingOverlay(true);
-      const res = await fetch(`${API_BASE}/state`);
-      if (!res.ok) throw new Error('Falha ao carregar dados da API');
-      state = await res.json();
-      renderAll();
-      showLoadingOverlay(false);
-    } catch (e) {
-      console.error('Erro ao carregar dados:', e);
-      showToast('Erro ao carregar dados do banco. Verifique o servidor.', 'error');
-      showLoadingOverlay(false);
-      // Fallback para dados iniciais embutidos
-      if (window.INITIAL_OPERATIONAL_DATA) {
-        state = JSON.parse(JSON.stringify(window.INITIAL_OPERATIONAL_DATA));
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const res = await fetch(`${API_BASE}/state`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        state = await res.json();
+        isOfflineMode = false;
         renderAll();
+        return;
       }
+    } catch (e) {
+      // Backend local offline (ex: rodando na Vercel estática ou sem servidor node)
+      isOfflineMode = true;
+    }
+
+    // Modo Standalone / Vercel (salva no localStorage do navegador)
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        state = JSON.parse(saved);
+        renderAll();
+        return;
+      } catch (e) {
+        console.warn('Erro ao restaurar do localStorage, usando inicial:', e);
+      }
+    }
+
+    // Se não tiver no localStorage, usa os dados da planilha embutidos
+    if (window.INITIAL_OPERATIONAL_DATA) {
+      state = JSON.parse(JSON.stringify(window.INITIAL_OPERATIONAL_DATA));
+      renderAll();
     }
   }
 
@@ -214,6 +236,11 @@
       historyStack.push(JSON.stringify(state));
       if (historyStack.length > MAX_HISTORY) historyStack.shift();
       updateUndoButtonState();
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Quota localStorage atingida para imagens:', e);
     }
     showSaveIndicator();
   }
@@ -959,17 +986,18 @@
     saveState(true);
     renderAll();
 
-    // Persist to DB via API
-    try {
-      await apiPost(`/colaboradores/${colabId}/mover`, {
-        postoId: targetPostId,
-        equipe: newEquipe,
-        status: newStatus,
-        equipeOrigem: equipeOrigem || null
-      });
-    } catch (e) {
-      console.error('Erro ao salvar movimentação no banco:', e.message);
-      showToast('⚠️ Erro ao salvar no banco. Recarregue a página.', 'warning');
+    // Persist to DB via API se disponível
+    if (!isOfflineMode) {
+      try {
+        await apiPost(`/colaboradores/${colabId}/mover`, {
+          postoId: targetPostId,
+          equipe: newEquipe,
+          status: newStatus,
+          equipeOrigem: equipeOrigem || null
+        });
+      } catch (e) {
+        console.warn('API local indisponível, salvo no navegador.');
+      }
     }
   }
 
@@ -1206,28 +1234,29 @@
     renderAll();
     showToast(`Crachá de ${colabData.nome} salvo!`);
 
-    // Persist to DB
-    try {
-      if (isNew) {
-        await apiPost('/colaboradores', {
-          id: newId, matricula: colabData.matricula, nome: colabData.nome,
-          funcao: colabData.funcao, dataAdmissao: colabData.dataAdmissao,
-          escala: colabData.escala, equipe: colabData.equipe,
-          status: colabData.status, observacoes: colabData.observacoes,
-          foto: colabData.foto, postoId: colabData.postoId
-        });
-      } else {
-        await apiPut(`/colaboradores/${newId}`, {
-          matricula: colabData.matricula, nome: colabData.nome,
-          funcao: colabData.funcao, dataAdmissao: colabData.dataAdmissao,
-          escala: colabData.escala, equipe: colabData.equipe,
-          status: colabData.status, observacoes: colabData.observacoes,
-          foto: colabData.foto, postoId: colabData.postoId
-        });
+    // Persist to DB se disponível
+    if (!isOfflineMode) {
+      try {
+        if (isNew) {
+          await apiPost('/colaboradores', {
+            id: newId, matricula: colabData.matricula, nome: colabData.nome,
+            funcao: colabData.funcao, dataAdmissao: colabData.dataAdmissao,
+            escala: colabData.escala, equipe: colabData.equipe,
+            status: colabData.status, observacoes: colabData.observacoes,
+            foto: colabData.foto, postoId: colabData.postoId
+          });
+        } else {
+          await apiPut(`/colaboradores/${newId}`, {
+            matricula: colabData.matricula, nome: colabData.nome,
+            funcao: colabData.funcao, dataAdmissao: colabData.dataAdmissao,
+            escala: colabData.escala, equipe: colabData.equipe,
+            status: colabData.status, observacoes: colabData.observacoes,
+            foto: colabData.foto, postoId: colabData.postoId
+          });
+        }
+      } catch (err) {
+        console.warn('API local indisponível, salvo no navegador.');
       }
-    } catch (err) {
-      console.error('Erro ao salvar colaborador:', err.message);
-      showToast('⚠️ Erro ao salvar no banco: ' + err.message, 'warning');
     }
   });
 
@@ -1680,15 +1709,17 @@
           saveState(true);
           renderAll();
 
-          try {
-            await apiPost(`/colaboradores/${colabId}/mover`, {
-              postoId: p.id,
-              equipe: targetEquipe,
-              status: targetStatus,
-              equipeOrigem: targetEquipeOrigem
-            });
-          } catch (err) {
-            console.error('Erro ao atualizar férias no banco:', err);
+          if (!isOfflineMode) {
+            try {
+              await apiPost(`/colaboradores/${colabId}/mover`, {
+                postoId: p.id,
+                equipe: targetEquipe,
+                status: targetStatus,
+                equipeOrigem: targetEquipeOrigem
+              });
+            } catch (err) {
+              console.warn('API local indisponível, salvo no navegador.');
+            }
           }
           return;
         }
@@ -1708,14 +1739,16 @@
           renderAll();
           showToast(`${colab.nome} movido para o banco de reserva.`);
 
-          try {
-            await apiPost(`/colaboradores/${colabId}/mover`, {
-              postoId: 'reserva',
-              equipe: 'Reserva',
-              status: colab.status
-            });
-          } catch (err) {
-            console.error('Erro ao mover para reserva no banco:', err);
+          if (!isOfflineMode) {
+            try {
+              await apiPost(`/colaboradores/${colabId}/mover`, {
+                postoId: 'reserva',
+                equipe: 'Reserva',
+                status: colab.status
+              });
+            } catch (err) {
+              console.warn('API local indisponível, salvo no navegador.');
+            }
           }
           return;
         }
