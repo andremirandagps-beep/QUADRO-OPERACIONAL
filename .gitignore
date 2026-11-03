@@ -10,5 +10,10 @@ temp_reserva/
 .DS_Store
 Thumbs.db
 
+# Database SQLite WAL/shm files
+database/*.db-wal
+database/*.db-shm
+
 # Antigravity / editor
 .gemini/
+

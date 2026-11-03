@@ -1,0 +1,24 @@
+{
+  "name": "novo-projeto",
+  "version": "1.0.0",
+  "description": "Sistema visual e operacional para gestão de postos de trabalho e alocação de equipes (Vigilância, Portaria e Facilities), com suporte a crachás completos com foto, drag-and-drop para remanejamento de colaboradores e escalas.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andremirandagps-beep/QUADRO-OPERACIONAL.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/andremirandagps-beep/QUADRO-OPERACIONAL/issues"
+  },
+  "homepage": "https://github.com/andremirandagps-beep/QUADRO-OPERACIONAL#readme",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3"
+  }
+}

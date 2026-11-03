@@ -7,8 +7,8 @@
   'use strict';
 
   // Application State
-  const STORAGE_KEY = 'quadro_operacional_v3_data';
   const THEME_KEY = 'quadro_operacional_theme';
+  const API_BASE = '/api';
 
   let state = {
     posts: [],
@@ -129,62 +129,102 @@
   // INITIALIZATION
   // ========================================================
   function init() {
-    loadSavedData();
     initTheme();
     setupEventListeners();
-    renderAll();
+    loadFromAPI();
   }
 
-  function loadSavedData() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        state = JSON.parse(saved);
-      } catch (e) {
-        console.error('Falha ao restaurar dados do localStorage:', e);
-        fallbackToInitial();
+  async function loadFromAPI() {
+    try {
+      showLoadingOverlay(true);
+      const res = await fetch(`${API_BASE}/state`);
+      if (!res.ok) throw new Error('Falha ao carregar dados da API');
+      state = await res.json();
+      renderAll();
+      showLoadingOverlay(false);
+    } catch (e) {
+      console.error('Erro ao carregar dados:', e);
+      showToast('Erro ao carregar dados do banco. Verifique o servidor.', 'error');
+      showLoadingOverlay(false);
+      // Fallback para dados iniciais embutidos
+      if (window.INITIAL_OPERATIONAL_DATA) {
+        state = JSON.parse(JSON.stringify(window.INITIAL_OPERATIONAL_DATA));
+        renderAll();
       }
-    } else {
-      fallbackToInitial();
     }
   }
 
-  function fallbackToInitial() {
-    if (window.INITIAL_OPERATIONAL_DATA) {
-      // Deep clone initial data
-      state = JSON.parse(JSON.stringify(window.INITIAL_OPERATIONAL_DATA));
-    } else {
-      state = { posts: [], reserve: [] };
+  function showLoadingOverlay(show) {
+    let overlay = document.getElementById('loading-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'loading-overlay';
+      overlay.style.cssText = `
+        position:fixed;inset:0;z-index:9999;background:rgba(2,4,8,0.85);
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+        color:#93c5fd;font-size:14px;font-weight:600;letter-spacing:0.5px;
+        backdrop-filter:blur(4px);transition:opacity 0.3s ease;
+      `;
+      overlay.innerHTML = `
+        <svg viewBox="0 0 50 50" width="48" height="48" style="animation:spin 1s linear infinite;">
+          <circle cx="25" cy="25" r="20" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="80 20" stroke-linecap="round"/>
+        </svg>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        <span>Carregando Banco de Dados...</span>
+      `;
+      document.body.appendChild(overlay);
     }
-    saveState(false);
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+
+  async function apiPost(path, body) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json();
+  }
+
+  async function apiPut(path, body) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Erro desconhecido' }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return res.json();
+  }
+
+  async function apiDelete(path) {
+    const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
   }
 
   function saveState(pushToHistory = true) {
     if (pushToHistory) {
-      // Save snapshot for undo
       historyStack.push(JSON.stringify(state));
       if (historyStack.length > MAX_HISTORY) historyStack.shift();
       updateUndoButtonState();
     }
-
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      showSaveIndicator();
-    } catch (e) {
-      if (e.name === 'QuotaExceededError') {
-        showToast('Aviso: Espaço de fotos no navegador atingido. Reduza o tamanho das fotos enviadas.', 'warning');
-      }
-    }
+    showSaveIndicator();
   }
 
   function undoLastAction() {
     if (historyStack.length === 0) return;
     const previous = historyStack.pop();
     state = JSON.parse(previous);
-    localStorage.setItem(STORAGE_KEY, previous);
     updateUndoButtonState();
     renderAll();
-    showToast('Ação de arrastar desfeita com sucesso!');
+    showToast('Ação desfeita. Recarregue para sincronizar com o banco.');
   }
 
   function updateUndoButtonState() {
@@ -210,6 +250,16 @@
       toast.classList.remove('visible');
       setTimeout(() => toast.remove(), 300);
     }, 3200);
+  }
+
+  function fallbackToInitial() {
+    if (window.INITIAL_OPERATIONAL_DATA) {
+      state = JSON.parse(JSON.stringify(window.INITIAL_OPERATIONAL_DATA));
+    } else {
+      state = { posts: [], reserve: [] };
+    }
+    renderAll();
+    showToast('Visualizando dados da planilha original (offline).');
   }
 
   // ========================================================
@@ -856,62 +906,71 @@
     }, { offset: Number.NEGATIVE_INFINITY }).element;
   }
 
-  function handleCardDrop(colabId, sourcePostId, targetPostId, targetEquipe) {
-    // Locate the collaborator object
+  async function handleCardDrop(colabId, sourcePostId, targetPostId, targetEquipe) {
+    // Optimistic local update
     let colab = null;
-    let sourceArray = null;
 
     if (sourcePostId === 'reserva') {
       const idx = state.reserve.findIndex(c => c.id === colabId);
-      if (idx !== -1) {
-        colab = state.reserve.splice(idx, 1)[0];
-        sourceArray = state.reserve;
-      }
+      if (idx !== -1) colab = state.reserve.splice(idx, 1)[0];
     } else {
       const sourcePost = state.posts.find(p => p.id === sourcePostId);
       if (sourcePost) {
         const idx = sourcePost.employees.findIndex(c => c.id === colabId);
-        if (idx !== -1) {
-          colab = sourcePost.employees.splice(idx, 1)[0];
-          sourceArray = sourcePost.employees;
-        }
+        if (idx !== -1) colab = sourcePost.employees.splice(idx, 1)[0];
       }
     }
 
     if (!colab) return;
 
-    // Move to target
+    let newStatus = colab.status;
+    let newEquipe = targetEquipe || colab.equipe;
+    let equipeOrigem = colab.equipeOrigem;
+
     if (targetPostId === 'reserva') {
+      newStatus = colab.status === 'Férias' ? 'Férias' : 'Disponível';
+      newEquipe = 'Reserva';
       colab.postoId = 'reserva';
-      colab.equipe = 'Reserva';
-      colab.status = colab.status === 'Férias' ? 'Férias' : 'Disponível';
+      colab.equipe = newEquipe;
+      colab.status = newStatus;
       state.reserve.push(colab);
       showToast(`${colab.nome} movido para a Reserva.`);
     } else {
       const targetPost = state.posts.find(p => p.id === targetPostId);
       if (targetPost) {
-        colab.postoId = targetPost.id;
         if (targetEquipe === 'Férias') {
-          colab.status = 'Férias';
-          if (!colab.equipeOrigem && colab.equipe !== 'Férias') {
-            colab.equipeOrigem = colab.equipe;
-          }
-          colab.equipe = 'Férias';
-          showToast(`🌴 ${colab.nome} colocado em FÉRIAS no posto ${targetPost.shortName || targetPost.name}.`);
-        } else if (targetEquipe) {
-          colab.equipe = targetEquipe;
-          colab.status = 'Ativo';
-          delete colab.equipeOrigem;
-          showToast(`${colab.nome} alocado na ${targetEquipe} em ${targetPost.shortName || targetPost.name}.`);
+          newStatus = 'Férias';
+          equipeOrigem = colab.equipeOrigem || colab.equipe;
+          newEquipe = 'Férias';
+          showToast(`🌴 ${colab.nome} colocado em FÉRIAS.`);
         } else {
-          if (colab.status === 'Disponível') colab.status = 'Ativo';
+          if (colab.status === 'Disponível') newStatus = 'Ativo';
+          equipeOrigem = null;
+          showToast(`${colab.nome} → ${targetPost.shortName || targetPost.name}`);
         }
+        colab.postoId = targetPost.id;
+        colab.equipe = newEquipe;
+        colab.status = newStatus;
+        colab.equipeOrigem = equipeOrigem;
         targetPost.employees.push(colab);
       }
     }
 
     saveState(true);
     renderAll();
+
+    // Persist to DB via API
+    try {
+      await apiPost(`/colaboradores/${colabId}/mover`, {
+        postoId: targetPostId,
+        equipe: newEquipe,
+        status: newStatus,
+        equipeOrigem: equipeOrigem || null
+      });
+    } catch (e) {
+      console.error('Erro ao salvar movimentação no banco:', e.message);
+      showToast('⚠️ Erro ao salvar no banco. Recarregue a página.', 'warning');
+    }
   }
 
   // ========================================================
@@ -1057,7 +1116,7 @@
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
-        handlePhotoUpload(file, (compressed) => {
+        handlePhotoUpload(file, async (compressed) => {
           // Update colab photo
           for (const post of state.posts) {
             const c = post.employees.find(x => x.id === colabId);
@@ -1066,6 +1125,11 @@
               saveState(true);
               renderAll();
               showToast(`Foto de ${c.nome} atualizada.`);
+              try {
+                await apiPost(`/colaboradores/${colabId}/foto`, { foto: compressed });
+              } catch (err) {
+                console.error('Erro ao salvar foto no banco:', err);
+              }
               return;
             }
           }
@@ -1075,6 +1139,11 @@
             saveState(true);
             renderAll();
             showToast(`Foto de ${resC.nome} atualizada.`);
+            try {
+              await apiPost(`/colaboradores/${colabId}/foto`, { foto: compressed });
+            } catch (err) {
+              console.error('Erro ao salvar foto no banco:', err);
+            }
           }
         });
       }
@@ -1083,15 +1152,16 @@
   }
 
   // Save Colab Form
-  elements.formColab.addEventListener('submit', (e) => {
+  elements.formColab.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const id = elements.colabId.value || 'emp-' + Math.random().toString(36).substr(2, 9);
+    const id = elements.colabId.value;
+    const isNew = !id;
+    const newId = id || 'emp-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
     const targetPostId = elements.colabPostoSelect.value;
-    const currentPostId = elements.colabCurrentPostoId.value;
 
     const colabData = {
-      id: id,
+      id: newId,
       matricula: elements.colabMatricula.value.trim(),
       nome: elements.colabNome.value.trim().toUpperCase(),
       funcao: elements.colabFuncao.value.trim().toUpperCase(),
@@ -1104,19 +1174,19 @@
       postoId: targetPostId
     };
 
-    // Remove from old post / reserve
+    // Optimistic local update
+    const currentPostId = elements.colabCurrentPostoId.value;
     if (currentPostId === 'reserva') {
-      const idx = state.reserve.findIndex(c => c.id === id);
+      const idx = state.reserve.findIndex(c => c.id === newId);
       if (idx !== -1) state.reserve.splice(idx, 1);
     } else {
       const oldPost = state.posts.find(p => p.id === currentPostId);
       if (oldPost) {
-        const idx = oldPost.employees.findIndex(c => c.id === id);
+        const idx = oldPost.employees.findIndex(c => c.id === newId);
         if (idx !== -1) oldPost.employees.splice(idx, 1);
       }
     }
 
-    // Insert into target post / reserve
     if (targetPostId === 'reserva') {
       colabData.postoId = 'reserva';
       state.reserve.push(colabData);
@@ -1131,27 +1201,54 @@
       }
     }
 
-    saveState(true);
     closeColabModal();
+    saveState(true);
     renderAll();
-    showToast(`Crachá de ${colabData.nome} salvo com sucesso!`);
+    showToast(`Crachá de ${colabData.nome} salvo!`);
+
+    // Persist to DB
+    try {
+      if (isNew) {
+        await apiPost('/colaboradores', {
+          id: newId, matricula: colabData.matricula, nome: colabData.nome,
+          funcao: colabData.funcao, dataAdmissao: colabData.dataAdmissao,
+          escala: colabData.escala, equipe: colabData.equipe,
+          status: colabData.status, observacoes: colabData.observacoes,
+          foto: colabData.foto, postoId: colabData.postoId
+        });
+      } else {
+        await apiPut(`/colaboradores/${newId}`, {
+          matricula: colabData.matricula, nome: colabData.nome,
+          funcao: colabData.funcao, dataAdmissao: colabData.dataAdmissao,
+          escala: colabData.escala, equipe: colabData.equipe,
+          status: colabData.status, observacoes: colabData.observacoes,
+          foto: colabData.foto, postoId: colabData.postoId
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao salvar colaborador:', err.message);
+      showToast('⚠️ Erro ao salvar no banco: ' + err.message, 'warning');
+    }
   });
 
   // Delete Colab
-  elements.btnDeleteColab.addEventListener('click', () => {
+  elements.btnDeleteColab.addEventListener('click', async () => {
     if (!currentEditingColab) return;
     if (confirm(`Tem certeza que deseja excluir o crachá de ${currentEditingColab.nome}?`)) {
       const id = currentEditingColab.id;
-      // Remove from everywhere
-      state.posts.forEach(p => {
-        p.employees = p.employees.filter(e => e.id !== id);
-      });
+      state.posts.forEach(p => { p.employees = p.employees.filter(e => e.id !== id); });
       state.reserve = state.reserve.filter(e => e.id !== id);
 
       saveState(true);
       closeColabModal();
       renderAll();
       showToast('Colaborador excluído.');
+
+      try {
+        await apiDelete(`/colaboradores/${id}`);
+      } catch (err) {
+        console.error('Erro ao excluir no banco:', err.message);
+      }
     }
   });
 
@@ -1208,33 +1305,32 @@
     currentEditingPost = null;
   }
 
-  elements.formPosto.addEventListener('submit', (e) => {
+  elements.formPosto.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const id = elements.postoId.value || 'posto-' + (state.posts.length + 1);
+    const id = elements.postoId.value || 'posto-' + Date.now();
     const code = elements.postoCodigo.value.trim();
     const name = elements.postoNome.value.trim();
     const category = elements.postoCategoria.value;
     const address = elements.postoEndereco.value.trim();
+    const shortName = name.replace(/^\d+\s*-\s*PR\s*-\s*(SEG|POR)\s*-\s*/i, '').trim();
 
     if (currentEditingPost) {
       currentEditingPost.code = code;
       currentEditingPost.name = name;
-      currentEditingPost.shortName = name.replace(/^\d+\s*-\s*PR\s*-\s*(SEG|POR)\s*-\s*/i, '').trim();
+      currentEditingPost.shortName = shortName;
       currentEditingPost.category = category;
       currentEditingPost.address = address;
       showToast(`Posto ${currentEditingPost.shortName} atualizado.`);
+      try {
+        await apiPut(`/postos/${id}`, { code, name, shortName, category, address });
+      } catch (err) { console.error(err.message); }
     } else {
-      const newPost = {
-        id: id,
-        code: code,
-        name: name,
-        shortName: name.replace(/^\d+\s*-\s*PR\s*-\s*(SEG|POR)\s*-\s*/i, '').trim(),
-        category: category,
-        address: address,
-        employees: []
-      };
+      const newPost = { id, code, name, shortName, category, address, employees: [] };
       state.posts.unshift(newPost);
-      showToast(`Posto ${newPost.shortName} criado com sucesso!`);
+      showToast(`Posto ${newPost.shortName} criado!`);
+      try {
+        await apiPost('/postos', { id, code, name, shortName, category, address });
+      } catch (err) { console.error(err.message); }
     }
 
     saveState(true);
@@ -1242,22 +1338,20 @@
     renderAll();
   });
 
-  elements.btnDeletePosto.addEventListener('click', () => {
+  elements.btnDeletePosto.addEventListener('click', async () => {
     if (!currentEditingPost) return;
     if (confirm(`Excluir o posto "${currentEditingPost.name}"? Os crachás associados serão transferidos para o banco de reserva.`)) {
-      // Transfer employees to reserve
       currentEditingPost.employees.forEach(colab => {
-        colab.postoId = 'reserva';
-        colab.equipe = 'Reserva';
-        colab.status = 'Disponível';
+        colab.postoId = 'reserva'; colab.equipe = 'Reserva'; colab.status = 'Disponível';
         state.reserve.push(colab);
       });
-      state.posts = state.posts.filter(p => p.id !== currentEditingPost.id);
-
+      const postoId = currentEditingPost.id;
+      state.posts = state.posts.filter(p => p.id !== postoId);
       saveState(true);
       closePostModal();
       renderAll();
       showToast('Posto excluído e colaboradores movidos para a reserva.');
+      try { await apiDelete(`/postos/${postoId}`); } catch (err) { console.error(err.message); }
     }
   });
 
@@ -1415,10 +1509,9 @@
   }
 
   function resetToOriginalData() {
-    if (confirm('Atenção: Deseja restaurar o quadro para os dados originais da planilha? Todas as movimentações atuais serão substituídas.')) {
-      fallbackToInitial();
-      renderAll();
-      showToast('Dados restaurados a partir da planilha inicial.');
+    if (confirm('Atenção: Deseja recarregar o quadro com os dados do banco de dados?')) {
+      loadFromAPI();
+      showToast('Dados sincronizados com o banco de dados.');
     }
   }
 
@@ -1559,29 +1652,49 @@
     openAddColabToPost: (postId) => openNewColabModal(postId),
     openEditPostModal,
     triggerPhotoUpload: triggerDirectPhotoUpload,
-    toggleColabFerias: (colabId) => {
+    toggleColabFerias: async (colabId) => {
       for (const p of state.posts) {
         const colab = p.employees.find(e => e.id === colabId);
         if (colab) {
           const isFerias = colab.status === 'Férias' || (colab.equipe && colab.equipe.toLowerCase().includes('férias'));
+          let targetEquipe = '';
+          let targetStatus = '';
+          let targetEquipeOrigem = null;
+
           if (isFerias) {
-            colab.status = 'Ativo';
-            colab.equipe = colab.equipeOrigem || 'Equipe 1 (Ímpares)';
+            targetStatus = 'Ativo';
+            targetEquipe = colab.equipeOrigem || 'Equipe 1 (Ímpares)';
             delete colab.equipeOrigem;
+            colab.status = targetStatus;
+            colab.equipe = targetEquipe;
             showToast(`${colab.nome} retornou de férias para a ${colab.equipe}.`);
           } else {
-            colab.equipeOrigem = colab.equipe;
-            colab.status = 'Férias';
-            colab.equipe = 'Férias';
+            targetEquipeOrigem = colab.equipe;
+            targetStatus = 'Férias';
+            targetEquipe = 'Férias';
+            colab.equipeOrigem = targetEquipeOrigem;
+            colab.status = targetStatus;
+            colab.equipe = targetEquipe;
             showToast(`🌴 ${colab.nome} foi colocado em FÉRIAS no posto.`);
           }
           saveState(true);
           renderAll();
+
+          try {
+            await apiPost(`/colaboradores/${colabId}/mover`, {
+              postoId: p.id,
+              equipe: targetEquipe,
+              status: targetStatus,
+              equipeOrigem: targetEquipeOrigem
+            });
+          } catch (err) {
+            console.error('Erro ao atualizar férias no banco:', err);
+          }
           return;
         }
       }
     },
-    moveToReserve: (colabId) => {
+    moveToReserve: async (colabId) => {
       // Find and move directly
       for (const p of state.posts) {
         const idx = p.employees.findIndex(e => e.id === colabId);
@@ -1594,6 +1707,16 @@
           saveState(true);
           renderAll();
           showToast(`${colab.nome} movido para o banco de reserva.`);
+
+          try {
+            await apiPost(`/colaboradores/${colabId}/mover`, {
+              postoId: 'reserva',
+              equipe: 'Reserva',
+              status: colab.status
+            });
+          } catch (err) {
+            console.error('Erro ao mover para reserva no banco:', err);
+          }
           return;
         }
       }
