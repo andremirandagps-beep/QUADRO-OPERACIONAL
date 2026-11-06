@@ -1,6 +1,107 @@
 {
   "posts": [
     {
+      "id": "posto-gestao-operacional",
+      "code": "00001",
+      "name": "00001 - PR - GESTÃO OPERACIONAL E ADMINISTRATIVA",
+      "shortName": "GESTÃO E SUPERVISÃO OPERACIONAL",
+      "category": "Gestão Operacional",
+      "address": "Base Operacional Grupo GPS - Curitiba / PR",
+      "employees": [
+        {
+          "id": "emp-gest-01",
+          "matricula": "100001",
+          "nome": "GERENTE OPERACIONAL",
+          "funcao": "GERENTE OPERACIONAL",
+          "escala": "COMERCIAL / ADM (08:00 ÀS 18:00)",
+          "equipe": "Equipe 1 (Ímpares)",
+          "dataAdmissao": "01/01/2020",
+          "status": "Ativo",
+          "observacoes": "Gerência Geral de Operações",
+          "foto": "",
+          "postoId": "posto-gestao-operacional"
+        },
+        {
+          "id": "emp-gest-02",
+          "matricula": "100002",
+          "nome": "COORDENADOR OPERACIONAL",
+          "funcao": "COORDENADOR OPERACIONAL",
+          "escala": "COMERCIAL / ADM (08:00 ÀS 18:00)",
+          "equipe": "Equipe 1 (Ímpares)",
+          "dataAdmissao": "15/03/2021",
+          "status": "Ativo",
+          "observacoes": "Coordenação de Segurança e Facilities",
+          "foto": "",
+          "postoId": "posto-gestao-operacional"
+        },
+        {
+          "id": "emp-gest-03",
+          "matricula": "100003",
+          "nome": "SUPERVISOR OPERACIONAL I",
+          "funcao": "SUPERVISOR OPERACIONAL",
+          "escala": "ESCALA 12X36 - 07:00 ÀS 19:00",
+          "equipe": "Equipe 1 (Ímpares)",
+          "dataAdmissao": "10/05/2022",
+          "status": "Ativo",
+          "observacoes": "Supervisão de Campo - Equipe 1",
+          "foto": "",
+          "postoId": "posto-gestao-operacional"
+        },
+        {
+          "id": "emp-gest-04",
+          "matricula": "100004",
+          "nome": "SUPERVISOR OPERACIONAL II",
+          "funcao": "SUPERVISOR OPERACIONAL",
+          "escala": "ESCALA 12X36 - 19:00 ÀS 07:00",
+          "equipe": "Equipe 2 (Pares)",
+          "dataAdmissao": "20/08/2022",
+          "status": "Ativo",
+          "observacoes": "Supervisão de Campo - Noturno",
+          "foto": "",
+          "postoId": "posto-gestao-operacional"
+        },
+        {
+          "id": "emp-gest-05",
+          "matricula": "100005",
+          "nome": "SUPERVISOR OPERACIONAL III",
+          "funcao": "SUPERVISOR OPERACIONAL",
+          "escala": "ESCALA 12X36 - 07:00 ÀS 19:00",
+          "equipe": "Equipe 2 (Pares)",
+          "dataAdmissao": "05/02/2023",
+          "status": "Ativo",
+          "observacoes": "Supervisão de Campo - Equipe 2",
+          "foto": "",
+          "postoId": "posto-gestao-operacional"
+        },
+        {
+          "id": "emp-gest-06",
+          "matricula": "100006",
+          "nome": "ASSISTENTE ADMINISTRATIVO I",
+          "funcao": "ASSISTENTE ADMINISTRATIVO",
+          "escala": "COMERCIAL (08:00 ÀS 17:48)",
+          "equipe": "Equipe 1 (Ímpares)",
+          "dataAdmissao": "12/04/2023",
+          "status": "Ativo",
+          "observacoes": "Apoio Administrativo e Escalas",
+          "foto": "",
+          "postoId": "posto-gestao-operacional"
+        },
+        {
+          "id": "emp-gest-07",
+          "matricula": "100007",
+          "nome": "ASSISTENTE ADMINISTRATIVO II",
+          "funcao": "ASSISTENTE ADMINISTRATIVO",
+          "escala": "COMERCIAL (08:00 ÀS 17:48)",
+          "equipe": "Equipe 2 (Pares)",
+          "dataAdmissao": "18/09/2023",
+          "status": "Ativo",
+          "observacoes": "Apoio Operacional e Atendimento",
+          "foto": "",
+          "postoId": "posto-gestao-operacional"
+        }
+      ]
+    },
+    {
       "id": "posto-1",
       "code": "00527",
       "name": "00527 - PR - SEG - TEGMA",

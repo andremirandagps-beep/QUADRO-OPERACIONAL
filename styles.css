@@ -967,6 +967,26 @@ html, body {
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
+.cracha-funcao-tag.gerente {
+  background: linear-gradient(135deg, #b91c1c, #dc2626);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
+}
+.cracha-funcao-tag.coordenador {
+  background: linear-gradient(135deg, #7c2d12, #ea580c);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.4);
+}
+.cracha-funcao-tag.supervisor, .cracha-funcao-tag.lider {
+  background: linear-gradient(135deg, #581c87, #7e22ce);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(126, 34, 206, 0.4);
+}
+.cracha-funcao-tag.administrativo {
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(13, 148, 136, 0.4);
+}
 .cracha-funcao-tag.vigilante {
   background: #1e3a8a;
   color: #ffffff;

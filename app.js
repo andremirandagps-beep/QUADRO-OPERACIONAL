@@ -701,7 +701,11 @@
     // Role css class
     let roleClass = 'default';
     const roleUpper = (colab.funcao || '').toUpperCase();
-    if (roleUpper.includes('LIDER') || roleUpper.includes('SUPERV')) roleClass = 'lider';
+    if (roleUpper.includes('GERENTE')) roleClass = 'gerente';
+    else if (roleUpper.includes('COORDENADOR') || roleUpper.includes('COORD')) roleClass = 'coordenador';
+    else if (roleUpper.includes('SUPERVISOR') || roleUpper.includes('SUPERV')) roleClass = 'supervisor';
+    else if (roleUpper.includes('ADMINISTRATIVO') || roleUpper.includes('ASSISTENTE') || roleUpper.includes('ADM')) roleClass = 'administrativo';
+    else if (roleUpper.includes('LIDER')) roleClass = 'lider';
     else if (roleUpper.includes('VIGILANTE')) roleClass = 'vigilante';
     else if (roleUpper.includes('PORTEIRO') || roleUpper.includes('CONTROL')) roleClass = 'porteiro';
     else if (roleUpper.includes('FOLG') || roleUpper.includes('FER')) roleClass = 'folguista';
