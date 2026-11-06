@@ -101,7 +101,7 @@ function prepareStatements() {
       FROM postos p
       LEFT JOIN colaboradores c ON c.posto_id = p.id
       GROUP BY p.id
-      ORDER BY p.name
+      ORDER BY CASE WHEN p.id = 'posto-gestao-operacional' THEN 0 ELSE 1 END, p.name
     `),
     getPostoById: db.prepare('SELECT * FROM postos WHERE id = ?'),
     insertPosto: db.prepare(`
@@ -288,7 +288,10 @@ function migrateFromJson() {
 // DB API FUNCTIONS
 // ========================================================
 function getFullState() {
-  const postos = db.prepare(`SELECT * FROM postos ORDER BY name`).all();
+  const postos = db.prepare(`
+    SELECT * FROM postos 
+    ORDER BY CASE WHEN id = 'posto-gestao-operacional' THEN 0 ELSE 1 END, name
+  `).all();
   const colaboradores = db.prepare(`SELECT * FROM colaboradores`).all();
 
   const postoMap = {};

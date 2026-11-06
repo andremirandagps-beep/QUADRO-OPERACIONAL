@@ -487,13 +487,51 @@
     return true;
   }
 
+  function sortPosts(posts) {
+    return [...posts].sort((a, b) => {
+      if (a.id === 'posto-gestao-operacional') return -1;
+      if (b.id === 'posto-gestao-operacional') return 1;
+      return 0;
+    });
+  }
+
+  function sortEmployeesByHierarchy(employees) {
+    const hierarchy = {
+      'GERENTE OPERACIONAL': 1,
+      'GERENTE': 2,
+      'COORDENADOR OPERACIONAL': 3,
+      'COORDENADOR': 4,
+      'SUPERVISOR OPERACIONAL': 5,
+      'SUPERVISOR': 6,
+      'LIDER': 7,
+      'ASSISTENTE ADMINISTRATIVO': 8,
+      'ADMINISTRATIVO': 9,
+      'VIGILANTE': 20,
+      'PORTEIRO': 21
+    };
+
+    return [...employees].sort((a, b) => {
+      const getRank = (func) => {
+        const upper = (func || '').toUpperCase();
+        for (const [key, rank] of Object.entries(hierarchy)) {
+          if (upper.includes(key)) return rank;
+        }
+        return 50;
+      };
+      return getRank(a.funcao) - getRank(b.funcao);
+    });
+  }
+
   function renderBoard() {
     elements.postsGrid.innerHTML = '';
     elements.postsGrid.className = 'posts-grid' + (currentViewMode === 'compact' ? ' view-compact-grid' : '');
 
-    state.posts.forEach(post => {
+    const orderedPosts = sortPosts(state.posts);
+
+    orderedPosts.forEach(post => {
       // Filter employees
-      const filteredEmployees = post.employees.filter(c => isColabMatchingFilter(c, post));
+      let filteredEmployees = post.employees.filter(c => isColabMatchingFilter(c, post));
+      filteredEmployees = sortEmployeesByHierarchy(filteredEmployees);
 
       // If user is searching and no match in this post, skip post
       if (currentFilter.search && filteredEmployees.length === 0 && !post.name.toLowerCase().includes(currentFilter.search.toLowerCase())) {

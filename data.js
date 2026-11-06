@@ -6,7 +6,7 @@ window.INITIAL_OPERATIONAL_DATA = {
       "name": "00001 - PR - GESTÃO OPERACIONAL E ADMINISTRATIVA",
       "shortName": "GESTÃO E SUPERVISÃO OPERACIONAL",
       "category": "Gestão Operacional",
-      "address": "Base Operacional Grupo GPS - Curitiba / PR",
+      "address": "ROD DEP JOAO LEOPOLDO JACOMEL, 12813",
       "employees": [
         {
           "id": "emp-gest-01",
