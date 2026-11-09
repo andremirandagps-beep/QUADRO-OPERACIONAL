@@ -17,3 +17,7 @@ database/*.db-shm
 # Antigravity / editor
 .gemini/
 
+# Browser exports
+*.html.baixados
+*Quadro Operacional de Postos de Trabalho*
+

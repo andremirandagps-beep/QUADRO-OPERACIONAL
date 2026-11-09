@@ -631,6 +631,10 @@ html, body {
   gap: 12px;
 }
 
+.posto-teams-wrapper.gestao-teams-wrapper {
+  grid-template-columns: 2.2fr 1fr;
+}
+
 .team-column {
   background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
@@ -649,6 +653,22 @@ html, body {
   font-size: 12px;
   font-weight: 700;
   border-radius: 7px 7px 0 0;
+}
+
+.team-column.team-gestao {
+  background: rgba(14, 165, 233, 0.05);
+  border-color: rgba(14, 165, 233, 0.25);
+}
+.team-column.team-gestao .team-column-header {
+  background: rgba(14, 165, 233, 0.16);
+  color: #38bdf8;
+  border-bottom: 1px solid rgba(14, 165, 233, 0.2);
+}
+.team-column.team-gestao .drop-zone {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+  align-content: start;
 }
 
 .team-column.team-1 {
@@ -836,6 +856,10 @@ html, body {
 .cracha-equipe-pill.equipe-2 {
   background: #f3e8ff;
   color: #7e22ce;
+}
+.cracha-equipe-pill.gestao {
+  background: #e0f2fe;
+  color: #0369a1;
 }
 .cracha-equipe-pill.reserva {
   background: #ffedd5;
@@ -1525,7 +1549,8 @@ html, body {
    RESPONSIVENESS
    ======================================================== */
 @media (max-width: 1200px) {
-  .posto-teams-wrapper {
+  .posto-teams-wrapper,
+  .posto-teams-wrapper.gestao-teams-wrapper {
     grid-template-columns: 1fr 1fr;
   }
   .team-column.team-ferias {
@@ -1556,7 +1581,8 @@ html, body {
   .posts-grid {
     grid-template-columns: 1fr;
   }
-  .posto-teams-wrapper {
+  .posto-teams-wrapper,
+  .posto-teams-wrapper.gestao-teams-wrapper {
     grid-template-columns: 1fr;
   }
 }

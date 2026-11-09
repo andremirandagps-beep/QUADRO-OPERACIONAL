@@ -138,6 +138,20 @@
     loadFromAPI();
   }
 
+  function normalizeState(st) {
+    if (!st || !st.posts) return;
+    st.posts.forEach(p => {
+      const isGestao = p.id === 'posto-gestao-operacional' || p.code === '00001' || (p.category && p.category.toLowerCase().includes('gestão'));
+      if (isGestao && Array.isArray(p.employees)) {
+        p.employees.forEach(c => {
+          if (c.equipe && (c.equipe.includes('1') || c.equipe.includes('2'))) {
+            c.equipe = 'Gestão';
+          }
+        });
+      }
+    });
+  }
+
   async function loadFromAPI() {
     // Primeiro tenta carregar do backend local
     try {
@@ -148,6 +162,7 @@
 
       if (res.ok) {
         state = await res.json();
+        normalizeState(state);
         isOfflineMode = false;
         renderAll();
         return;
@@ -162,6 +177,7 @@
     if (saved) {
       try {
         state = JSON.parse(saved);
+        normalizeState(state);
         renderAll();
         return;
       } catch (e) {
@@ -172,6 +188,7 @@
     // Se não tiver no localStorage, usa os dados da planilha embutidos
     if (window.INITIAL_OPERATIONAL_DATA) {
       state = JSON.parse(JSON.stringify(window.INITIAL_OPERATIONAL_DATA));
+      normalizeState(state);
       renderAll();
     }
   }
@@ -460,7 +477,10 @@
     if (currentFilter.equipe !== 'all') {
       if (currentFilter.equipe === 'Reserva') {
         if (colab.postoId !== 'reserva') return false;
-      } else if (!colab.equipe.includes(currentFilter.equipe)) {
+      } else if (currentFilter.equipe === 'Gestão') {
+        const isGest = (colab.equipe && colab.equipe.includes('Gestão')) || colab.postoId === 'posto-gestao-operacional';
+        if (!isGest) return false;
+      } else if (!colab.equipe || !colab.equipe.includes(currentFilter.equipe)) {
         return false;
       }
     }
@@ -588,7 +608,74 @@
       const body = document.createElement('div');
       body.className = 'posto-body';
 
-      if (currentViewMode === 'dual') {
+      const isGestao = post.id === 'posto-gestao-operacional' || post.code === '00001' || (post.category && post.category.toLowerCase().includes('gestão'));
+
+      if (isGestao) {
+        // Posto de Gestão não possui divisão de escala/equipe 1 e 2
+        const wrapper = document.createElement('div');
+        wrapper.className = 'posto-teams-wrapper gestao-teams-wrapper';
+
+        // Separate into active and férias
+        const feriasColabs = filteredEmployees.filter(e => 
+          e.status === 'Férias' || 
+          (e.equipe && e.equipe.toLowerCase().includes('férias')) ||
+          (e.observacoes && e.observacoes.toUpperCase().includes('FÉRIAS'))
+        );
+
+        const gestaoColabs = filteredEmployees.filter(e => !feriasColabs.includes(e));
+
+        // 1. Coluna de Gestão
+        const gestaoCol = document.createElement('div');
+        gestaoCol.className = 'team-column team-gestao';
+        gestaoCol.innerHTML = `
+          <div class="team-column-header">
+            <span>EQUIPE DE GESTÃO</span>
+            <span class="team-count">${gestaoColabs.length}</span>
+          </div>
+        `;
+        const dropGestao = document.createElement('div');
+        dropGestao.className = 'drop-zone';
+        dropGestao.dataset.postoId = post.id;
+        dropGestao.dataset.equipeTarget = 'Gestão';
+        setupDropZoneEvents(dropGestao);
+
+        if (gestaoColabs.length === 0) {
+          dropGestao.innerHTML = `<div class="drop-zone-empty-hint">Nenhum gestor ativo. Arraste crachás para cá.</div>`;
+        } else {
+          gestaoColabs.forEach(colab => {
+            dropGestao.appendChild(createCrachaElement(colab, post));
+          });
+        }
+        gestaoCol.appendChild(dropGestao);
+        wrapper.appendChild(gestaoCol);
+
+        // 2. Coluna Férias no Mês
+        const teamFeriasCol = document.createElement('div');
+        teamFeriasCol.className = 'team-column team-ferias';
+        teamFeriasCol.innerHTML = `
+          <div class="team-column-header">
+            <span>🌴 FÉRIAS NO MÊS</span>
+            <span class="team-count" style="background:#d97706;color:#fff;">${feriasColabs.length}</span>
+          </div>
+        `;
+        const dropFerias = document.createElement('div');
+        dropFerias.className = 'drop-zone';
+        dropFerias.dataset.postoId = post.id;
+        dropFerias.dataset.equipeTarget = 'Férias';
+        setupDropZoneEvents(dropFerias);
+
+        if (feriasColabs.length === 0) {
+          dropFerias.innerHTML = `<div class="drop-zone-empty-hint" style="font-size:11px;">Arraste aqui quem estiver de férias no mês</div>`;
+        } else {
+          feriasColabs.forEach(colab => {
+            dropFerias.appendChild(createCrachaElement(colab, post));
+          });
+        }
+        teamFeriasCol.appendChild(dropFerias);
+        wrapper.appendChild(teamFeriasCol);
+
+        body.appendChild(wrapper);
+      } else if (currentViewMode === 'dual') {
         // Triple column: Equipe 1, Equipe 2 & Férias no Mês
         const wrapper = document.createElement('div');
         wrapper.className = 'posto-teams-wrapper';
@@ -756,9 +843,16 @@
     else if (colab.postoId === 'reserva') statusClass = 'disponivel';
 
     // Equipe pill
+    const isColabGestao = (post && (post.id === 'posto-gestao-operacional' || post.code === '00001' || (post.category && post.category.toLowerCase().includes('gestão')))) ||
+      (colab.postoId === 'posto-gestao-operacional') ||
+      (colab.equipe === 'Gestão');
+
     let equipePillClass = 'reserva';
     let equipeLabel = colab.equipe || 'Reserva';
-    if (colab.equipe && colab.equipe.includes('1')) {
+    if (isColabGestao) {
+      equipePillClass = 'gestao';
+      equipeLabel = 'Gestão';
+    } else if (colab.equipe && colab.equipe.includes('1')) {
       equipePillClass = 'equipe-1';
       equipeLabel = 'Equipe 1 (Ímpar)';
     } else if (colab.equipe && colab.equipe.includes('2')) {
@@ -1015,6 +1109,10 @@
         } else {
           if (colab.status === 'Disponível') newStatus = 'Ativo';
           equipeOrigem = null;
+          const isTargetGestao = targetPost.id === 'posto-gestao-operacional' || targetPost.code === '00001' || (targetPost.category && targetPost.category.toLowerCase().includes('gestão'));
+          if (isTargetGestao) {
+            newEquipe = 'Gestão';
+          }
           showToast(`${colab.nome} → ${targetPost.shortName || targetPost.name}`);
         }
         colab.postoId = targetPost.id;
@@ -1079,8 +1177,9 @@
     elements.colabMatricula.value = found.matricula || '';
     elements.colabFuncao.value = found.funcao || 'VIGILANTE';
     elements.colabDataAdmissao.value = found.dataAdmissao || '';
-    elements.colabEscala.value = found.escala || 'ESCALA 12X36 - 19:00 ÀS 07:00';
-    elements.colabEquipe.value = found.equipe || 'Equipe 1 (Ímpares)';
+    const isGest = foundPostId === 'posto-gestao-operacional' || found.equipe === 'Gestão';
+    elements.colabEscala.value = found.escala || (isGest ? 'COMERCIAL / ADM (08:00 ÀS 18:00)' : 'ESCALA 12X36 - 19:00 ÀS 07:00');
+    elements.colabEquipe.value = found.equipe || (isGest ? 'Gestão' : 'Equipe 1 (Ímpares)');
     elements.colabStatus.value = found.status || 'Ativo';
     elements.colabPostoSelect.value = foundPostId;
     elements.colabObs.value = found.observacoes || '';
@@ -1094,15 +1193,16 @@
     currentEditingColab = null;
     currentEditingPhotoData = '';
 
+    const isGest = targetPostId === 'posto-gestao-operacional';
     elements.modalColabTitle.textContent = 'Cadastrar Novo Crachá';
     elements.colabId.value = '';
     elements.colabCurrentPostoId.value = targetPostId || 'reserva';
     elements.colabNome.value = '';
     elements.colabMatricula.value = '';
-    elements.colabFuncao.value = 'VIGILANTE';
+    elements.colabFuncao.value = isGest ? 'SUPERVISOR OPERACIONAL' : 'VIGILANTE';
     elements.colabDataAdmissao.value = getTodayFormatted();
-    elements.colabEscala.value = 'ESCALA 12X36 - 19:00 ÀS 07:00';
-    elements.colabEquipe.value = 'Equipe 1 (Ímpares)';
+    elements.colabEscala.value = isGest ? 'COMERCIAL / ADM (08:00 ÀS 18:00)' : 'ESCALA 12X36 - 19:00 ÀS 07:00';
+    elements.colabEquipe.value = isGest ? 'Gestão' : 'Equipe 1 (Ímpares)';
     elements.colabStatus.value = 'Ativo';
     elements.colabPostoSelect.value = targetPostId || 'reserva';
     elements.colabObs.value = '';
@@ -1732,15 +1832,17 @@
           let targetStatus = '';
           let targetEquipeOrigem = null;
 
+          const isPostGestao = (p.id === 'posto-gestao-operacional') || (p.code === '00001') || (p.category && p.category.toLowerCase().includes('gestão'));
+
           if (isFerias) {
             targetStatus = 'Ativo';
-            targetEquipe = colab.equipeOrigem || 'Equipe 1 (Ímpares)';
+            targetEquipe = colab.equipeOrigem || (isPostGestao ? 'Gestão' : 'Equipe 1 (Ímpares)');
             delete colab.equipeOrigem;
             colab.status = targetStatus;
             colab.equipe = targetEquipe;
-            showToast(`${colab.nome} retornou de férias para a ${colab.equipe}.`);
+            showToast(`${colab.nome} retornou de férias para ${colab.equipe}.`);
           } else {
-            targetEquipeOrigem = colab.equipe;
+            targetEquipeOrigem = colab.equipe || (isPostGestao ? 'Gestão' : 'Equipe 1 (Ímpares)');
             targetStatus = 'Férias';
             targetEquipe = 'Férias';
             colab.equipeOrigem = targetEquipeOrigem;
