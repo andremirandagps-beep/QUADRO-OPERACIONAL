@@ -64,6 +64,25 @@
     viewModeCompact: document.getElementById('view-mode-compact'),
     zoomRange: document.getElementById('zoom-range'),
 
+    // Auto-Scroll / Modo Apresentação (Play & Pause)
+    btnToggleAutoscroll: document.getElementById('btn-toggle-autoscroll'),
+    iconPlayMain: document.getElementById('icon-play-main'),
+    iconPauseMain: document.getElementById('icon-pause-main'),
+    labelAutoscrollMain: document.getElementById('label-autoscroll-main'),
+    selectAutoscrollSpeed: document.getElementById('select-autoscroll-speed'),
+
+    // Floating HUD
+    floatingHud: document.getElementById('floating-hud'),
+    hudStatusDot: document.getElementById('hud-status-dot'),
+    hudStatusText: document.getElementById('hud-status-text'),
+    hudBtnToggle: document.getElementById('hud-btn-toggle'),
+    hudIconPause: document.getElementById('hud-icon-pause'),
+    hudIconPlay: document.getElementById('hud-icon-play'),
+    hudBtnLabel: document.getElementById('hud-btn-label'),
+    hudSpeedSelect: document.getElementById('hud-speed-select'),
+    hudBtnTop: document.getElementById('hud-btn-top'),
+    hudBtnClose: document.getElementById('hud-btn-close'),
+
     // Top actions
     btnAddColab: document.getElementById('btn-add-colab'),
     btnAddPosto: document.getElementById('btn-add-posto'),
@@ -616,8 +635,8 @@
         wrapper.className = 'posto-teams-wrapper gestao-teams-wrapper';
 
         // Separate into active and férias
-        const feriasColabs = filteredEmployees.filter(e => 
-          e.status === 'Férias' || 
+        const feriasColabs = filteredEmployees.filter(e =>
+          e.status === 'Férias' ||
           (e.equipe && e.equipe.toLowerCase().includes('férias')) ||
           (e.observacoes && e.observacoes.toUpperCase().includes('FÉRIAS'))
         );
@@ -681,17 +700,17 @@
         wrapper.className = 'posto-teams-wrapper';
 
         // Separate employees into Equipe 1, Equipe 2, and Férias
-        const feriasColabs = filteredEmployees.filter(e => 
-          e.status === 'Férias' || 
+        const feriasColabs = filteredEmployees.filter(e =>
+          e.status === 'Férias' ||
           (e.equipe && e.equipe.toLowerCase().includes('férias')) ||
           (e.observacoes && e.observacoes.toUpperCase().includes('FÉRIAS'))
         );
 
-        const team1Colabs = filteredEmployees.filter(e => 
+        const team1Colabs = filteredEmployees.filter(e =>
           !feriasColabs.includes(e) && e.equipe && e.equipe.includes('1')
         );
 
-        const team2Colabs = filteredEmployees.filter(e => 
+        const team2Colabs = filteredEmployees.filter(e =>
           !feriasColabs.includes(e) && (!e.equipe || e.equipe.includes('2'))
         );
 
@@ -994,6 +1013,7 @@
   // ========================================================
   function setupCardDragEvents(card, colab) {
     card.addEventListener('dragstart', (e) => {
+      pauseAutoScroll('drag');
       draggedItem = {
         colabId: colab.id,
         sourcePostId: colab.postoId || 'reserva',
@@ -1167,6 +1187,7 @@
 
     if (!found) return;
 
+    pauseAutoScroll('modal');
     currentEditingColab = found;
     currentEditingPhotoData = found.foto || '';
 
@@ -1190,6 +1211,7 @@
   }
 
   function openNewColabModal(targetPostId = null) {
+    pauseAutoScroll('modal');
     currentEditingColab = null;
     currentEditingPhotoData = '';
 
@@ -1446,6 +1468,7 @@
   let currentEditingPost = null;
 
   function openNewPostModal() {
+    pauseAutoScroll('modal');
     currentEditingPost = null;
     elements.modalPostoTitle.textContent = 'Novo Posto de Trabalho';
     elements.postoId.value = '';
@@ -1460,6 +1483,7 @@
   function openEditPostModal(postId) {
     const post = state.posts.find(p => p.id === postId);
     if (!post) return;
+    pauseAutoScroll('modal');
     currentEditingPost = post;
     elements.modalPostoTitle.textContent = 'Editar Posto de Trabalho';
     elements.postoId.value = post.id;
@@ -1549,6 +1573,7 @@
   // PRINT PREVIEW & SHEET GENERATOR
   // ========================================================
   function openPrintModal() {
+    pauseAutoScroll('modal');
     renderPrintSheets();
     elements.modalPrintOverlay.classList.add('active');
   }
@@ -1687,6 +1712,247 @@
   }
 
   // ========================================================
+  // AUTO-SCROLL ENGINE (PLAY & PAUSE / MODO APRESENTAÇÃO)
+  // ========================================================
+  const autoScroll = {
+    isPlaying: false,
+    speed: 1.0,
+    basePxPerSec: 48,
+    animId: null,
+    lastTime: null,
+    fractionalPx: 0,
+    isWaitingAtBottom: false,
+    isRewinding: false,
+    waitTimeoutId: null,
+    userClosedHud: false
+  };
+
+  let lastPlayStartTime = 0;
+
+  function getPageScrollTop() {
+    return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  }
+
+  function getPageScrollHeight() {
+    return Math.max(
+      document.body ? document.body.scrollHeight : 0,
+      document.documentElement ? document.documentElement.scrollHeight : 0,
+      document.body ? document.body.offsetHeight : 0,
+      document.documentElement ? document.documentElement.offsetHeight : 0
+    );
+  }
+
+  function getPageMaxScroll() {
+    const total = getPageScrollHeight();
+    const view = window.innerHeight || document.documentElement.clientHeight || 0;
+    return Math.max(0, total - view);
+  }
+
+  function performScrollBy(deltaY) {
+    window.scrollBy(0, deltaY);
+    if (document.documentElement.scrollTop === 0 && document.body && document.body.scrollTop !== undefined && deltaY > 0) {
+      document.body.scrollTop += deltaY;
+    }
+  }
+
+  function performScrollToTop(smooth = true) {
+    window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+    if (document.body && document.body.scrollTop > 0) {
+      document.body.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+    }
+  }
+
+  function updateAutoScrollUI() {
+    const isRunning = autoScroll.isPlaying || autoScroll.isWaitingAtBottom || autoScroll.isRewinding;
+
+    // Header / Controls Bar Button
+    if (elements.btnToggleAutoscroll) {
+      if (isRunning) {
+        elements.btnToggleAutoscroll.classList.add('is-playing');
+        elements.btnToggleAutoscroll.classList.remove('is-paused');
+        if (elements.iconPlayMain) elements.iconPlayMain.style.display = 'none';
+        if (elements.iconPauseMain) elements.iconPauseMain.style.display = 'block';
+        if (elements.labelAutoscrollMain) elements.labelAutoscrollMain.textContent = 'Pausar';
+        elements.btnToggleAutoscroll.setAttribute('title', 'Pausar movimentação do quadro (Espaço)');
+      } else {
+        elements.btnToggleAutoscroll.classList.remove('is-playing');
+        elements.btnToggleAutoscroll.classList.add('is-paused');
+        if (elements.iconPlayMain) elements.iconPlayMain.style.display = 'block';
+        if (elements.iconPauseMain) elements.iconPauseMain.style.display = 'none';
+        if (elements.labelAutoscrollMain) elements.labelAutoscrollMain.textContent = 'Play';
+        elements.btnToggleAutoscroll.setAttribute('title', 'Mover quadro automaticamente (Espaço)');
+      }
+    }
+
+    // Floating HUD
+    if (elements.floatingHud) {
+      if (isRunning) {
+        if (!autoScroll.userClosedHud) {
+          elements.floatingHud.style.display = 'flex';
+          elements.floatingHud.classList.remove('hud-hidden');
+        }
+        if (elements.hudBtnToggle) {
+          elements.hudBtnToggle.classList.add('is-playing');
+          if (elements.hudIconPause) elements.hudIconPause.style.display = 'block';
+          if (elements.hudIconPlay) elements.hudIconPlay.style.display = 'none';
+          if (elements.hudBtnLabel) elements.hudBtnLabel.textContent = 'Pausar';
+        }
+      } else {
+        if (elements.hudBtnToggle) {
+          elements.hudBtnToggle.classList.remove('is-playing');
+          if (elements.hudIconPause) elements.hudIconPause.style.display = 'none';
+          if (elements.hudIconPlay) elements.hudIconPlay.style.display = 'block';
+          if (elements.hudBtnLabel) elements.hudBtnLabel.textContent = 'Play';
+        }
+      }
+    }
+  }
+
+  function showHudStatus(text, dotClass = 'active-green') {
+    if (elements.hudStatusText) elements.hudStatusText.textContent = text;
+    if (elements.hudStatusDot) {
+      elements.hudStatusDot.className = 'hud-status-dot ' + dotClass;
+    }
+  }
+
+  function startAutoScroll() {
+    if (autoScroll.isPlaying) return;
+    autoScroll.isPlaying = true;
+    autoScroll.lastTime = null;
+    autoScroll.fractionalPx = 0;
+    autoScroll.isWaitingAtBottom = false;
+    autoScroll.isRewinding = false;
+    autoScroll.userClosedHud = false;
+    lastPlayStartTime = Date.now();
+
+    updateAutoScrollUI();
+
+    const maxScroll = getPageMaxScroll();
+    const currentY = getPageScrollTop();
+    if (maxScroll > 50 && currentY >= maxScroll - 15) {
+      showHudStatus('Retornando ao topo para iniciar...', 'rewind-blue');
+      performScrollToTop(true);
+      setTimeout(() => {
+        if (autoScroll.isPlaying) {
+          showHudStatus('Quadro em movimento • [Espaço] para pausar', 'active-green');
+          autoScroll.animId = requestAnimationFrame(autoScrollLoop);
+        }
+      }, 1200);
+      return;
+    }
+
+    showHudStatus('Quadro em movimento • [Espaço] para pausar', 'active-green');
+    autoScroll.animId = requestAnimationFrame(autoScrollLoop);
+  }
+
+  function pauseAutoScroll(reason = '') {
+    if (!autoScroll.isPlaying && !autoScroll.isWaitingAtBottom && !autoScroll.isRewinding) return;
+
+    autoScroll.isPlaying = false;
+    autoScroll.isWaitingAtBottom = false;
+    autoScroll.isRewinding = false;
+
+    if (autoScroll.waitTimeoutId) {
+      clearTimeout(autoScroll.waitTimeoutId);
+      autoScroll.waitTimeoutId = null;
+    }
+    if (autoScroll.animId) {
+      cancelAnimationFrame(autoScroll.animId);
+      autoScroll.animId = null;
+    }
+
+    updateAutoScrollUI();
+
+    let msg = 'Quadro pausado • [Espaço] para continuar';
+    if (reason === 'wheel') {
+      msg = 'Pausado por rolagem manual • [Espaço] para continuar';
+    } else if (reason === 'touch') {
+      msg = 'Pausado por toque na tela • [Espaço] para continuar';
+    } else if (reason === 'drag') {
+      msg = 'Pausado para movimentar crachá';
+    } else if (reason === 'modal') {
+      msg = 'Pausado para edição';
+    }
+    showHudStatus(msg, 'paused-yellow');
+  }
+
+  function toggleAutoScroll() {
+    if (autoScroll.isPlaying || autoScroll.isWaitingAtBottom || autoScroll.isRewinding) {
+      pauseAutoScroll('user');
+    } else {
+      startAutoScroll();
+    }
+  }
+
+  function autoScrollLoop(timestamp) {
+    if (!autoScroll.isPlaying) return;
+
+    if (autoScroll.lastTime === null) {
+      autoScroll.lastTime = timestamp;
+    }
+
+    let dt = (timestamp - autoScroll.lastTime) / 1000;
+    autoScroll.lastTime = timestamp;
+
+    if (dt > 0.1) dt = 0.1;
+
+    const maxScroll = getPageMaxScroll();
+
+    if (maxScroll <= 20) {
+      showHudStatus('Todo o quadro está visível na tela', 'paused-yellow');
+      pauseAutoScroll();
+      return;
+    }
+
+    const currentY = getPageScrollTop();
+    if (currentY >= maxScroll - 6) {
+      handleBottomReached();
+      return;
+    }
+
+    const pxToMove = autoScroll.basePxPerSec * autoScroll.speed * dt;
+    autoScroll.fractionalPx += pxToMove;
+
+    if (autoScroll.fractionalPx >= 1) {
+      const moveInt = Math.floor(autoScroll.fractionalPx);
+      autoScroll.fractionalPx -= moveInt;
+      performScrollBy(moveInt);
+    }
+
+    autoScroll.animId = requestAnimationFrame(autoScrollLoop);
+  }
+
+  function handleBottomReached() {
+    autoScroll.isWaitingAtBottom = true;
+    if (autoScroll.animId) {
+      cancelAnimationFrame(autoScroll.animId);
+      autoScroll.animId = null;
+    }
+
+    showHudStatus('Fim do quadro alcançado. Reiniciando em 4s...', 'paused-yellow');
+
+    autoScroll.waitTimeoutId = setTimeout(() => {
+      if (!autoScroll.isPlaying) return;
+
+      autoScroll.isRewinding = true;
+      showHudStatus('Retornando ao início do quadro...', 'rewind-blue');
+
+      performScrollToTop(true);
+
+      autoScroll.waitTimeoutId = setTimeout(() => {
+        if (!autoScroll.isPlaying) return;
+        autoScroll.isRewinding = false;
+        autoScroll.isWaitingAtBottom = false;
+        autoScroll.lastTime = null;
+        autoScroll.fractionalPx = 0;
+        showHudStatus('Quadro em movimento • [Espaço] para pausar', 'active-green');
+        autoScroll.animId = requestAnimationFrame(autoScrollLoop);
+      }, 1800);
+
+    }, 4000);
+  }
+
+  // ========================================================
   // EVENT LISTENERS & SHORTCUTS
   // ========================================================
   function setupEventListeners() {
@@ -1756,6 +2022,65 @@
     elements.btnUndo.addEventListener('click', undoLastAction);
     elements.btnToggleTheme.addEventListener('click', toggleTheme);
 
+    // Auto-Scroll Play / Pause controls
+    if (elements.btnToggleAutoscroll) {
+      elements.btnToggleAutoscroll.addEventListener('click', toggleAutoScroll);
+    }
+    if (elements.hudBtnToggle) {
+      elements.hudBtnToggle.addEventListener('click', toggleAutoScroll);
+    }
+    if (elements.selectAutoscrollSpeed) {
+      elements.selectAutoscrollSpeed.addEventListener('change', (e) => {
+        const val = parseFloat(e.target.value) || 1.0;
+        autoScroll.speed = val;
+        if (elements.hudSpeedSelect) elements.hudSpeedSelect.value = e.target.value;
+      });
+    }
+    if (elements.hudSpeedSelect) {
+      elements.hudSpeedSelect.addEventListener('change', (e) => {
+        const val = parseFloat(e.target.value) || 1.0;
+        autoScroll.speed = val;
+        if (elements.selectAutoscrollSpeed) elements.selectAutoscrollSpeed.value = e.target.value;
+      });
+    }
+    if (elements.hudBtnTop) {
+      elements.hudBtnTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showHudStatus('Retornando ao topo...', 'rewind-blue');
+        if (autoScroll.isPlaying) {
+          setTimeout(() => {
+            showHudStatus('Quadro em movimento • [Espaço] para pausar', 'active-green');
+          }, 1200);
+        }
+      });
+    }
+    if (elements.hudBtnClose) {
+      elements.hudBtnClose.addEventListener('click', () => {
+        autoScroll.userClosedHud = true;
+        elements.floatingHud.classList.add('hud-hidden');
+        setTimeout(() => {
+          elements.floatingHud.style.display = 'none';
+        }, 300);
+      });
+    }
+
+    // Pause on manual wheel interaction
+    window.addEventListener('wheel', (e) => {
+      if (Date.now() - lastPlayStartTime < 600) return;
+      if (Math.abs(e.deltaY) < 4) return;
+      if (autoScroll.isPlaying && !autoScroll.isRewinding) {
+        pauseAutoScroll('wheel');
+      }
+    }, { passive: true });
+
+    // Pause on touch gesture on mobile/tablet
+    window.addEventListener('touchstart', (e) => {
+      if (Date.now() - lastPlayStartTime < 600) return;
+      if (autoScroll.isPlaying && !e.target.closest('#floating-hud') && !e.target.closest('#btn-toggle-autoscroll')) {
+        pauseAutoScroll('touch');
+      }
+    }, { passive: true });
+
     // Reserve drawer collapse toggle
     const toggleReserve = () => elements.reserveDrawer.classList.toggle('collapsed');
     elements.reserveHeader.addEventListener('click', toggleReserve);
@@ -1812,6 +2137,17 @@
         e.preventDefault();
         elements.inputSearch.focus();
       }
+
+      // Space or 'P' to toggle Auto-Scroll (Play / Pause)
+      const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
+      const isModalOpen = (elements.modalColabOverlay?.classList.contains('active')) ||
+        (elements.modalPostoOverlay?.classList.contains('active')) ||
+        (elements.modalPrintOverlay?.classList.contains('active'));
+
+      if ((e.code === 'Space' || e.key === ' ' || e.key === 'p' || e.key === 'P') && !isTyping && !isModalOpen) {
+        e.preventDefault();
+        toggleAutoScroll();
+      }
     });
   }
 
@@ -1819,6 +2155,9 @@
   // GLOBAL API EXPOSURE FOR INLINE EVENTS
   // ========================================================
   window.QuadroApp = {
+    toggleAutoScroll,
+    startAutoScroll,
+    pauseAutoScroll,
     openEditColabModal,
     openAddColabToPost: (postId) => openNewColabModal(postId),
     openEditPostModal,

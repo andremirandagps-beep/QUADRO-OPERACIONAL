@@ -226,6 +226,27 @@
         </svg>
       </div>
 
+      <!-- Auto-Scroll / Modo Apresentação (Play e Pause) -->
+      <div class="autoscroll-control-group" id="autoscroll-control-group">
+        <button class="btn btn-autoscroll" id="btn-toggle-autoscroll" title="Mover quadro automaticamente / Pausar (Atalho: Barra de Espaço)">
+          <svg class="autoscroll-icon-play" id="icon-play-main" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <svg class="autoscroll-icon-pause" id="icon-pause-main" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:none;">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+          <span id="label-autoscroll-main">Play</span>
+        </button>
+
+        <select id="select-autoscroll-speed" class="select-filter select-autoscroll-speed" title="Velocidade da movimentação">
+          <option value="0.6">0.5x Lento</option>
+          <option value="1.0" selected>1x Normal</option>
+          <option value="1.8">2x Rápido</option>
+          <option value="2.8">3x Veloz</option>
+        </select>
+      </div>
+
       <!-- Quick Toggle for Reserve Drawer -->
       <button class="btn btn-outline" id="btn-toggle-reserve" title="Abrir banco de reserva / colaboradores disponíveis">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -495,6 +516,45 @@
           <!-- Rendered printable badges -->
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Floating Auto-Scroll HUD (Modo Apresentação / TV) -->
+  <div class="floating-autoscroll-hud" id="floating-hud" style="display:none;">
+    <div class="hud-drag-handle" title="Status da Rolagem">
+      <span class="hud-status-dot active-green" id="hud-status-dot"></span>
+      <span class="hud-status-text" id="hud-status-text">Quadro em movimento</span>
+    </div>
+    <div class="hud-controls">
+      <button class="hud-btn hud-btn-playpause is-playing" id="hud-btn-toggle" title="Pausar ou Continuar (Espaço)">
+        <svg id="hud-icon-pause" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+          <rect x="6" y="4" width="4" height="16"/>
+          <rect x="14" y="4" width="4" height="16"/>
+        </svg>
+        <svg id="hud-icon-play" viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="display:none;">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <span id="hud-btn-label">Pausar</span>
+      </button>
+
+      <div class="hud-speed-pill">
+        <label for="hud-speed-select">Vel:</label>
+        <select id="hud-speed-select" class="hud-select-speed" title="Ajustar velocidade">
+          <option value="0.6">0.5x</option>
+          <option value="1.0" selected>1.0x</option>
+          <option value="1.8">2.0x</option>
+          <option value="2.8">3.0x</option>
+        </select>
+      </div>
+
+      <button class="hud-btn hud-btn-outline" id="hud-btn-top" title="Voltar ao início do quadro">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="18 15 12 9 6 15"/>
+        </svg>
+        <span>Início</span>
+      </button>
+
+      <button class="hud-btn-close" id="hud-btn-close" title="Ocultar barra flutuante">&times;</button>
     </div>
   </div>
 
