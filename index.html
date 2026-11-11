@@ -198,7 +198,7 @@
             <rect x="3" y="3" width="8" height="18" rx="1"/>
             <rect x="13" y="3" width="8" height="18" rx="1"/>
           </svg>
-          Colunas 1 e 2
+          <span>Colunas 1 e 2</span>
         </button>
         <button class="view-btn" id="view-mode-compact" title="Visualização Unificada dos Crachás">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
@@ -206,7 +206,7 @@
             <line x1="3" y1="9" x2="21" y2="9"/>
             <line x1="9" y1="21" x2="9" y2="9"/>
           </svg>
-          Geral
+          <span>Geral</span>
         </button>
       </div>
 
@@ -248,12 +248,13 @@
       </div>
 
       <!-- Quick Toggle for Reserve Drawer -->
-      <button class="btn btn-outline" id="btn-toggle-reserve" title="Abrir banco de reserva / colaboradores disponíveis">
+      <button class="btn btn-reserve-toggle" id="btn-toggle-reserve" title="Abrir banco de reserva / colaboradores disponíveis">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
           <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
         </svg>
-        <span>Banco de Reserva (<span id="btn-reserve-badge">0</span>)</span>
+        <span>Banco de Reserva</span>
+        <span class="reserve-badge-pill" id="btn-reserve-badge">0</span>
       </button>
     </div>
   </section>
@@ -435,6 +436,57 @@
             <button type="button" class="btn btn-outline" id="btn-cancel-colab">Cancelar</button>
             <button type="submit" class="btn btn-primary" id="btn-save-colab">Salvar Crachá</button>
           </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Alocar Colaborador do Banco de Reserva -->
+  <div class="modal-overlay" id="modal-allocate-overlay">
+    <div class="modal-card modal-sm">
+      <div class="modal-header">
+        <h3 id="modal-allocate-title">Alocar Colaborador em Posto</h3>
+        <button class="btn-modal-close" id="btn-close-allocate-modal">&times;</button>
+      </div>
+      <form id="form-allocate" class="modal-body">
+        <input type="hidden" id="allocate-colab-id">
+        
+        <div class="allocate-colab-banner" id="allocate-colab-banner">
+          <div class="allocate-avatar-box" id="allocate-avatar-preview"></div>
+          <div class="allocate-info-box">
+            <h4 id="allocate-colab-name">Nome do Colaborador</h4>
+            <div class="allocate-meta">
+              <span id="allocate-colab-matricula">MAT: ---</span> &bull; 
+              <span id="allocate-colab-funcao">FUNÇÃO</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label for="allocate-posto-select">Posto de Trabalho de Destino *</label>
+          <select id="allocate-posto-select" class="form-control" required style="width: 100%; height: 38px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-primary); padding: 0 10px; font-size: 13px;">
+            <!-- Preenchido via JS com todos os postos -->
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 14px;">
+          <label for="allocate-equipe-select">Equipe / Escala de Destino *</label>
+          <select id="allocate-equipe-select" class="form-control" required style="width: 100%; height: 38px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-primary); padding: 0 10px; font-size: 13px;">
+            <option value="Equipe 1 (Ímpares)">Equipe 1 (Ímpares)</option>
+            <option value="Equipe 2 (Pares)">Equipe 2 (Pares)</option>
+            <option value="Gestão">Gestão</option>
+            <option value="Férias">Férias</option>
+          </select>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 20px; padding: 12px 0 0 0; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-subtle);">
+          <button type="button" class="btn btn-outline" id="btn-cancel-allocate">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-confirm-allocate">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Confirmar Alocação
+          </button>
         </div>
       </form>
     </div>

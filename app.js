@@ -136,6 +136,19 @@
     postoCategoria: document.getElementById('posto-categoria'),
     postoEndereco: document.getElementById('posto-endereco'),
 
+    // Modal Alocar (Reserva -> Posto)
+    modalAllocateOverlay: document.getElementById('modal-allocate-overlay'),
+    btnCloseAllocateModal: document.getElementById('btn-close-allocate-modal'),
+    btnCancelAllocate: document.getElementById('btn-cancel-allocate'),
+    formAllocate: document.getElementById('form-allocate'),
+    allocateColabId: document.getElementById('allocate-colab-id'),
+    allocateAvatarPreview: document.getElementById('allocate-avatar-preview'),
+    allocateColabName: document.getElementById('allocate-colab-name'),
+    allocateColabMatricula: document.getElementById('allocate-colab-matricula'),
+    allocateColabFuncao: document.getElementById('allocate-colab-funcao'),
+    allocatePostoSelect: document.getElementById('allocate-posto-select'),
+    allocateEquipeSelect: document.getElementById('allocate-equipe-select'),
+
     // Modal Print
     modalPrintOverlay: document.getElementById('modal-print-overlay'),
     btnClosePrintModal: document.getElementById('btn-close-print-modal'),
@@ -809,6 +822,7 @@
       }
 
       postCard.appendChild(body);
+      setupPostCardDropEvents(postCard, post);
       elements.postsGrid.appendChild(postCard);
     });
   }
@@ -825,6 +839,8 @@
       `;
     } else {
       filteredReserves.forEach(colab => {
+        colab.postoId = 'reserva';
+        colab.equipe = 'Reserva';
         elements.reserveDropzone.appendChild(createCrachaElement(colab, null));
       });
     }
@@ -975,13 +991,13 @@
             </svg>
             Voltar
           </button>
-        ` : (colab.postoId !== 'reserva' ? `
+        ` : (colab.postoId !== 'reserva' && post ? `
           <button class="cracha-action-btn" style="color:#fbbf24;" title="Colocar em Férias no Mês" onclick="window.QuadroApp.toggleColabFerias('${colab.id}')">
             🌴 Férias
           </button>
         ` : '')}
 
-        ${colab.postoId !== 'reserva' ? `
+        ${(colab.postoId !== 'reserva' && post) ? `
           <button class="cracha-action-btn reserve" title="Mover para banco de reserva" onclick="window.QuadroApp.moveToReserve('${colab.id}')">
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="7 10 12 15 17 10"/>
@@ -989,7 +1005,15 @@
             </svg>
             Reserva
           </button>
-        ` : ''}
+        ` : `
+          <button class="cracha-action-btn allocate" style="color:#38bdf8; font-weight:700;" title="Alocar este colaborador em um posto de trabalho" onclick="window.QuadroApp.openAllocateModal('${colab.id}')">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="7" y1="17" x2="17" y2="7"/>
+              <polyline points="7 7 17 7 17 17"/>
+            </svg>
+            Alocar
+          </button>
+        `}
       </div>
     `;
 
@@ -1014,9 +1038,10 @@
   function setupCardDragEvents(card, colab) {
     card.addEventListener('dragstart', (e) => {
       pauseAutoScroll('drag');
+      const inReserve = card.closest('#reserve-drawer') !== null || card.closest('#reserve-dropzone') !== null || colab.postoId === 'reserva';
       draggedItem = {
         colabId: colab.id,
-        sourcePostId: colab.postoId || 'reserva',
+        sourcePostId: inReserve ? 'reserva' : (colab.postoId || 'reserva'),
         sourceEquipe: colab.equipe
       };
       card.classList.add('dragging');
@@ -1027,6 +1052,7 @@
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
       document.querySelectorAll('.drop-zone').forEach(dz => dz.classList.remove('drag-over'));
+      document.querySelectorAll('.posto-card').forEach(pc => pc.classList.remove('drag-over-post'));
       document.querySelectorAll('.drop-placeholder').forEach(p => p.remove());
       draggedItem = null;
     });
@@ -1053,7 +1079,6 @@
     });
 
     dropZone.addEventListener('dragleave', (e) => {
-      // Only remove if leaving the dropzone boundary
       if (!dropZone.contains(e.relatedTarget)) {
         dropZone.classList.remove('drag-over');
         const placeholder = dropZone.querySelector('.drop-placeholder');
@@ -1063,16 +1088,50 @@
 
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
+      e.stopPropagation();
       dropZone.classList.remove('drag-over');
       const placeholder = dropZone.querySelector('.drop-placeholder');
       if (placeholder) placeholder.remove();
 
-      if (!draggedItem) return;
+      const colabId = (draggedItem && draggedItem.colabId) || e.dataTransfer.getData('text/plain');
+      if (!colabId) return;
 
+      const sourcePostId = draggedItem ? draggedItem.sourcePostId : 'reserva';
       const targetPostId = dropZone.dataset.postoId;
       const targetEquipe = dropZone.dataset.equipeTarget;
 
-      handleCardDrop(draggedItem.colabId, draggedItem.sourcePostId, targetPostId, targetEquipe);
+      handleCardDrop(colabId, sourcePostId, targetPostId, targetEquipe);
+    });
+  }
+
+  function setupPostCardDropEvents(postCard, post) {
+    postCard.addEventListener('dragover', (e) => {
+      if (!draggedItem) return;
+      if (e.target.closest('.drop-zone')) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      postCard.classList.add('drag-over-post');
+    });
+
+    postCard.addEventListener('dragleave', (e) => {
+      if (!postCard.contains(e.relatedTarget)) {
+        postCard.classList.remove('drag-over-post');
+      }
+    });
+
+    postCard.addEventListener('drop', (e) => {
+      if (!draggedItem) return;
+      if (e.target.closest('.drop-zone')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      postCard.classList.remove('drag-over-post');
+
+      const colabId = (draggedItem && draggedItem.colabId) || e.dataTransfer.getData('text/plain');
+      if (!colabId) return;
+
+      const isGestao = post.id === 'posto-gestao-operacional' || post.code === '00001' || (post.category && post.category.toLowerCase().includes('gestão'));
+      const targetEquipe = isGestao ? 'Gestão' : 'Equipe 1 (Ímpares)';
+      handleCardDrop(colabId, draggedItem.sourcePostId || 'reserva', post.id, targetEquipe);
     });
   }
 
@@ -1089,22 +1148,44 @@
     }, { offset: Number.NEGATIVE_INFINITY }).element;
   }
 
+  // Smooth viewport scrolling during dragging near window borders
+  window.addEventListener('dragover', (e) => {
+    if (!draggedItem) return;
+    const y = e.clientY;
+    const topThreshold = 90;
+    const bottomThreshold = 140;
+    const scrollSpeed = 18;
+
+    if (y < topThreshold) {
+      window.scrollBy(0, -scrollSpeed);
+    } else if (y > window.innerHeight - bottomThreshold) {
+      window.scrollBy(0, scrollSpeed);
+    }
+  });
+
   async function handleCardDrop(colabId, sourcePostId, targetPostId, targetEquipe) {
-    // Optimistic local update
+    if (!colabId || !targetPostId) return;
+
+    // Robust lookup: search reserve first, then all posts
     let colab = null;
 
-    if (sourcePostId === 'reserva') {
-      const idx = state.reserve.findIndex(c => c.id === colabId);
-      if (idx !== -1) colab = state.reserve.splice(idx, 1)[0];
+    const resIdx = state.reserve.findIndex(c => c.id === colabId);
+    if (resIdx !== -1) {
+      colab = state.reserve.splice(resIdx, 1)[0];
     } else {
-      const sourcePost = state.posts.find(p => p.id === sourcePostId);
-      if (sourcePost) {
-        const idx = sourcePost.employees.findIndex(c => c.id === colabId);
-        if (idx !== -1) colab = sourcePost.employees.splice(idx, 1)[0];
+      for (const p of state.posts) {
+        const idx = (p.employees || []).findIndex(c => c.id === colabId);
+        if (idx !== -1) {
+          colab = p.employees.splice(idx, 1)[0];
+          break;
+        }
       }
     }
 
-    if (!colab) return;
+    if (!colab) {
+      console.warn('Colaborador não encontrado para movimentação:', colabId);
+      return;
+    }
 
     let newStatus = colab.status;
     let newEquipe = targetEquipe || colab.equipe;
@@ -1260,6 +1341,53 @@
     elements.modalColabOverlay.classList.remove('active');
     currentEditingColab = null;
     currentEditingPhotoData = '';
+  }
+
+  // ========================================================
+  // ALLOCATION MODAL (BANCO DE RESERVA -> POSTO)
+  // ========================================================
+  let currentAllocatingColab = null;
+
+  function openAllocateModal(colabId) {
+    let found = state.reserve.find(c => c.id === colabId);
+    if (!found) {
+      for (const p of state.posts) {
+        found = p.employees.find(e => e.id === colabId);
+        if (found) break;
+      }
+    }
+    if (!found) return;
+
+    pauseAutoScroll('modal');
+    currentAllocatingColab = found;
+
+    elements.allocateColabId.value = found.id;
+    elements.allocateColabName.textContent = found.nome;
+    elements.allocateColabMatricula.textContent = found.matricula ? `MAT: ${found.matricula}` : 'SEM MATRÍCULA';
+    elements.allocateColabFuncao.textContent = found.funcao || 'VIGILANTE';
+
+    if (found.foto) {
+      elements.allocateAvatarPreview.innerHTML = `<img src="${found.foto}" alt="${found.nome}">`;
+    } else {
+      elements.allocateAvatarPreview.innerHTML = renderAvatarSvg(found.nome);
+    }
+
+    elements.allocatePostoSelect.innerHTML = '';
+    state.posts.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      const codePart = p.code ? `[${p.code}] ` : '';
+      opt.textContent = `${codePart}${p.shortName || p.name}`;
+      elements.allocatePostoSelect.appendChild(opt);
+    });
+
+    elements.allocateEquipeSelect.value = 'Equipe 1 (Ímpares)';
+    elements.modalAllocateOverlay.classList.add('active');
+  }
+
+  function closeAllocateModal() {
+    elements.modalAllocateOverlay.classList.remove('active');
+    currentAllocatingColab = null;
   }
 
   // Handle Photo Compression & Upload
@@ -2115,12 +2243,25 @@
     elements.btnCancelColab.addEventListener('click', closeColabModal);
     elements.btnClosePostoModal.addEventListener('click', closePostModal);
     elements.btnCancelPosto.addEventListener('click', closePostModal);
+    elements.btnCloseAllocateModal.addEventListener('click', closeAllocateModal);
+    elements.btnCancelAllocate.addEventListener('click', closeAllocateModal);
+
+    elements.formAllocate.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!currentAllocatingColab) return;
+      const targetPostId = elements.allocatePostoSelect.value;
+      const targetEquipe = elements.allocateEquipeSelect.value;
+      const colabId = currentAllocatingColab.id;
+
+      closeAllocateModal();
+      handleCardDrop(colabId, 'reserva', targetPostId, targetEquipe);
+    });
 
     // Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
       // Ctrl + Z for Undo
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        if (!elements.modalColabOverlay.classList.contains('active') && !elements.modalPostoOverlay.classList.contains('active')) {
+        if (!elements.modalColabOverlay.classList.contains('active') && !elements.modalPostoOverlay.classList.contains('active') && !elements.modalAllocateOverlay.classList.contains('active')) {
           e.preventDefault();
           undoLastAction();
         }
@@ -2129,6 +2270,7 @@
       if (e.key === 'Escape') {
         closeColabModal();
         closePostModal();
+        closeAllocateModal();
         elements.modalPrintOverlay.classList.remove('active');
         elements.dropdownMenuActions.classList.remove('show');
       }
@@ -2142,6 +2284,7 @@
       const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
       const isModalOpen = (elements.modalColabOverlay?.classList.contains('active')) ||
         (elements.modalPostoOverlay?.classList.contains('active')) ||
+        (elements.modalAllocateOverlay?.classList.contains('active')) ||
         (elements.modalPrintOverlay?.classList.contains('active'));
 
       if ((e.code === 'Space' || e.key === ' ' || e.key === 'p' || e.key === 'P') && !isTyping && !isModalOpen) {
@@ -2159,6 +2302,7 @@
     startAutoScroll,
     pauseAutoScroll,
     openEditColabModal,
+    openAllocateModal,
     openAddColabToPost: (postId) => openNewColabModal(postId),
     openEditPostModal,
     triggerPhotoUpload: triggerDirectPhotoUpload,
