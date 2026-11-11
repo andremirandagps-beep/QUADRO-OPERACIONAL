@@ -549,15 +549,12 @@
 
   function sortEmployeesByHierarchy(employees) {
     const hierarchy = {
-      'GERENTE OPERACIONAL': 1,
-      'GERENTE': 2,
-      'COORDENADOR OPERACIONAL': 3,
-      'COORDENADOR': 4,
-      'SUPERVISOR OPERACIONAL': 5,
-      'SUPERVISOR': 6,
-      'LIDER': 7,
-      'ASSISTENTE ADMINISTRATIVO': 8,
-      'ADMINISTRATIVO': 9,
+      'GERENTE': 1,          // GERENTE DE CONTRATO, GERENTE OPERACIONAL, GERENTE (qualquer variação) — sempre 1º
+      'COORDENADOR': 2,      // COORDENADOR DE CONTRATO, COORDENADOR OPERACIONAL — sempre 2º
+      'SUPERVISOR': 3,
+      'LIDER': 4,
+      'ASSISTENTE ADMINISTRATIVO': 5,
+      'ADMINISTRATIVO': 6,
       'VIGILANTE': 20,
       'PORTEIRO': 21
     };
@@ -674,9 +671,85 @@
         if (gestaoColabs.length === 0) {
           dropGestao.innerHTML = `<div class="drop-zone-empty-hint">Nenhum gestor ativo. Arraste crachás para cá.</div>`;
         } else {
-          gestaoColabs.forEach(colab => {
-            dropGestao.appendChild(createCrachaElement(colab, post));
-          });
+          // ── Classificar por função ──
+          const isGerente = c => (c.funcao || '').toUpperCase().includes('GERENTE');
+          const isCoordenador = c => (c.funcao || '').toUpperCase().includes('COORDENADOR');
+          const isSupervisor = c => (c.funcao || '').toUpperCase().includes('SUPERVISOR');
+          const isAssistente = c => {
+            const f = (c.funcao || '').toUpperCase();
+            return f.includes('ASSISTENTE') || f.includes('ADMINISTRATIVO');
+          };
+
+          const gerenteColabs = gestaoColabs.filter(c => isGerente(c));
+          const coordColabs = gestaoColabs.filter(c => !isGerente(c) && isCoordenador(c));
+          const supervisorColabs = gestaoColabs.filter(c => !isGerente(c) && !isCoordenador(c) && isSupervisor(c));
+          const assistenteColabs = gestaoColabs.filter(c => !isGerente(c) && !isCoordenador(c) && !isSupervisor(c) && isAssistente(c));
+          const outrosColabs = gestaoColabs.filter(c => !isGerente(c) && !isCoordenador(c) && !isSupervisor(c) && !isAssistente(c));
+
+          // ── 1ª Linha: GERENTE — 1 crachá centralizado ──
+          if (gerenteColabs.length > 0) {
+            const gerenteRow = document.createElement('div');
+            gerenteRow.className = 'gestao-row gestao-row-gerente';
+            gerenteColabs.forEach(colab => {
+              gerenteRow.appendChild(createCrachaElement(colab, post));
+            });
+            dropGestao.appendChild(gerenteRow);
+          }
+
+          // ── 2ª Linha: COORDENADOR — 2 crachás (crachá duplicado para cada coordenador) ──
+          if (coordColabs.length > 0) {
+            const coordRow = document.createElement('div');
+            coordRow.className = 'gestao-row gestao-row-coord';
+            coordColabs.forEach(colab => {
+              // 1º crachá
+              coordRow.appendChild(createCrachaElement(colab, post));
+              // 2º crachá duplicado
+              const dupCard = createCrachaElement(colab, post);
+              dupCard.dataset.isDuplicate = 'true';
+              coordRow.appendChild(dupCard);
+            });
+            dropGestao.appendChild(coordRow);
+          }
+
+          // ── 3ª Linha+: SUPERVISORES — 4 por linha ──
+          if (supervisorColabs.length > 0) {
+            const sepSup = document.createElement('div');
+            sepSup.className = 'gestao-section-label';
+            sepSup.textContent = '— Supervisores —';
+            dropGestao.appendChild(sepSup);
+
+            const supRow = document.createElement('div');
+            supRow.className = 'gestao-row gestao-row-4col';
+            supervisorColabs.forEach(colab => {
+              supRow.appendChild(createCrachaElement(colab, post));
+            });
+            dropGestao.appendChild(supRow);
+          }
+
+          // ── 4ª Linha+: ASSISTENTES / ADMINISTRATIVOS — 4 por linha ──
+          if (assistenteColabs.length > 0) {
+            const sepAdm = document.createElement('div');
+            sepAdm.className = 'gestao-section-label';
+            sepAdm.textContent = '— Assistentes / Administrativos —';
+            dropGestao.appendChild(sepAdm);
+
+            const admRow = document.createElement('div');
+            admRow.className = 'gestao-row gestao-row-4col';
+            assistenteColabs.forEach(colab => {
+              admRow.appendChild(createCrachaElement(colab, post));
+            });
+            dropGestao.appendChild(admRow);
+          }
+
+          // ── Outros cargos ──
+          if (outrosColabs.length > 0) {
+            const outrosRow = document.createElement('div');
+            outrosRow.className = 'gestao-row gestao-row-4col';
+            outrosColabs.forEach(colab => {
+              outrosRow.appendChild(createCrachaElement(colab, post));
+            });
+            dropGestao.appendChild(outrosRow);
+          }
         }
         gestaoCol.appendChild(dropGestao);
         wrapper.appendChild(gestaoCol);

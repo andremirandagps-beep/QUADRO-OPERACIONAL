@@ -867,7 +867,7 @@ body.theme-light .zoom-control {
 }
 
 .posto-teams-wrapper.gestao-teams-wrapper {
-  grid-template-columns: 2.2fr 1fr;
+  grid-template-columns: 3fr 1fr;
 }
 
 .team-column {
@@ -902,11 +902,68 @@ body.theme-light .zoom-control {
 }
 
 .team-column.team-gestao .drop-zone {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   align-content: start;
+  padding: 0;
 }
+
+/* ── Linha genérica de gestão ── */
+.gestao-row {
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+}
+
+/* 1ª linha: GERENTE — 1 crachá centralizado */
+.gestao-row-gerente {
+  display: flex;
+  justify-content: center;
+  border-bottom: 2px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.03);
+}
+
+.gestao-row-gerente .cracha-card {
+  width: 100%;
+  max-width: 320px;
+}
+
+/* 2ª linha: COORDENADOR — sempre 2 colunas */
+.gestao-row-coord {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  border-bottom: 2px solid rgba(249, 115, 22, 0.25);
+  background: rgba(249, 115, 22, 0.03);
+}
+
+.gestao-row-coord .cracha-card {
+  flex: 1;
+  max-width: 320px;
+}
+
+/* 3ª/4ª linha: SUPERVISOR e ASSISTENTE — 4 colunas */
+.gestao-row-4col {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Label separador entre os grupos */
+.gestao-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(148, 163, 184, 0.5);
+  padding: 8px 12px 2px;
+  text-transform: uppercase;
+  text-align: center;
+  border-top: 1px dashed rgba(148, 163, 184, 0.15);
+  margin-top: 4px;
+}
+
+/* Remover classes antigas (mantidas por compatibilidade) */
+.gestao-top-row  { display: none; }
+.gestao-bottom-row { display: none; }
 
 .team-column.team-1 {
   background: rgba(30, 64, 175, 0.05);
@@ -1860,6 +1917,19 @@ body.theme-light .zoom-control {
     grid-column: 1 / -1;
   }
 
+  /* Linha de 4 cai para 3 em telas médias */
+  .gestao-bottom-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Novas classes responsivas */
+  .gestao-row-4col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .gestao-row-coord {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .controls-bar {
     padding: 10px 14px;
     gap: 10px;
@@ -1916,6 +1986,19 @@ body.theme-light .zoom-control {
 
   .posto-teams-wrapper,
   .posto-teams-wrapper.gestao-teams-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  /* Linha de 4 cai para 2 em telas pequenas */
+  .gestao-bottom-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Novas classes responsivas pequenas */
+  .gestao-row-4col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .gestao-row-coord {
     grid-template-columns: 1fr;
   }
 }
