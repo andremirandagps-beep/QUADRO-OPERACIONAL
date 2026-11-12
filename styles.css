@@ -926,7 +926,7 @@ body.theme-light .zoom-control {
 
 .gestao-row-gerente .cracha-card {
   width: 100%;
-  max-width: 320px;
+  max-width: calc(320px * var(--card-scale, 1));
 }
 
 /* 2ª linha: COORDENADOR — sempre 2 colunas */
@@ -940,7 +940,7 @@ body.theme-light .zoom-control {
 
 .gestao-row-coord .cracha-card {
   flex: 1;
-  max-width: 320px;
+  max-width: calc(320px * var(--card-scale, 1));
 }
 
 /* 3ª/4ª linha: SUPERVISOR e ASSISTENTE — 4 colunas */
@@ -1023,7 +1023,7 @@ body.theme-light .zoom-control {
 /* Unified drop zone in compact view */
 .posto-body>.drop-zone {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--badge-width, 250px) * 0.92), 1fr));
   gap: 10px;
   min-height: 100px;
 }
@@ -1068,7 +1068,8 @@ body.theme-light .zoom-control {
   border: 1px solid var(--border-color);
   border-radius: var(--badge-radius);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
-  padding: 12px;
+  padding: calc(12px * var(--card-scale, 1));
+  font-size: calc(14px * var(--card-scale, 1));
   display: flex;
   flex-direction: column;
   cursor: grab;
@@ -1191,8 +1192,8 @@ body.theme-light .zoom-control {
 /* Photo Frame */
 .cracha-photo-wrapper {
   position: relative;
-  width: 64px;
-  height: 76px;
+  width: calc(64px * var(--card-scale, 1));
+  height: calc(76px * var(--card-scale, 1));
   flex-shrink: 0;
   border-radius: 8px;
   overflow: hidden;
@@ -1281,7 +1282,7 @@ body.theme-light .zoom-control {
 }
 
 .cracha-nome {
-  font-size: 13px;
+  font-size: calc(13px * var(--card-scale, 1));
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1.25;
@@ -1294,7 +1295,7 @@ body.theme-light .zoom-control {
   display: inline-block;
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: calc(10px * var(--card-scale, 1));
   font-weight: 700;
   letter-spacing: 0.3px;
   text-transform: uppercase;
@@ -1359,7 +1360,7 @@ body.theme-light .zoom-control {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 11px;
+  font-size: calc(11px * var(--card-scale, 1));
 }
 
 .cracha-detail-item {

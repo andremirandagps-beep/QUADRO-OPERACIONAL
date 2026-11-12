@@ -2208,14 +2208,42 @@
       renderBoard();
     });
 
-    // Card Zoom
-    elements.zoomRange.addEventListener('input', (e) => {
-      const val = e.target.value;
+    // Card Zoom Slider & Buttons
+    const applyZoom = (val) => {
       const baseWidth = 250;
       const newWidth = Math.round(baseWidth * (val / 100));
       document.documentElement.style.setProperty('--badge-width', `${newWidth}px`);
       document.documentElement.style.setProperty('--card-scale', val / 100);
-    });
+    };
+
+    if (elements.zoomRange) {
+      elements.zoomRange.addEventListener('input', (e) => {
+        applyZoom(e.target.value);
+      });
+    }
+
+    const btnZoomOut = document.getElementById('btn-zoom-out');
+    const btnZoomIn = document.getElementById('btn-zoom-in');
+
+    if (btnZoomOut) {
+      btnZoomOut.addEventListener('click', () => {
+        if (!elements.zoomRange) return;
+        let cur = parseInt(elements.zoomRange.value, 10);
+        cur = Math.max(70, cur - 10);
+        elements.zoomRange.value = cur;
+        applyZoom(cur);
+      });
+    }
+
+    if (btnZoomIn) {
+      btnZoomIn.addEventListener('click', () => {
+        if (!elements.zoomRange) return;
+        let cur = parseInt(elements.zoomRange.value, 10);
+        cur = Math.min(130, cur + 10);
+        elements.zoomRange.value = cur;
+        applyZoom(cur);
+      });
+    }
 
     // Top action buttons
     elements.btnAddColab.addEventListener('click', () => openNewColabModal());
