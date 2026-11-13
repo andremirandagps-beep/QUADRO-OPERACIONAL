@@ -929,17 +929,18 @@ body.theme-light .zoom-control {
   max-width: calc(320px * var(--card-scale, 1));
 }
 
-/* 2ª linha: COORDENADOR — sempre 2 colunas */
+/* 2ª linha: COORDENADOR — individual ou em grupo centralizado */
 .gestao-row-coord {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 15px;
   border-bottom: 2px solid rgba(249, 115, 22, 0.25);
   background: rgba(249, 115, 22, 0.03);
 }
 
 .gestao-row-coord .cracha-card {
-  flex: 1;
+  width: 100%;
   max-width: calc(320px * var(--card-scale, 1));
 }
 
@@ -1410,6 +1411,7 @@ body.theme-light .zoom-control {
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
+  flex-wrap: wrap;
   margin-top: 6px;
   border-top: 1px dashed var(--border-subtle);
   padding-top: 6px;
@@ -1440,6 +1442,15 @@ body.theme-light .zoom-control {
 
 .cracha-action-btn.reserve:hover {
   color: var(--warning);
+}
+
+.cracha-action-btn.delete {
+  color: #f87171;
+}
+
+.cracha-action-btn.delete:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.18);
 }
 
 /* ========================================================
@@ -1849,6 +1860,7 @@ body.theme-light .zoom-control {
   .reserve-drawer,
   .auto-save-indicator,
   .toast-container,
+  .cracha-actions,
   .modal-overlay:not(#modal-print-overlay) {
     display: none !important;
   }

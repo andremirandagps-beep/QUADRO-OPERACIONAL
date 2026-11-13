@@ -696,17 +696,12 @@
             dropGestao.appendChild(gerenteRow);
           }
 
-          // ── 2ª Linha: COORDENADOR — 2 crachás (crachá duplicado para cada coordenador) ──
+          // ── 2ª Linha: COORDENADOR — individual (1 crachá por coordenador) ──
           if (coordColabs.length > 0) {
             const coordRow = document.createElement('div');
             coordRow.className = 'gestao-row gestao-row-coord';
             coordColabs.forEach(colab => {
-              // 1º crachá
               coordRow.appendChild(createCrachaElement(colab, post));
-              // 2º crachá duplicado
-              const dupCard = createCrachaElement(colab, post);
-              dupCard.dataset.isDuplicate = 'true';
-              coordRow.appendChild(dupCard);
             });
             dropGestao.appendChild(coordRow);
           }
@@ -1087,6 +1082,16 @@
             Alocar
           </button>
         `}
+
+        <button class="cracha-action-btn delete" title="Excluir este crachá" onclick="event.stopPropagation(); window.QuadroApp.deleteColab('${colab.id}')">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <line x1="10" y1="11" x2="10" y2="17"/>
+            <line x1="14" y1="11" x2="14" y2="17"/>
+          </svg>
+          Excluir
+        </button>
       </div>
     `;
 
@@ -1628,22 +1633,7 @@
   // Delete Colab
   elements.btnDeleteColab.addEventListener('click', async () => {
     if (!currentEditingColab) return;
-    if (confirm(`Tem certeza que deseja excluir o crachá de ${currentEditingColab.nome}?`)) {
-      const id = currentEditingColab.id;
-      state.posts.forEach(p => { p.employees = p.employees.filter(e => e.id !== id); });
-      state.reserve = state.reserve.filter(e => e.id !== id);
-
-      saveState(true);
-      closeColabModal();
-      renderAll();
-      showToast('Colaborador excluído.');
-
-      try {
-        await apiDelete(`/colaboradores/${id}`);
-      } catch (err) {
-        console.error('Erro ao excluir no banco:', err.message);
-      }
-    }
+    await window.QuadroApp.deleteColab(currentEditingColab.id);
   });
 
   // Photo change in modal
@@ -2479,6 +2469,48 @@
             }
           }
           return;
+        }
+      }
+    },
+    deleteColab: async (colabId) => {
+      let colab = null;
+      for (const p of state.posts) {
+        colab = p.employees.find(e => e.id === colabId);
+        if (colab) break;
+      }
+      if (!colab) {
+        colab = state.reserve.find(e => e.id === colabId);
+      }
+      const nome = colab ? colab.nome : 'este colaborador';
+      if (!confirm(`Tem certeza que deseja excluir o crachá de ${nome}?`)) {
+        return;
+      }
+
+      // Salva no histórico para permitir desfazer (Ctrl+Z)
+      historyStack.push(JSON.stringify(state));
+      if (historyStack.length > MAX_HISTORY) historyStack.shift();
+      updateUndoButtonState();
+
+      // Remove de todos os postos e do banco de reserva
+      state.posts.forEach(p => {
+        p.employees = p.employees.filter(e => e.id !== colabId);
+      });
+      state.reserve = state.reserve.filter(e => e.id !== colabId);
+
+      // Fecha modal de edição se estivesse aberto
+      if (currentEditingColab && currentEditingColab.id === colabId) {
+        closeColabModal();
+      }
+
+      saveState(false);
+      renderAll();
+      showToast(`Crachá de ${nome} excluído com sucesso.`);
+
+      if (!isOfflineMode) {
+        try {
+          await apiDelete(`/colaboradores/${colabId}`);
+        } catch (err) {
+          console.error('Erro ao excluir no banco:', err.message);
         }
       }
     }
