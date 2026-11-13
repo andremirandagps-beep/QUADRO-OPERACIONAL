@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GRUPO GPS - Mapeamento de Clientes e Controle de Visitas Operacionais</title>
+  <link rel="icon" type="image/png" href="logo-gps.png">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="mapa.css">
+</head>
+
+<body class="theme-dark">
+
+  <!-- TOP HEADER -->
+  <header class="map-header">
+    <div class="brand-container">
+      <div class="logo-box">
+        <img src="logo-gps.png" alt="Logo Grupo GPS" class="gps-logo">
+      </div>
+      <div class="brand-titles">
+        <div class="brand-row">
+          <span class="badge-status-live">ONLINE &bull; TEMPO REAL</span>
+          <h1>GRUPO GPS &bull; MAPEAMENTO OPERACIONAL DE CLIENTES</h1>
+        </div>
+        <p class="subtitle">Geolocalização por Cidades, Rastreio de Fiscalização e Baixa de Visitas em Postos de
+          Trabalho</p>
+      </div>
+    </div>
+
+    <!-- STATS COUNTERS BAR -->
+    <div class="stats-bar">
+      <div class="stat-card" title="Total de postos cadastrados na base">
+        <span class="stat-num" id="stat-total-postos">--</span>
+        <span class="stat-lbl">Postos</span>
+      </div>
+      <div class="stat-card" title="Cidades com postos ativos">
+        <span class="stat-num" id="stat-total-cidades">--</span>
+        <span class="stat-lbl">Cidades</span>
+      </div>
+      <div class="stat-card stat-em-dia" title="Visitados nos últimos 15 dias">
+        <div class="num-wrapper">
+          <span class="pulse-dot green"></span>
+          <span class="stat-num" id="stat-em-dia">--</span>
+        </div>
+        <span class="stat-lbl">Em Dia (≤15d)</span>
+      </div>
+      <div class="stat-card stat-atencao" title="Sem visita há 16 a 30 dias">
+        <div class="num-wrapper">
+          <span class="pulse-dot yellow"></span>
+          <span class="stat-num" id="stat-atencao">--</span>
+        </div>
+        <span class="stat-lbl">Atenção (16-30d)</span>
+      </div>
+      <div class="stat-card stat-critico" title="Sem visita há mais de 30 dias ou nunca visitado">
+        <div class="num-wrapper">
+          <span class="pulse-dot red"></span>
+          <span class="stat-num" id="stat-criticos">--</span>
+        </div>
+        <span class="stat-lbl">Críticos / Sem Visita</span>
+      </div>
+      <div class="stat-card stat-visitas-mes" title="Total de visitas realizadas no mês atual">
+        <span class="stat-num" id="stat-visitas-mes">--</span>
+        <span class="stat-lbl">Visitas no Mês</span>
+      </div>
+    </div>
+
+    <!-- HEADER NAVIGATION & ACTIONS -->
+    <div class="header-nav-actions">
+      <a href="index.html" class="nav-btn" title="Voltar para a gestão de escalas e crachás">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        <span>Quadro Operacional</span>
+      </a>
+
+      <button id="btn-export-csv" class="nav-btn nav-btn-secondary"
+        title="Exportar relatório de visitas e cobertura em Excel / CSV">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Exportar</span>
+      </button>
+
+      <button id="btn-refresh-data" class="nav-btn nav-btn-primary" title="Atualizar dados em tempo real">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        <span>Atualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE: FULLSCREEN MAP WITH FLOATING OVERLAYS -->
+  <main class="workspace-fullscreen">
+
+    <!-- FULLSCREEN MAP CONTAINER -->
+    <div id="map-container"></div>
+
+    <!-- FLOATING TOP CONTROLS BAR (SEARCH + CIDADES + STATUS) -->
+    <div class="map-floating-topbar">
+      <!-- BOTÃO TOGGLE GAVETA DA LISTA -->
+      <button id="btn-toggle-drawer" class="btn-floating-drawer" title="Abrir/Fechar Lista de Postos">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+        <span>Lista (<span id="drawer-count">71</span>)</span>
+      </button>
+
+      <!-- SEARCH INPUT -->
+      <div class="floating-search-wrapper">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+          class="search-icon">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="input-search-posto" placeholder="Buscar cliente, rua, código..." autocomplete="off">
+        <button id="btn-clear-search" class="btn-clear-icon" title="Limpar busca" style="display:none;">&times;</button>
+      </div>
+
+      <!-- SELETOR DE CIDADES -->
+      <div class="floating-city-wrapper">
+        <select id="select-cidade" class="floating-select">
+          <option value="TODAS">Todas as Cidades</option>
+        </select>
+      </div>
+
+      <!-- CHIPS DE STATUS RÁPIDO -->
+      <div class="floating-status-chips">
+        <button class="status-chip active" data-status="TODOS">Todos (<span id="count-todos">0</span>)</button>
+        <button class="status-chip chip-em-dia" data-status="EM_DIA">🟢 Em Dia (<span
+            id="count-em-dia">0</span>)</button>
+        <button class="status-chip chip-atencao" data-status="ATENCAO">🟡 Atenção (<span
+            id="count-atencao">0</span>)</button>
+        <button class="status-chip chip-critico" data-status="CRITICO">🔴 Crítico (<span
+            id="count-critico">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- FLOATING SIDE DRAWER (LISTA DE POSTOS) -->
+    <aside class="floating-drawer" id="sidebar-panel">
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <h3>POSTOS E CLIENTES</h3>
+          <span id="results-count-text">71 postos cadastrados</span>
+        </div>
+        <div class="drawer-actions">
+          <button id="btn-sort-toggle" class="btn-sort" title="Alternar ordenação">
+            <span id="sort-label">Críticos 1º</span>
+          </button>
+          <button id="btn-close-drawer" class="btn-close-drawer" title="Recolher Lista">&times;</button>
+        </div>
+      </div>
+
+      <!-- CARDS LIST CONTAINER -->
+      <div class="cards-scroll-container" id="cards-container">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </aside>
+
+    <!-- MAP FLOATING TOOLS & OVERLAYS (DIREITA) -->
+    <div class="map-overlay-tools">
+      <!-- TELA CHEIA (FULLSCREEN DO NAVEGADOR) -->
+      <button id="btn-toggle-fullscreen" class="map-tool-btn" title="Tela Cheia (F11)">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+          </path>
+        </svg>
+        <span id="fullscreen-text">Tela Cheia</span>
+      </button>
+
+      <!-- BOTÃO RECENTRALIZAR -->
+      <button id="btn-recenter-map" class="map-tool-btn" title="Recentralizar Mapa (Ver Todos os Postos)">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="3"></circle>
+          <line x1="12" y1="2" x2="12" y2="4"></line>
+          <line x1="12" y1="20" x2="12" y2="22"></line>
+          <line x1="2" y1="12" x2="4" y2="12"></line>
+          <line x1="20" y1="12" x2="22" y2="12"></line>
+        </svg>
+        <span>Ajustar Zoom</span>
+      </button>
+
+      <!-- BOTÃO NOME DOS POSTOS / RUAS NO MAPA -->
+      <button id="btn-toggle-labels" class="map-tool-btn active-tool" title="Ligar/Desligar Nomes dos Clientes no Mapa">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+          <line x1="7" y1="7" x2="7.01" y2="7"></line>
+        </svg>
+        <span id="labels-btn-text">Nomes no Mapa: ON</span>
+      </button>
+
+      <!-- TOGGLE DO TIPO DE MAPA -->
+      <button id="btn-toggle-tiles" class="map-tool-btn" title="Mudar Estilo do Mapa (Ruas / Escuro / Satélite)">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+        <span id="tile-layer-name">Mapa de Ruas</span>
+      </button>
+    </div>
+
+    <!-- MAP LEGENDA FLUTUANTE -->
+    <div class="map-legend">
+      <h4 class="legend-title">STATUS OPERACIONAL</h4>
+      <div class="legend-item">
+        <span class="legend-dot green"></span>
+        <span class="legend-text"><strong>Em Dia:</strong> Visitado ≤ 15 dias</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot yellow"></span>
+        <span class="legend-text"><strong>Atenção:</strong> Sem visita 16 a 30 dias</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot red"></span>
+        <span class="legend-text"><strong>Crítico:</strong> Sem visita > 30 dias</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: REGISTRAR VISITA (DAR BAIXA) -->
+  <div class="modal-backdrop" id="modal-visita-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge-action">REGISTRO DE VISITA OPERACIONAL</span>
+          <h2 id="modal-posto-name">00000 - Nome do Posto</h2>
+          <p id="modal-posto-details" class="modal-sub">Carregando detalhes...</p>
+        </div>
+        <button class="btn-close-modal" id="btn-close-visita-modal" title="Fechar">&times;</button>
+      </div>
+
+      <form id="form-registro-visita" class="modal-body">
+        <input type="hidden" id="visita-posto-id">
+
+        <!-- DATA E HORA DA VISITA -->
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="visita-data">
+              Data e Hora da Visita <span class="req">*</span>
+            </label>
+            <div class="input-with-action">
+              <input type="datetime-local" id="visita-data" required class="form-input">
+              <button type="button" id="btn-set-now" class="btn-input-aux"
+                title="Definir Data/Hora Atual">Agora</button>
+            </div>
+          </div>
+
+          <!-- FISCAL / SUPERVISOR RESPONSÁVEL -->
+          <div class="form-group flex-1">
+            <label for="visita-fiscal">
+              Fiscal / Supervisor Responsável <span class="req">*</span>
+            </label>
+            <input type="text" id="visita-fiscal" list="list-fiscais" placeholder="Digite ou selecione o nome..."
+              required class="form-input" autocomplete="off">
+            <datalist id="list-fiscais">
+              <option value="SUPERVISOR OPERACIONAL I">
+              <option value="SUPERVISOR OPERACIONAL II">
+              <option value="SUPERVISOR OPERACIONAL III">
+              <option value="COORDENADOR OPERACIONAL">
+              <option value="GERENTE OPERACIONAL">
+              <option value="SUPERVISOR NOTURNO">
+              <option value="FISCAL DE ROTA">
+            </datalist>
+          </div>
+        </div>
+
+        <!-- TIPO DE VISITA & STATUS DA AVALIAÇÃO -->
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="visita-tipo">Tipo de Visita</label>
+            <select id="visita-tipo" class="form-select">
+              <option value="Rotina Operacional">Rotina Operacional</option>
+              <option value="Auditoria e Vistoria Geral">Auditoria e Vistoria Geral</option>
+              <option value="Troca de Turno / Ronda Noturna">Troca de Turno / Ronda Noturna</option>
+              <option value="Atendimento ao Cliente">Atendimento ao Cliente</option>
+              <option value="Investigação de Ocorrência">Investigação de Ocorrência</option>
+              <option value="Plantão / Apoio Operacional">Plantão / Apoio Operacional</option>
+            </select>
+          </div>
+
+          <div class="form-group flex-1">
+            <label for="visita-status">Avaliação Geral do Posto</label>
+            <select id="visita-status" class="form-select">
+              <option value="Conforme">🟢 Conforme (100% Regular)</option>
+              <option value="Com Ressalvas">🟡 Regular com Ressalvas</option>
+              <option value="Não Conforme">🔴 Não Conforme / Irregularidades</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CHECKLIST RÁPIDO OPERACIONAL -->
+        <div class="checklist-box">
+          <span class="checklist-title">Checklist Rápido de Fiscalização:</span>
+          <div class="checklist-grid">
+            <label class="check-item">
+              <input type="checkbox" id="chk-postura" checked>
+              <span>Efetivo uniformizado e apresentação pessoal conforme</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="chk-livro" checked>
+              <span>Livro de ocorrências preenchido e assinado</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="chk-comunicacao" checked>
+              <span>Equipamentos de comunicação / ronda operando</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="chk-instalacoes" checked>
+              <span>Instalações limpas, organizadas e seguras</span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" id="chk-procedimentos" checked>
+              <span>Procedimentos e normas do cliente sendo cumpridos</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- OBSERVAÇÕES / RELATÓRIO DO FISCAL -->
+        <div class="form-group">
+          <label for="visita-obs">Observações, Ocorrências ou Alinhamentos Realizados:</label>
+          <textarea id="visita-obs" rows="3" class="form-textarea"
+            placeholder="Descreva observações da visita, orientações passadas ao efetivo ou solicitações do cliente..."></textarea>
+        </div>
+
+        <!-- FOOTER COM BOTÕES -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-visita">Cancelar</button>
+          <button type="submit" class="btn btn-primary-action" id="btn-submit-visita">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Salvar e Dar Baixa na Visita</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: HISTÓRICO DE VISITAS DO POSTO -->
+  <div class="modal-backdrop" id="modal-historico-backdrop">
+    <div class="modal-dialog modal-dialog-large">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge-action">HISTÓRICO COMPLETO DE VISITAS</span>
+          <h2 id="modal-hist-posto-name">00000 - Nome do Posto</h2>
+          <p id="modal-hist-posto-details" class="modal-sub">Carregando histórico...</p>
+        </div>
+        <button class="btn-close-modal" id="btn-close-historico-modal" title="Fechar">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="hist-action-bar">
+          <button id="btn-hist-nova-baixa" class="btn btn-primary-action">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Registrar Nova Visita Neste Posto</span>
+          </button>
+        </div>
+
+        <div class="timeline-container" id="timeline-visitas-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- LEAFLET JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- APPLICATION SCRIPT -->
+  <script src="mapa.js"></script>
+</body>
+
+</html>

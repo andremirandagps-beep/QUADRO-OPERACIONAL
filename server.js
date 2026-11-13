@@ -101,6 +101,61 @@ async function handleApi(req, res, pathname, method) {
     }
 
     // -------------------------------------------------------
+    // VISITAS & MAPEAMENTO OPERACIONAL
+    // -------------------------------------------------------
+    if (pathname === '/api/visitas/stats' && method === 'GET') {
+      sendJson(res, 200, database.getVisitasStats());
+      return;
+    }
+
+    if (pathname === '/api/visitas/postos' && method === 'GET') {
+      const urlObj = new URL(req.url, 'http://localhost');
+      const cidade = urlObj.searchParams.get('cidade');
+      const status = urlObj.searchParams.get('status');
+      sendJson(res, 200, database.getPostosComStatusVisita(cidade, status));
+      return;
+    }
+
+    if (pathname === '/api/visitas' && method === 'GET') {
+      const urlObj = new URL(req.url, 'http://localhost');
+      const postoId = urlObj.searchParams.get('postoId');
+      if (postoId) {
+        sendJson(res, 200, database.getVisitasPorPosto(postoId));
+      } else {
+        const limit = parseInt(urlObj.searchParams.get('limit') || '100', 10);
+        sendJson(res, 200, database.getAllVisitas(limit));
+      }
+      return;
+    }
+
+    if (pathname === '/api/visitas' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.posto_id) return sendError(res, 400, 'Campo "posto_id" obrigatório');
+      if (!body.fiscal_nome) return sendError(res, 400, 'Campo "fiscal_nome" obrigatório');
+
+      const visita = database.registrarVisita(body);
+      sendJson(res, 201, visita);
+      return;
+    }
+
+    const visitaMatch = pathname.match(/^\/api\/visitas\/(\d+)$/);
+    if (visitaMatch && method === 'DELETE') {
+      const visitaId = parseInt(visitaMatch[1], 10);
+      database.excluirVisita(visitaId);
+      sendJson(res, 200, { success: true });
+      return;
+    }
+
+    const postoGeoMatch = pathname.match(/^\/api\/postos\/([^/]+)\/geo$/);
+    if (postoGeoMatch && method === 'PUT') {
+      const postoId = decodeURIComponent(postoGeoMatch[1]);
+      const body = await parseBody(req);
+      database.updatePostoGeo(postoId, body.cidade, body.latitude, body.longitude);
+      sendJson(res, 200, { success: true });
+      return;
+    }
+
+    // -------------------------------------------------------
     // POSTOS
     // -------------------------------------------------------
     if (pathname === '/api/postos' && method === 'GET') {
@@ -312,6 +367,7 @@ const server = http.createServer(async (req, res) => {
 
   // Static files
   if (pathname === '/' || pathname === '') pathname = '/index.html';
+  if (pathname === '/mapa') pathname = '/mapa.html';
 
   const filePath = path.join(BASE_DIR, pathname);
   if (!filePath.startsWith(BASE_DIR)) {

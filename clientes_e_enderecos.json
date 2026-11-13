@@ -1,0 +1,499 @@
+[
+  {
+    "codigo": "00001",
+    "cliente": "00001 - PR - GESTÃO OPERACIONAL E ADMINISTRATIVA",
+    "nome_posto": "00001 - PR - GESTÃO OPERACIONAL E ADMINISTRATIVA",
+    "cidade": "CURITIBA",
+    "endereco": "ROD DEP JOAO LEOPOLDO JACOMEL, 12813"
+  },
+  {
+    "codigo": "00000",
+    "cliente": "ID DO BRASIL LOGISTICA",
+    "nome_posto": "00000 - PR - SEG - ID DO BRASIL LOGISTICA",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "R. Francisco Munõz Madrid, 625 - Roseira de São Sebastião"
+  },
+  {
+    "codigo": "00527",
+    "cliente": "TEGMA",
+    "nome_posto": "00527 - PR - SEG - TEGMA",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "Av. Volkswagen Audi, 2001 - Campo Largo da Roseira"
+  },
+  {
+    "codigo": "01573",
+    "cliente": "ITW DO BRASIL",
+    "nome_posto": "01573 - PR - SEG - ITW DO BRASIL",
+    "cidade": "CURITIBA",
+    "endereco": "CIDADE INDUSTRIAL. - Rod. Br-277, 5040"
+  },
+  {
+    "codigo": "13862",
+    "cliente": "MULTILIT",
+    "nome_posto": "13862 - PR - SEG - MULTILIT",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - Av. Rui Barbosa, 2929 - Guatupê - Av. Rui Barbosa, 3329 - Guatupê"
+  },
+  {
+    "codigo": "14767",
+    "cliente": "COND. PINEFIELDS",
+    "nome_posto": "14767 - PR - POR - COND. PINEFIELDS",
+    "cidade": "PINHAIS",
+    "endereco": "PINHAIS - RUA JAIR LUVIZOTTO,670."
+  },
+  {
+    "codigo": "16744",
+    "cliente": "ALUBAUEN",
+    "nome_posto": "16744 - PR - POR - ALUBAUEN",
+    "cidade": "ARAUCÁRIA",
+    "endereco": "ARAUCARIA - Av. Centenário, 500 - Barigui"
+  },
+  {
+    "codigo": "23923",
+    "cliente": "DIST DE MED SANTA CRUZ",
+    "nome_posto": "23923 - PR - SEG - DIST DE MED SANTA CRUZ",
+    "cidade": "CURITIBA",
+    "endereco": "FANNY - R. Omilio Monteiro Soares, 2126"
+  },
+  {
+    "codigo": "24779",
+    "cliente": "LOGGI CTBA",
+    "nome_posto": "24779 - PR - SEG - LOGGI CTBA",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - ALAMEDA BOM PASTOR, 1816."
+  },
+  {
+    "codigo": "28812",
+    "cliente": "1001 NOITES",
+    "nome_posto": "28812 - PR - SEG - 1001 NOITES",
+    "cidade": "CURITIBA",
+    "endereco": "MERCÊS. - RUA PADRE AGOSTINHO,228."
+  },
+  {
+    "codigo": "31202",
+    "cliente": "ALFAMA",
+    "nome_posto": "31202 - PR - SEG - ALFAMA",
+    "cidade": "CURITIBA",
+    "endereco": "CIDADE INDUSTRIAL. - Rua Senador Accioly Filho, 160"
+  },
+  {
+    "codigo": "32060",
+    "cliente": "RIO SAO FRANCISCO",
+    "nome_posto": "32060 - PR - SEG - RIO SAO FRANCISCO",
+    "cidade": "CURITIBA",
+    "endereco": "CENTRO. - RUA EMILIANO PERNETA,297. dentro metrootan - R. Des. Motta, 2290"
+  },
+  {
+    "codigo": "32252",
+    "cliente": "JALL CARDS",
+    "nome_posto": "32252 - PR - SEG - JALL CARDS",
+    "cidade": "COLOMBO",
+    "endereco": "COLOMBO - R. Amália Strapasson de Souza, 398"
+  },
+  {
+    "codigo": "33446",
+    "cliente": "MESSER CURITIBA",
+    "nome_posto": "33446 - PR - SEG - MESSER CURITIBA",
+    "cidade": "CURITIBA",
+    "endereco": "CIC - Rua Hasdrubal Bellegard, 100"
+  },
+  {
+    "codigo": "34409",
+    "cliente": "CONDOMINIO EDIFICIO LUGANO",
+    "nome_posto": "34409 - PR - POR - CONDOMINIO EDIFICIO LUGANO",
+    "cidade": "CURITIBA",
+    "endereco": "HAUER - R. OLIVEIRA VIANA, 1060."
+  },
+  {
+    "codigo": "34433",
+    "cliente": "COND RESIDENCIAL SPAZIO CATENA",
+    "nome_posto": "34433 - PR - POR - COND RESIDENCIAL SPAZIO CATENA",
+    "cidade": "CURITIBA",
+    "endereco": "HAUER - R. OLIVEIRA VIANA, 1060."
+  },
+  {
+    "codigo": "34449",
+    "cliente": "DATAPROM (FCE)",
+    "nome_posto": "34449 - PR - SEG - DATAPROM (FCE)",
+    "cidade": "CURITIBA",
+    "endereco": "HAUER - Rua Tenente Francisco Ferreira de Souza, 470"
+  },
+  {
+    "codigo": "34485",
+    "cliente": "LAMINORT INDUSTRIA",
+    "nome_posto": "34485 - PR - POR - LAMINORT INDUSTRIA",
+    "cidade": "CURITIBA",
+    "endereco": "CIDADE INDUSTRIAL. - R. João Bettega, 4050"
+  },
+  {
+    "codigo": "34513",
+    "cliente": "MOINHO DO NORDESTE PINHAIS",
+    "nome_posto": "34513 - PR - SEG - MOINHO DO NORDESTE PINHAIS",
+    "cidade": "PINHAIS",
+    "endereco": "PINHAIS - R. Severino Massignan, 269 - Weissópolis"
+  },
+  {
+    "codigo": "34513",
+    "cliente": "MOINHO PIRAQUARA",
+    "nome_posto": "34513 - PR - SEG - MOINHO PIRAQUARA",
+    "cidade": "PIRAQUARA",
+    "endereco": "PIRAQUARA - Av. Betonex, 2066 - Guarituba"
+  },
+  {
+    "codigo": "34535",
+    "cliente": "SELECTAS",
+    "nome_posto": "34535 - PR - SEG - SELECTAS",
+    "cidade": "CURITIBA",
+    "endereco": "PINHEIRINHO - BR-116, 18414"
+  },
+  {
+    "codigo": "34566",
+    "cliente": "RESERVA TECNICA SEGURANCA 1 FERISTAS",
+    "nome_posto": "34566 - PR - SEG - RESERVA TECNICA SEGURANCA 1 FERISTAS",
+    "cidade": "CURITIBA",
+    "endereco": "Curitiba e Região"
+  },
+  {
+    "codigo": "34566",
+    "cliente": "RESERVA TECNICA SEGURANCA 1 RESERVA TECNICA",
+    "nome_posto": "34566 - PR - SEG - RESERVA TECNICA SEGURANCA 1 RESERVA TECNICA",
+    "cidade": "CURITIBA",
+    "endereco": "Curitiba e Região"
+  },
+  {
+    "codigo": "34681",
+    "cliente": "VIBRA ENERGIA CURITIBA E REGIAO",
+    "nome_posto": "34681 - PR - SEG - VIBRA ENERGIA CURITIBA E REGIAO",
+    "cidade": "ARAUCÁRIA",
+    "endereco": "ARAUCARIA/Rodovia BR 476, Km 15 440 - Jardim Alvorada - Rodovia BR 476, Km 15 440 - Jardim Alvorada"
+  },
+  {
+    "codigo": "34687",
+    "cliente": "VIDROLAR",
+    "nome_posto": "34687 - PR - SEG - VIDROLAR",
+    "cidade": "CURITIBA",
+    "endereco": "CIDADE INDUSTRIAL. - Rua Cyro Correia Pereira, 943"
+  },
+  {
+    "codigo": "35380",
+    "cliente": "ISRINGHAUSEN INDUSTRIAL LTDA",
+    "nome_posto": "35380 - PR - POR - ISRINGHAUSEN INDUSTRIAL LTDA",
+    "cidade": "FAZENDA RIO GRANDE",
+    "endereco": "FAZENDA RIO GRANDE - Av. das Indústrias, 206 - Eucaliptos"
+  },
+  {
+    "codigo": "37178",
+    "cliente": "PLASTIC OMNIUM AUTO INERGY",
+    "nome_posto": "37178 - PR - SEG - PLASTIC OMNIUM AUTO INERGY",
+    "cidade": "PIRAQUARA",
+    "endereco": "PIRAQUARA - Rod. Dep. João Leopoldo Jacomel, 3733"
+  },
+  {
+    "codigo": "49997",
+    "cliente": "CONDOMINIO EDIFICIO GREEN PALACE",
+    "nome_posto": "49997 - PR - POR - CONDOMINIO EDIFICIO GREEN PALACE",
+    "cidade": "CURITIBA",
+    "endereco": "BATEL,CURITIBA. - R. Des. Motta, 2290"
+  },
+  {
+    "codigo": "50215",
+    "cliente": "HELISUL FBO /SIDERAL",
+    "nome_posto": "50215 - PR - POR - HELISUL FBO /SIDERAL",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - AV ROCHA POMBO"
+  },
+  {
+    "codigo": "50218",
+    "cliente": "BECTON",
+    "nome_posto": "50218 - PR - SEG - BECTON",
+    "cidade": "CURITIBA",
+    "endereco": "CIDADE INDUSTRIAL. - Rua Cyro Correia Pereira, 550"
+  },
+  {
+    "codigo": "50473",
+    "cliente": "COND DO ED MARQUES DE MONT ALEGRE",
+    "nome_posto": "50473 - PR - POR - COND DO ED MARQUES DE MONT ALEGRE",
+    "cidade": "COLOMBO",
+    "endereco": "CURITIBA,AHÚ - R. Colombo, 869 - Ahú"
+  },
+  {
+    "codigo": "50741",
+    "cliente": "FRANCISCO SIMEAO",
+    "nome_posto": "50741 - PR - MON - FRANCISCO SIMEAO",
+    "cidade": "CURITIBA",
+    "endereco": "CASCATINHA, CURITIBA. - RUA LAURO MALIN,565."
+  },
+  {
+    "codigo": "50877",
+    "cliente": "INFORMOBILE kastrup",
+    "nome_posto": "50877 - PR - POR - INFORMOBILE kastrup",
+    "cidade": "CURITIBA",
+    "endereco": "NOVO MUNDO, CURITIBA. - R. Pedro Gusso, 943"
+  },
+  {
+    "codigo": "54060",
+    "cliente": "CRISTINA MARIA CUNHA",
+    "nome_posto": "54060 - PR - SEG - CRISTINA MARIA CUNHA",
+    "cidade": "CURITIBA",
+    "endereco": "BIGORRILHO, CURITIBA - RUA DOUTOR ALUIZIO FRANÇA 1734 BARIGUI"
+  },
+  {
+    "codigo": "54061",
+    "cliente": "ANA AMELIA CUNHA",
+    "nome_posto": "54061 - PR - SEG - ANA AMELIA CUNHA",
+    "cidade": "CURITIBA",
+    "endereco": "BATEL, CURITIBA. - RUA CARMELO RANGEL,1394."
+  },
+  {
+    "codigo": "54063",
+    "cliente": "TERESINHA DORING",
+    "nome_posto": "54063 - PR - SEG - TERESINHA DORING",
+    "cidade": "CURITIBA",
+    "endereco": "AV. SILVA JARDIM 3200 -CURITIBA - AV. SILVA JARDIM 3200"
+  },
+  {
+    "codigo": "54096",
+    "cliente": "MARIA ELSA DE ALMEIDA",
+    "nome_posto": "54096 - PR - SEG - MARIA ELSA DE ALMEIDA",
+    "cidade": "CURITIBA",
+    "endereco": "JARDIM SOCIAL,CURITIBA - AV.NOSSA SENHORA DA LUZ,1919"
+  },
+  {
+    "codigo": "57582",
+    "cliente": "THALES GROUP",
+    "nome_posto": "57582 - PR - SEG - THALES GROUP",
+    "cidade": "PINHAIS",
+    "endereco": "PINHAIS - Av. Nossa Sra. da Boa Esperança, 367"
+  },
+  {
+    "codigo": "59023",
+    "cliente": "SUZANO",
+    "nome_posto": "59023 - PR - SEG - SUZANO",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - Guatupê, São José dos Pinhais - PR"
+  },
+  {
+    "codigo": "63365",
+    "cliente": "ADM DO BRASIL - YERBALATINA",
+    "nome_posto": "63365 - PR - SEG - ADM DO BRASIL - YERBALATINA",
+    "cidade": "COLOMBO",
+    "endereco": "COLOMBO/Rod. da Uva, 5306 - Arruda - Rod. da Uva, 5306 - Arruda"
+  },
+  {
+    "codigo": "65974",
+    "cliente": "RIO HOTEL BY BOURBON",
+    "nome_posto": "65974 - PR - SEG - RIO HOTEL BY BOURBON",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - Av. Rocha Pombo, 2561 - Águas Belas,"
+  },
+  {
+    "codigo": "65974",
+    "cliente": "RIO HOTEL DON RICARDO",
+    "nome_posto": "65974 - PR - SEG - RIO HOTEL DON RICARDO",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - Av. Rocha Pombo, 2561 - Águas Belas,"
+  },
+  {
+    "codigo": "69093",
+    "cliente": "COND CHACARA SHANGAI II",
+    "nome_posto": "69093 - PR - POR - COND CHACARA SHANGAI II",
+    "cidade": "CURITIBA",
+    "endereco": "CAMPO COMPRIDO, CURITIBA. - Rua Major Francisco Hardy, 230"
+  },
+  {
+    "codigo": "70751",
+    "cliente": "TRUTZSCHLER",
+    "nome_posto": "70751 - PR - SEG - TRUTZSCHLER",
+    "cidade": "CURITIBA",
+    "endereco": "CIDADE INDUSTRIAL. R. João Chede, 1015 - R. João Chede, 1015"
+  },
+  {
+    "codigo": "71381",
+    "cliente": "COND. ILHAS BALEARES",
+    "nome_posto": "71381 - PR - POR - COND. ILHAS BALEARES",
+    "cidade": "CURITIBA",
+    "endereco": "Mossunguê - R. Francisco Juglair, 470"
+  },
+  {
+    "codigo": "71422",
+    "cliente": "COND. ORBIT",
+    "nome_posto": "71422 - PR - SEG - COND. ORBIT",
+    "cidade": "CURITIBA",
+    "endereco": "CURITIBA - RUA DOUTOR PEDROSA, 445."
+  },
+  {
+    "codigo": "71551",
+    "cliente": "COND. EDIFICIO TOM & VINICIUS",
+    "nome_posto": "71551 - PR - POR - COND. EDIFICIO TOM & VINICIUS",
+    "cidade": "CURITIBA",
+    "endereco": "CAMPO COMPRIDO, CURITIBA. - R. Dr. Brasílio Vicente de Castro, 320"
+  },
+  {
+    "codigo": "71642",
+    "cliente": "DIAGNOSTICO BRASIL",
+    "nome_posto": "71642 - PR - SEG - DIAGNOSTICO BRASIL",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - RUA BOA ESPERANÇA 88, CRUZEIRO"
+  },
+  {
+    "codigo": "71831",
+    "cliente": "CPL",
+    "nome_posto": "71831 - PR - SEG - CPL",
+    "cidade": "CURITIBA",
+    "endereco": "REBOUÇAS - AV. SILVA JARDIM 3200"
+  },
+  {
+    "codigo": "72942",
+    "cliente": "BRASLOG",
+    "nome_posto": "72942 - PR - SEG - BRASLOG",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - R. Joroslau Sochaki, 842 - Ipê"
+  },
+  {
+    "codigo": "73022",
+    "cliente": "COND. CENTRO CIVICO",
+    "nome_posto": "73022 - PR - SEG - COND. CENTRO CIVICO",
+    "cidade": "CURITIBA",
+    "endereco": "CENTRO CIVICO, CURITIBA - AV. CÂNDIDO DE ABREU, 70"
+  },
+  {
+    "codigo": "73531",
+    "cliente": "EDIFICIO SAO RAFAEL",
+    "nome_posto": "73531 - PR - SEG - EDIFICIO SAO RAFAEL",
+    "cidade": "CURITIBA",
+    "endereco": "CAMPINA DO SIQUEIRA, CURITIBA. - RUA MONSENHOR IVO ZANLORENZI,2528."
+  },
+  {
+    "codigo": "73631",
+    "cliente": "METALKRAFT",
+    "nome_posto": "73631 - PR - SEG - METALKRAFT",
+    "cidade": "QUATRO BARRAS",
+    "endereco": "QUATRO BARRAS - R. Pedro Câmbio Cortiano, 1295 - Jardim Orestes Thá"
+  },
+  {
+    "codigo": "73641",
+    "cliente": "MPS",
+    "nome_posto": "73641 - PR - SEG - MPS",
+    "cidade": "CURITIBA",
+    "endereco": "CURITIBA - R. Tapajós, 186 - São Francisco"
+  },
+  {
+    "codigo": "74933",
+    "cliente": "HELOISA HELENA GOMES",
+    "nome_posto": "74933 - PR - SEG - HELOISA HELENA GOMES",
+    "cidade": "CURITIBA",
+    "endereco": "BATEL, CURITIBA. - RUA HERMES FONTES,1215."
+  },
+  {
+    "codigo": "75311",
+    "cliente": "ESCOLA INTERNACIONAL",
+    "nome_posto": "75311 - PR - SEG - ESCOLA INTERNACIONAL",
+    "cidade": "CURITIBA",
+    "endereco": "SANTA FELICIDADE - AVENIDA DOUTOR EUGENIO BERTOLLI, 3900"
+  },
+  {
+    "codigo": "75416",
+    "cliente": "MAXI",
+    "nome_posto": "75416 - PR - SEG - MAXI",
+    "cidade": "CURITIBA",
+    "endereco": "CIDADE INDUSTRIAL. - Rua Cyro Correia Pereira, 2744"
+  },
+  {
+    "codigo": "76551",
+    "cliente": "ZANINI",
+    "nome_posto": "76551 - PR - SEG - ZANINI",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - R. Sebastiana Santana Fraga, 82 - Guatupê"
+  },
+  {
+    "codigo": "76771",
+    "cliente": "WISE UP",
+    "nome_posto": "76771 - PR - SEG - WISE UP",
+    "cidade": "CURITIBA",
+    "endereco": "REBOUÇAS, CURITIBA. - AV. PRESIDENTE GETULIO VARGA, 3836"
+  },
+  {
+    "codigo": "76857",
+    "cliente": "WHITE MARTINS ARAUCARIA",
+    "nome_posto": "76857-PR - POR - WHITE MARTINS ARAUCARIA",
+    "cidade": "ARAUCÁRIA",
+    "endereco": "R. Dr. Eli Volpato, 8888 - Chapada"
+  },
+  {
+    "codigo": "77921",
+    "cliente": "KUHN DO BRASIL",
+    "nome_posto": "77921 - PR - SEG - KUHN DO BRASIL",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - R. Francisco Dal Negro, 3400 - Santo Antônio"
+  },
+  {
+    "codigo": "78680",
+    "cliente": "WHITE MARTINS ARAUCARIA",
+    "nome_posto": "78680 - PR - SEG - WHITE MARTINS ARAUCARIA",
+    "cidade": "ARAUCÁRIA",
+    "endereco": "ARAUCARIA - R. Dr. Eli Volpato, 8888 - Chapada"
+  },
+  {
+    "codigo": "78776",
+    "cliente": "FLEURY",
+    "nome_posto": "78776 - PR - POR - FLEURY",
+    "cidade": "CURITIBA",
+    "endereco": "CENTRO CIVICO. - RUA DOUTOR ROBERTO BARROSO,1360."
+  },
+  {
+    "codigo": "80115",
+    "cliente": "REGINA A. LEAL",
+    "nome_posto": "80115 - PR - SEG - REGINA A. LEAL",
+    "cidade": "CURITIBA",
+    "endereco": "ALBRATECH - RUA OLAVO BILAC,369"
+  },
+  {
+    "codigo": "82265",
+    "cliente": "ITAU POR",
+    "nome_posto": "82265 - PR - MAP - ITAU POR",
+    "cidade": "CURITIBA",
+    "endereco": "Curitiba e Região"
+  },
+  {
+    "codigo": "82314",
+    "cliente": "SOUZA CRUZ BAT USINA - RIO NEGRO",
+    "nome_posto": "82314 - PR - SEG - SOUZA CRUZ BAT USINA - RIO NEGRO",
+    "cidade": "RIO NEGRO",
+    "endereco": "RIO NEGRO - AV GEN PLINIO TOURINHO 3200 CAMPO DO GADO"
+  },
+  {
+    "codigo": "82768",
+    "cliente": "SOUZA CRUZ BAT - MAPI",
+    "nome_posto": "82768 - PR - SEG - SOUZA CRUZ BAT - MAPI",
+    "cidade": "RIO NEGRO",
+    "endereco": "RIO NEGRO - R. José Jaime Ruthes, 415C,"
+  },
+  {
+    "codigo": "84675",
+    "cliente": "MASADIM ADMINISTRADORA FLOW",
+    "nome_posto": "84675 - PR - SEG - MASADIM ADMINISTRADORA FLOW",
+    "cidade": "CURITIBA",
+    "endereco": "UBERABA - Av. Comendador Franco, 6992 - ACESSA PELA RUA BENTO CEGO"
+  },
+  {
+    "codigo": "92459",
+    "cliente": "DIMED - PANVEL",
+    "nome_posto": "92459 - PR - SEG - DIMED - PANVEL",
+    "cidade": "SÃO JOSÉ DOS PINHAIS",
+    "endereco": "SÃO JOSE DOS PINHAIS - CONTORNO LESTE DE CURITIBA, 8849, COSTEIRA."
+  },
+  {
+    "codigo": "92696",
+    "cliente": "ALBRATECH",
+    "nome_posto": "92696 - PR - SEG - ALBRATECH",
+    "cidade": "ARUJÁ",
+    "endereco": "R. Elías Pedro Saade, 16500 - Arujá,"
+  },
+  {
+    "codigo": "14946",
+    "cliente": "BUNGE",
+    "nome_posto": "BUNGE",
+    "cidade": "CURITIBA",
+    "endereco": ""
+  }
+]

@@ -1,6 +1,6 @@
-# Quadro Operacional de Postos de Trabalho & Crachás Interativos
+# Quadro Operacional de Postos & Mapeamento de Visitas em Tempo Real
 
-Sistema visual e operacional para gestão de postos de trabalho e alocação de equipes (Vigilância, Portaria e Facilities), com suporte a crachás completos com foto, drag-and-drop para remanejamento de colaboradores e escalas.
+Sistema visual e operacional para gestão de postos de trabalho, alocação de equipes (Vigilância, Portaria e Facilities) e **Mapeamento Geográfico de Clientes por Cidades com Baixa de Visitas de Fiscalização em Campo**.
 
 ---
 
@@ -8,9 +8,46 @@ Sistema visual e operacional para gestão de postos de trabalho e alocação de 
 
 Você tem duas opções simples para abrir o sistema:
 
-1. **Opção 1 (Recomendada):** Dê um duplo-clique no arquivo **`INICIAR_QUADRO.bat`**.
-   - O servidor local iniciará e abrirá automaticamente no seu navegador padrão (`http://localhost:3333`).
-2. **Opção 2 (Direta):** Dê um duplo-clique no arquivo **`index.html`** para abrir diretamente no Google Chrome, Microsoft Edge ou Firefox sem precisar de terminal.
+1. **Mapeamento de Clientes & Baixa de Visitas:** Duplo-clique em **`INICIAR_MAPA.bat`**
+   - Abre o mapa interativo com todos os 71 clientes divididos por cidades, status de visita em tempo real e formulário de baixa.
+2. **Quadro Operacional de Crachás:** Duplo-clique em **`INICIAR_QUADRO.bat`**
+   - Abre o painel de gestão de crachás, escalas e postos de trabalho.
+
+Ambos os módulos são integrados e você pode alternar entre eles a qualquer momento pelo botão **`🗺️ Mapa & Visitas`** ou **`Quadro Operacional`**.
+
+---
+
+## 🗺️ Novo Módulo: Mapeamento de Clientes & Controle de Visitas
+
+O novo módulo foi construído especificamente para controle de fiscalização e visitas em postos:
+
+1. **Mapeamento por Cidades (Leaflet / OpenStreetMap):**
+   - Todos os clientes localizados geograficamente com marcadores de alta precisão.
+   - Filtro instantâneo por cidades (Curitiba, São José dos Pinhais, Araucária, Pinhais, Colombo, Piraquara, Fazenda Rio Grande, Quatro Barras, Rio Negro, Arujá).
+2. **Destaque Visual por Status de Visita:**
+   - 🟢 **Em Dia (Verde):** Posto visitado nos últimos 15 dias.
+   - 🟡 **Atenção (Amarelo):** Sem visita há 16 a 30 dias.
+   - 🔴 **Crítico (Vermelho):** Sem visita há mais de 30 dias ou nenhuma visita registrada.
+3. **Dar Baixa na Visita (Celular & Computador):**
+   - Botão **"Dar Baixa"** direto no card do cliente ou clicando no marcador no mapa.
+   - Registro de: Fiscal responsável, Data/Hora, Tipo de Visita (Rotina, Auditoria, Ronda, Alinhamento, Ocorrência), Avaliação e Checklist Operacional.
+   - Atualização em tempo real sem recarregar a tela.
+4. **Histórico de Visitas:**
+   - Linha do tempo completa de todas as baixas realizadas no posto.
+5. **Exportação de Relatórios:**
+   - Exportação em formato compatível com Excel (.CSV) com cobertura e status de todos os clientes.
+
+---
+
+## 🌐 Como Colocar Tudo Online (Acesso Remoto / Celular dos Fiscais)
+
+Para os fiscais na rua acessarem pelo celular sem complicação:
+
+- **Opção 1 (Gratuita via Nuvem - Render / Railway / Fly.io):**
+  - Conecte o repositório GitHub e suba como Web Service com comando de start `node server.js`. O sistema roda com SQLite persistente.
+- **Opção 2 (Acesso Imediato via Cloudflare Tunnel ou Ngrok):**
+  - No computador onde o sistema roda, execute: `npx cloudflared tunnel --url http://localhost:3333`
+  - Ele gera na hora um link público seguro HTTPS (ex: `https://grupo-gps-visitas.trycloudflare.com`) para abrir no celular de qualquer lugar!
 
 ---
 
