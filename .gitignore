@@ -21,3 +21,7 @@ database/*.db-shm
 *.html.baixados
 *Quadro Operacional de Postos de Trabalho*
 
+
+# Binários e arquivos temporários de túnel
+cloudflared.exe
+tunnel-url.txt

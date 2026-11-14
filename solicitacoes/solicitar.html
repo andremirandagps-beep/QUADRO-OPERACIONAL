@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solicitação de Suporte — Equipe de Segurança</title>
+<script>
+  if (!window.location.pathname.endsWith('/solicitar.html') || window.location.pathname.includes('/solicitacoes/')) {
+    window.location.replace('../solicitar.html' + window.location.search + window.location.hash);
+  }
+</script>
 <link rel="stylesheet" href="style.css">
 <style>
   body { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1e40af 100%); }

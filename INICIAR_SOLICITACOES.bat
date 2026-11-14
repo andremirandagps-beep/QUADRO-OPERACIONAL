@@ -25,14 +25,14 @@ echo [2/2] Iniciando Servidor Web na porta %PORTA%...
 echo.
 echo --------------------------------------------------------
 echo   PAINEL DO GESTOR:
-echo   http://localhost:%PORTA%/solicitacoes/index.html
+echo   http://localhost:%PORTA%/solicitacoes.html
 echo.
 echo   LINK PARA OS COLABORADORES:
-echo   http://%LOCAL_IP%:%PORTA%/solicitacoes/solicitar.html
+echo   http://%LOCAL_IP%:%PORTA%/solicitar.html
 echo --------------------------------------------------------
 echo.
 echo Abrindo o painel no navegador padrao...
-start http://localhost:%PORTA%/solicitacoes/index.html
+start http://localhost:%PORTA%/solicitacoes.html
 
 echo.
 echo O servidor esta ativo! Deixe esta janela aberta.

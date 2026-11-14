@@ -323,16 +323,25 @@
 
   /* Modal Form */
   .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 16px;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(4px) !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+    padding: 16px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease !important;
   }
-  .modal-overlay.open { display: flex; }
+  .modal-overlay.open,
+  .modal-overlay.active {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
 
   .modal-box {
     background: #1e293b;
@@ -343,6 +352,8 @@
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    position: relative;
+    z-index: 100000;
   }
 
   .m-header {
@@ -638,26 +649,57 @@
 
   <!-- Modal Link Postos -->
   <div class="modal-overlay" id="modalLinkPostos" onclick="if(event.target===this) fecharModalLinkPostos()">
-    <div class="modal-box" style="max-width: 540px;" onclick="event.stopPropagation()">
+    <div class="modal-box" style="max-width: 560px;" onclick="event.stopPropagation()">
       <div class="m-header">
-        <h3>🔗 Link de Solicitação para os Postos</h3>
+        <h3>🔗 Link para Celular / Postos</h3>
         <button class="m-close" id="btnModalLinkClose" onclick="fecharModalLinkPostos()">&times;</button>
       </div>
       <div class="m-body">
         <p style="font-size: 0.88rem; color: #94a3b8; margin-top: 0; line-height: 1.5;">
-          Envie o link abaixo para os vigilantes, porteiros e fiscais de posto abrirem solicitações diretamente pelo celular ou terminal:
+          Escaneie o QR Code com o celular <strong style="color:#f1f5f9;">ou</strong> copie o link e envie pelo WhatsApp:
         </p>
-        <div class="link-box-gps">
-          <input type="text" id="inputLinkPosto" readonly>
+
+        <!-- QR Code + botões de exportar -->
+        <div style="display:flex; flex-direction:column; align-items:center; margin: 18px 0 20px;">
+          <div id="qrCodeContainer" style="background:#fff; border-radius:12px; padding:14px; display:flex; align-items:center; justify-content:center; width:200px; height:200px;">
+            <span style="color:#94a3b8; font-size:0.8rem;">Carregando IP...</span>
+          </div>
+          <div style="margin-top:10px; font-size:0.75rem; color:#64748b; text-align:center;">📱 Aponte a câmera do celular para o QR Code</div>
+
+          <!-- Botões de salvar/imprimir QR -->
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <button class="btn btn-secondary btn-sm" onclick="salvarQRCode()" title="Salvar imagem do QR Code">
+              💾 Salvar QR
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="imprimirQRCode()" title="Imprimir cartaz com QR Code">
+              🖨️ Imprimir Cartaz
+            </button>
+          </div>
+        </div>
+
+        <!-- Link copiável -->
+        <div class="link-box-gps" style="margin-bottom:12px;">
+          <input type="text" id="inputLinkPosto" readonly style="font-size:0.82rem;">
           <button class="btn btn-primary btn-sm" id="btnCopiarLink" onclick="copiarLinkPostos()">📋 Copiar</button>
         </div>
-        <div style="margin-top: 14px; display: flex; gap: 8px;">
+
+        <!-- Botões de ação -->
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
           <a id="btnAbrirLinkTestar" href="solicitar.html" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration: none; flex: 1; text-align: center;">
-            🚀 Testar Abrir Página no Navegador
+            🚀 Abrir no Navegador
           </a>
+          <button class="btn btn-primary btn-sm" id="btnCompartilharWhatsApp" style="flex: 1; background: linear-gradient(135deg,#25d366,#128c7e); border-color:#128c7e;" onclick="compartilharWhatsApp()">
+            📲 Enviar WhatsApp
+          </button>
         </div>
-        <p style="font-size: 0.78rem; color: #64748b; margin-top: 14px; margin-bottom: 0;">
-          💡 Em rede Wi-Fi / cabo, os outros celulares e computadores acessam via o endereço IP exibido.
+
+        <div id="avisoFirewall" style="display:none; margin-top:14px; padding:10px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; font-size:0.78rem; color:#fca5a5; line-height:1.5;">
+          ⚠️ <strong>Celular não consegue abrir o link?</strong><br>
+          Execute o arquivo <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px;">LIBERAR_CELULAR_ADMIN.bat</code> como <strong>Administrador</strong> na pasta do projeto para liberar o firewall.
+        </div>
+
+        <p style="font-size: 0.75rem; color: #475569; margin-top: 14px; margin-bottom: 0;">
+          💡 Verifique que o celular está na <strong style="color:#94a3b8">mesma rede Wi-Fi</strong> que este computador.
         </p>
       </div>
     </div>
@@ -699,42 +741,238 @@
       document.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('selected'));
 
       modal.style.display = 'flex';
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
       modal.classList.add('open');
+      modal.classList.add('active');
     }
 
     async function abrirModalLinkPostos() {
       const modalLink = document.getElementById('modalLinkPostos');
-      let baseUrl = window.location.origin;
+      if (!modalLink) return;
 
-      if (window.location.protocol === 'file:') {
-        baseUrl = 'http://192.168.100.242:3333';
-      } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        try {
-          const res = await fetch('/api/server-info');
-          if (res.ok) {
-            const info = await res.json();
-            if (info.localIp && info.localIp !== 'localhost') {
-              baseUrl = `http://${info.localIp}:${info.port || 3333}`;
-            }
+      // Exibe imediatamente o modal
+      modalLink.style.display = 'flex';
+      modalLink.style.opacity = '1';
+      modalLink.style.pointerEvents = 'auto';
+      modalLink.classList.add('open');
+      modalLink.classList.add('active');
+
+      const qrContainer = document.getElementById('qrCodeContainer');
+      if (qrContainer) qrContainer.innerHTML = '<span style="color:#94a3b8;font-size:0.8rem;">Carregando...</span>';
+
+      let linkFinal = '';
+      let modoTunel = false;
+
+      try {
+        const res = await fetch('/api/server-info');
+        if (res.ok) {
+          const info = await res.json();
+
+          // Prioridade 1: URL de tunel ativo (funciona no 4G/5G)
+          if (info.tunnelUrl && info.tunnelUrl.startsWith('http')) {
+            linkFinal = info.tunnelUrl;
+            modoTunel = true;
           }
-        } catch (e) {
-          baseUrl = 'http://192.168.100.242:3333';
+          // Prioridade 2: IP local (funciona só no Wi-Fi)
+          else if (info.localIp && info.localIp !== 'localhost') {
+            linkFinal = `http://${info.localIp}:${info.port || 3333}/solicitar.html`;
+          }
+        }
+      } catch (e) {}
+
+      // Fallback
+      if (!linkFinal) {
+        linkFinal = `${window.location.origin}/solicitar.html`;
+      }
+
+      const inp = document.getElementById('inputLinkPosto');
+      if (inp) inp.value = linkFinal;
+      const testarBtn = document.getElementById('btnAbrirLinkTestar');
+      if (testarBtn) testarBtn.href = linkFinal;
+
+      // Aviso de modo: túnel ativo ou só Wi-Fi
+      const aviso = document.getElementById('avisoFirewall');
+      if (aviso) {
+        if (modoTunel) {
+          aviso.style.display = 'block';
+          aviso.style.background = 'rgba(16,185,129,0.1)';
+          aviso.style.borderColor = 'rgba(16,185,129,0.4)';
+          aviso.style.color = '#6ee7b7';
+          aviso.innerHTML = '✅ <strong>Túnel ativo!</strong> Este link funciona em <strong>qualquer celular</strong>, mesmo pelo 4G/5G — sem precisar de Wi-Fi.';
+        } else {
+          aviso.style.display = 'block';
+          aviso.style.background = 'rgba(245,158,11,0.1)';
+          aviso.style.borderColor = 'rgba(245,158,11,0.3)';
+          aviso.style.color = '#fcd34d';
+          aviso.innerHTML = '⚠️ <strong>Modo Wi-Fi local.</strong> Este link só funciona se o celular estiver na mesma rede.<br>Para abrir pelo <strong>4G/5G</strong>, feche e execute <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px;">INICIAR_COM_INTERNET_4G5G.bat</code>';
         }
       }
 
-      const link = `${baseUrl}/solicitar.html`;
-      document.getElementById('inputLinkPosto').value = link;
-      const testarBtn = document.getElementById('btnAbrirLinkTestar');
-      if (testarBtn) testarBtn.href = link;
-      modalLink.style.display = 'flex';
-      modalLink.classList.add('open');
+      // Gera QR Code
+      if (qrContainer) {
+        const encodedLink = encodeURIComponent(linkFinal);
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodedLink}`;
+        qrContainer.innerHTML = `<img id="qrCodeImg" src="${qrUrl}" alt="QR Code" crossorigin="anonymous"
+          style="border-radius:8px; width:180px; height:180px;"
+          onerror="this.parentElement.innerHTML='<span style=\\'color:#ef4444;font-size:0.75rem;text-align:center;padding:8px\\'>⚠️ Necessário internet para gerar o QR Code</span>'" />`;
+      }
+    }
+
+    function salvarQRCode() {
+      const img = document.getElementById('qrCodeImg');
+      const link = document.getElementById('inputLinkPosto')?.value || 'solicitar';
+      if (!img) { alert('QR Code ainda não foi gerado.'); return; }
+      // Abre a imagem em nova aba para o usuário salvar
+      const qrUrl = img.src;
+      const a = document.createElement('a');
+      a.href = qrUrl;
+      a.download = 'QRCode_GPS_Solicitacao.png';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function imprimirQRCode() {
+      const img = document.getElementById('qrCodeImg');
+      const link = document.getElementById('inputLinkPosto')?.value || '';
+      if (!img) { alert('QR Code ainda não foi gerado.'); return; }
+
+      const janela = window.open('', '_blank', 'width=700,height=800');
+      janela.document.write(`
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8">
+          <title>QR Code GPS - Solicitações</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+            * { margin:0; padding:0; box-sizing:border-box; }
+            body {
+              font-family: 'Inter', Arial, sans-serif;
+              background: #fff;
+              display: flex; align-items: center; justify-content: center;
+              min-height: 100vh; padding: 30px;
+            }
+            .cartaz {
+              width: 100%; max-width: 500px;
+              border: 3px solid #0f172a;
+              border-radius: 20px;
+              overflow: hidden;
+              box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            }
+            .topo {
+              background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+              color: #fff;
+              padding: 24px 20px 20px;
+              text-align: center;
+            }
+            .topo h1 { font-size: 1.3rem; font-weight: 900; letter-spacing: 1px; }
+            .topo p { font-size: 0.85rem; color: rgba(255,255,255,0.75); margin-top: 6px; }
+            .corpo {
+              padding: 28px 24px;
+              text-align: center;
+              background: #fff;
+            }
+            .instrucao {
+              font-size: 1rem;
+              font-weight: 700;
+              color: #1e3a8a;
+              margin-bottom: 20px;
+            }
+            .instrucao span { font-size: 1.5rem; display:block; margin-bottom:4px; }
+            .qr-box {
+              background: #fff;
+              border: 2px solid #e2e8f0;
+              border-radius: 16px;
+              padding: 16px;
+              display: inline-block;
+              margin: 0 auto;
+            }
+            .qr-box img { width: 220px; height: 220px; display: block; }
+            .link-txt {
+              font-size: 0.72rem;
+              color: #64748b;
+              margin-top: 14px;
+              word-break: break-all;
+              font-family: monospace;
+              background: #f8fafc;
+              padding: 6px 10px;
+              border-radius: 6px;
+              border: 1px solid #e2e8f0;
+            }
+            .aviso {
+              margin-top: 20px;
+              background: #fef9c3;
+              border: 1px solid #fbbf24;
+              border-radius: 10px;
+              padding: 12px 16px;
+              font-size: 0.82rem;
+              color: #92400e;
+              line-height: 1.5;
+            }
+            .rodape {
+              background: #f1f5f9;
+              border-top: 1px solid #e2e8f0;
+              padding: 14px 20px;
+              text-align: center;
+              font-size: 0.75rem;
+              color: #64748b;
+            }
+            @media print {
+              body { padding: 10px; }
+              .cartaz { box-shadow: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="cartaz">
+            <div class="topo">
+              <h1>🛡️ GRUPO GPS</h1>
+              <p>Sistema de Solicitações de Efetivo & Apoio</p>
+            </div>
+            <div class="corpo">
+              <div class="instrucao">
+                <span>📱</span>
+                Escaneie com a câmera do celular para abrir uma solicitação:
+              </div>
+              <div class="qr-box">
+                <img src="${img.src}" alt="QR Code GPS" />
+              </div>
+              <div class="link-txt">${link}</div>
+              <div class="aviso">
+                ⚠️ <strong>Importante:</strong> O celular precisa estar conectado à <strong>mesma rede Wi-Fi</strong> do computador. Use este QR Code para solicitar: alimentação, efetivo, material tático, rádios, EPI ou ronda.
+              </div>
+            </div>
+            <div class="rodape">
+              Dúvidas? Fale com o Supervisor de Operações • Grupo GPS
+            </div>
+          </div>
+          <script>
+            window.onload = () => { window.print(); }
+          <\/script>
+        </body>
+        </html>
+      `);
+      janela.document.close();
+    }
+
+    function compartilharWhatsApp() {
+      const link = document.getElementById('inputLinkPosto')?.value || '';
+      if (!link) return;
+      const msg = encodeURIComponent(`🛡️ *GRUPO GPS — Solicitação de Efetivo & Apoio*\n\nAcesse o link abaixo para abrir uma nova solicitação pelo celular:\n📲 ${link}\n\n_Certifique-se de estar na rede Wi-Fi do posto._`);
+      window.open(`https://wa.me/?text=${msg}`, '_blank');
     }
 
     function fecharModalNova() {
       const modal = document.getElementById('modalNova');
       if (modal) {
         modal.classList.remove('open');
+        modal.classList.remove('active');
         modal.style.display = 'none';
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
       }
     }
 
@@ -742,13 +980,18 @@
       const modalLink = document.getElementById('modalLinkPostos');
       if (modalLink) {
         modalLink.classList.remove('open');
+        modalLink.classList.remove('active');
         modalLink.style.display = 'none';
+        modalLink.style.opacity = '0';
+        modalLink.style.pointerEvents = 'none';
       }
     }
 
     function copiarLinkPostos() {
       const inp = document.getElementById('inputLinkPosto');
+      if (!inp) return;
       inp.select();
+      inp.setSelectionRange(0, 99999);
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(inp.value).then(() => {
           alert('Link copiado com sucesso! Pode colar no WhatsApp dos postos:\n' + inp.value);
@@ -1022,83 +1265,61 @@
         });
       });
 
-      // Modal Nova
-      document.getElementById('btnNovaSolic').addEventListener('click', () => {
-        document.getElementById('fEditId').value = '';
-        document.getElementById('fTitulo').value = '';
-        document.getElementById('fSolicitante').value = '';
-        document.getElementById('fPrazo').value = '';
-        document.getElementById('fQuantidade').value = '';
-        document.getElementById('fDescricao').value = '';
-        document.getElementById('fTipo').value = '';
-        document.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('selected'));
-        document.getElementById('modalNova').classList.add('open');
-      });
+      // Botão Nova Solicitação
+      const btnNova = document.getElementById('btnNovaSolic');
+      if (btnNova) {
+        btnNova.onclick = (e) => {
+          e.preventDefault();
+          abrirModalNovaDemanda();
+        };
+      }
 
-      document.getElementById('btnModalClose').addEventListener('click', () => {
-        document.getElementById('modalNova').classList.remove('open');
-      });
-      document.getElementById('btnModalCancel').addEventListener('click', () => {
-        document.getElementById('modalNova').classList.remove('open');
-      });
+      const btnClose = document.getElementById('btnModalClose');
+      if (btnClose) btnClose.onclick = fecharModalNova;
+
+      const btnCancel = document.getElementById('btnModalCancel');
+      if (btnCancel) btnCancel.onclick = fecharModalNova;
 
       document.querySelectorAll('.chip-btn').forEach(chip => {
         chip.addEventListener('click', () => {
           document.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('selected'));
           chip.classList.add('selected');
-          document.getElementById('fTipo').value = chip.dataset.val;
+          const fTipo = document.getElementById('fTipo');
+          if (fTipo) fTipo.value = chip.dataset.val;
         });
       });
 
-      document.getElementById('btnSalvarSolic').addEventListener('click', salvarNovaSolicitacao);
+      const btnSalvar = document.getElementById('btnSalvarSolic');
+      if (btnSalvar) btnSalvar.onclick = salvarNovaSolicitacao;
 
-      // Modal Link
+      // Botão Link para Postos
+      const btnLink = document.getElementById('btnLinkPostos');
+      if (btnLink) {
+        btnLink.onclick = (e) => {
+          e.preventDefault();
+          abrirModalLinkPostos();
+        };
+      }
+
+      const btnModalLinkClose = document.getElementById('btnModalLinkClose');
+      if (btnModalLinkClose) btnModalLinkClose.onclick = fecharModalLinkPostos;
+
       const modalLink = document.getElementById('modalLinkPostos');
-      document.getElementById('btnLinkPostos').addEventListener('click', async () => {
-        let baseUrl = window.location.origin;
+      if (modalLink) {
+        modalLink.onclick = (e) => {
+          if (e.target === modalLink) fecharModalLinkPostos();
+        };
+      }
 
-        // Se estiver no protocolo file:// ou localhost, tenta obter o IP de rede da máquina
-        if (window.location.protocol === 'file:') {
-          baseUrl = 'http://192.168.100.242:3333';
-        } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-          try {
-            const res = await fetch('/api/server-info');
-            if (res.ok) {
-              const info = await res.json();
-              if (info.localIp && info.localIp !== 'localhost') {
-                baseUrl = `http://${info.localIp}:${info.port || 3333}`;
-              }
-            }
-          } catch (e) {
-            baseUrl = `http://192.168.100.242:3333`;
-          }
-        }
+      const modalNova = document.getElementById('modalNova');
+      if (modalNova) {
+        modalNova.onclick = (e) => {
+          if (e.target === modalNova) fecharModalNova();
+        };
+      }
 
-        const link = `${baseUrl}/solicitar.html`;
-        document.getElementById('inputLinkPosto').value = link;
-        const testarBtn = document.getElementById('btnAbrirLinkTestar');
-        if (testarBtn) testarBtn.href = link;
-        modalLink.classList.add('open');
-      });
-
-      document.getElementById('btnModalLinkClose').addEventListener('click', () => {
-        modalLink.classList.remove('open');
-      });
-
-      modalLink.addEventListener('click', (e) => {
-        if (e.target === modalLink) modalLink.classList.remove('open');
-      });
-
-      document.getElementById('btnCopiarLink').addEventListener('click', () => {
-        const inp = document.getElementById('inputLinkPosto');
-        inp.select();
-        navigator.clipboard.writeText(inp.value).then(() => {
-          alert('Link copiado com sucesso! Pode colar e enviar no WhatsApp ou e-mail dos postos: \n' + inp.value);
-        }).catch(() => {
-          document.execCommand('copy');
-          alert('Link copiado com sucesso! \n' + inp.value);
-        });
-      });
+      const btnCopiar = document.getElementById('btnCopiarLink');
+      if (btnCopiar) btnCopiar.onclick = copiarLinkPostos;
     }
 
     async function salvarNovaSolicitacao() {
@@ -1141,7 +1362,7 @@
           body: JSON.stringify(payload)
         });
         if (res.ok) {
-          document.getElementById('modalNova').classList.remove('open');
+          fecharModalNova();
           await carregarSolicitacoes();
           return;
         }
@@ -1151,7 +1372,7 @@
       const localId = `SEG-${Date.now().toString().slice(-4)}`;
       solicitacoesLista.unshift({ id: localId, ...payload, created_at: new Date().toISOString() });
       localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
-      document.getElementById('modalNova').classList.remove('open');
+      fecharModalNova();
       renderizarQuadro();
     }
 

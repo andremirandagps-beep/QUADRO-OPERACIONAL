@@ -176,7 +176,16 @@ async function handleApi(req, res, pathname, method) {
         }
         if (localIp !== 'localhost') break;
       }
-      sendJson(res, 200, { localIp, port: PORT });
+      // Verifica se existe URL de tunel ativo (gerado pelo INICIAR_COM_INTERNET_4G5G.bat)
+      let tunnelUrl = null;
+      try {
+        const tunnelFile = path.join(BASE_DIR, 'tunnel-url.txt');
+        if (fs.existsSync(tunnelFile)) {
+          const content = fs.readFileSync(tunnelFile, 'utf8').trim();
+          if (content && content.startsWith('http')) tunnelUrl = content;
+        }
+      } catch (e) {}
+      sendJson(res, 200, { localIp, port: PORT, tunnelUrl });
       return;
     }
 
