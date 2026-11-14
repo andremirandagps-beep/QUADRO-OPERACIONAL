@@ -74,8 +74,16 @@
   </div>
 
   <!-- KANBAN -->
-  <div class="kanban-header">
-    <div class="kanban-title">📋 Quadro de Atendimento da Segurança</div>
+  <div class="kanban-header" style="flex-direction:column; align-items:stretch; gap:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="kanban-title">📋 Quadro de Atendimento da Segurança</div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <input type="text" id="solicSearchInput" placeholder="🔍 Buscar por Nº Protocolo, Nome, CPF ou Posto..." style="flex:2; min-width:240px; padding:9px 12px; background:#0f172a; border:1px solid #334155; border-radius:6px; color:#fff;" oninput="filtrarQuadro()">
+      <select id="solicFiltroPosto" style="flex:1; min-width:180px; padding:9px 12px; background:#0f172a; border:1px solid #334155; border-radius:6px; color:#fff;" onchange="filtrarQuadro()">
+        <option value="todos">Todos os Postos</option>
+      </select>
+    </div>
     <div class="filters">
       <button class="filter-btn active" data-filtro="todos">Todos</button>
       <button class="filter-btn" data-filtro="alimentacao">🍱 Alimentação</button>
@@ -180,6 +188,13 @@
           <input type="text" id="solicitante" placeholder="Nome completo / Cargo">
         </div>
         <div class="form-group">
+          <label>CPF do Solicitante</label>
+          <input type="text" id="cpf" placeholder="000.000.000-00">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="grid-column: span 2;">
           <label>Posto de Serviço / Local <span class="required">*</span></label>
           <input type="text" id="posto" placeholder="Ex: Portaria Principal, Ronda, Galpão...">
         </div>
@@ -273,7 +288,27 @@
 // ═══════════════════════════════════════════════════════════
 
 let filtroAtivo = 'todos';
+let buscaTexto = '';
+let postoFiltro = 'todos';
 let cfg = getConfig();
+
+function filtrarQuadro() {
+  buscaTexto = (document.getElementById('solicSearchInput')?.value || '').toLowerCase().trim();
+  postoFiltro = document.getElementById('solicFiltroPosto')?.value || 'todos';
+  renderBoard();
+}
+
+function popularPostosSelect(all) {
+  const sel = document.getElementById('solicFiltroPosto');
+  if (!sel) return;
+  const valAtual = sel.value || 'todos';
+  const postos = [...new Set(all.map(s => s.posto).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="todos">Todos os Postos</option>';
+  postos.forEach(p => {
+    sel.innerHTML += `<option value="${p}">${p}</option>`;
+  });
+  if (valAtual && (valAtual === 'todos' || postos.includes(valAtual))) sel.value = valAtual;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   seed();
@@ -296,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function renderBoard() {
   const all = getAll();
+  popularPostosSelect(all);
   const stats = { verde:0, amarelo:0, vermelho:0, concluido:0 };
 
   const colunas = ['pendente','analise','aprovado','concluido'];
@@ -307,6 +343,17 @@ function renderBoard() {
     all
       .filter(s => s.coluna === col)
       .filter(s => filtroAtivo === 'todos' || s.tipo === filtroAtivo)
+      .filter(s => {
+        if (postoFiltro !== 'todos' && s.posto !== postoFiltro) return false;
+        if (buscaTexto) {
+          const qDigitos = buscaTexto.replace(/\D/g, '');
+          const idDigitos = String(s.id || '').replace(/\D/g, '');
+          const cpfDigitos = String(s.cpf || '').replace(/\D/g, '');
+          const texto = `${s.id} ${s.solicitante||''} ${s.cpf||''} ${s.posto||''} ${s.titulo||''} ${s.descricao||''}`.toLowerCase();
+          return texto.includes(buscaTexto) || (qDigitos.length >= 2 && idDigitos.includes(qDigitos)) || (qDigitos.length >= 3 && cpfDigitos.includes(qDigitos));
+        }
+        return true;
+      })
       .sort((a,b) => {
         const prio = { urgente:0, alta:1, normal:2, baixa:3 };
         if ((prio[a.prioridade]||2) !== (prio[b.prioridade]||2))
@@ -418,6 +465,7 @@ function buildCard(sol, st, lbl) {
       ${prioMap[sol.prioridade]||''}
     </div>
     <div class="card-sol-info">👮 Solicitante: <span>${esc(sol.solicitante)}</span></div>
+    ${sol.cpf ? `<div class="card-sol-info" style="color:#60a5fa; font-size:0.75rem;">🪪 CPF: <span>${esc(sol.cpf)}</span></div>` : ''}
     ${sol.quantidade ? `<div class="card-sol-info">🔢 Quantidade/Efetivo: <span>${sol.quantidade}</span></div>` : ''}
     ${prazoStr ? `<div class="card-sol-prazo ${lbl.classe}">📅 ${lbl.texto}</div>` : ''}
     <div class="card-actions">
@@ -551,6 +599,7 @@ function abrirNova() {
   document.getElementById('modalTitle').textContent = '➕ Nova Demanda de Segurança';
   document.getElementById('titulo').value = '';
   document.getElementById('solicitante').value = '';
+  document.getElementById('cpf').value = '';
   document.getElementById('posto').value = '';
   document.getElementById('turno').value = 'Noturno (18h às 06h)';
   document.getElementById('prazo').value = '';
@@ -569,6 +618,7 @@ function abrirEditar(id) {
   document.getElementById('modalTitle').textContent = '✏️ Editar Demanda';
   document.getElementById('titulo').value      = sol.titulo || '';
   document.getElementById('solicitante').value = sol.solicitante || '';
+  document.getElementById('cpf').value         = sol.cpf || '';
   document.getElementById('posto').value       = sol.posto || '';
   document.getElementById('turno').value       = sol.turno || 'Diurno (06h às 18h)';
   document.getElementById('prazo').value       = sol.prazo || '';
@@ -590,6 +640,7 @@ function salvar() {
   const tipo       = document.getElementById('tipoSelected').value;
   const titulo     = document.getElementById('titulo').value.trim();
   const solicitante= document.getElementById('solicitante').value.trim();
+  const cpf        = document.getElementById('cpf') ? document.getElementById('cpf').value.trim() : '';
   const posto      = document.getElementById('posto').value.trim();
   const turno      = document.getElementById('turno').value;
   const prazo      = document.getElementById('prazo').value;
@@ -604,10 +655,10 @@ function salvar() {
   if (!prazo)      { toast('Informe o prazo limite', 'error'); return; }
 
   if (editId) {
-    atualizar(editId, { tipo, titulo, solicitante, posto, turno, prazo, prioridade, quantidade, descricao });
+    atualizar(editId, { tipo, titulo, solicitante, cpf, posto, turno, prazo, prioridade, quantidade, descricao });
     toast('Demanda atualizada com sucesso! ✅', 'success');
   } else {
-    criar({ tipo, titulo, solicitante, posto, turno, prazo, prioridade, quantidade, descricao, coluna:'pendente' });
+    criar({ tipo, titulo, solicitante, cpf, posto, turno, prazo, prioridade, quantidade, descricao, coluna:'pendente' });
     toast('Demanda registrada no quadro! 🛡️', 'success');
   }
 

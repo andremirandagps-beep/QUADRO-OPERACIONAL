@@ -120,6 +120,26 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_solic_coluna ON solicitacoes(coluna);
     CREATE INDEX IF NOT EXISTS idx_solic_prazo ON solicitacoes(prazo);
     CREATE INDEX IF NOT EXISTS idx_solic_posto ON solicitacoes(posto_id);
+
+    -- Tabela de Categorias de Solicitações
+    CREATE TABLE IF NOT EXISTS categorias_solicitacao (
+      id        TEXT PRIMARY KEY,
+      nome      TEXT NOT NULL,
+      icon      TEXT DEFAULT '📦',
+      ativo     INTEGER DEFAULT 1,
+      ordem     INTEGER DEFAULT 99,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    -- Tabela de Funções / Cargos
+    CREATE TABLE IF NOT EXISTS funcoes_cargo (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome      TEXT NOT NULL UNIQUE,
+      icone     TEXT DEFAULT '👤',
+      ativo     INTEGER DEFAULT 1,
+      ordem     INTEGER DEFAULT 99,
+      created_at TEXT DEFAULT (datetime('now', 'localtime'))
+    );
   `);
 
   // Migrações dinâmicas de colunas para postos (cidade, latitude, longitude)
@@ -138,6 +158,9 @@ function initSchema() {
   const solicCols = db.pragma('table_info(solicitacoes)').map(c => c.name);
   if (!solicCols.includes('cargo')) {
     db.exec(`ALTER TABLE solicitacoes ADD COLUMN cargo TEXT`);
+  }
+  if (!solicCols.includes('cpf')) {
+    db.exec(`ALTER TABLE solicitacoes ADD COLUMN cpf TEXT`);
   }
   if (!solicCols.includes('data_solicitacao')) {
     db.exec(`ALTER TABLE solicitacoes ADD COLUMN data_solicitacao TEXT`);
@@ -166,6 +189,45 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_hist_solic ON solicitacoes_historico(solicitacao_id);
     UPDATE solicitacoes SET coluna = 'pendente' WHERE coluna = 'analise' OR coluna IS NULL;
   `);
+
+  // Seeds de Categorias (apenas se a tabela estiver vazia)
+  const catCount = db.prepare('SELECT COUNT(*) as c FROM categorias_solicitacao').get().c;
+  if (catCount === 0) {
+    const seedCats = [
+      { id: 'alimentacao', nome: 'Alimentação / Plantão', icon: '🍱', ordem: 1 },
+      { id: 'efetivo',     nome: 'Reforço de Efetivo',   icon: '👮', ordem: 2 },
+      { id: 'material',    nome: 'Material Tático',       icon: '🔦', ordem: 3 },
+      { id: 'comunicacao', nome: 'Rádios HT / PTT',       icon: '📻', ordem: 4 },
+      { id: 'epi',         nome: 'EPI & Uniformes',       icon: '🛡️', ordem: 5 },
+      { id: 'transporte',  nome: 'Ronda / VTR',           icon: '🚔', ordem: 6 },
+    ];
+    const insertCat = db.prepare('INSERT OR IGNORE INTO categorias_solicitacao (id, nome, icon, ordem) VALUES (?, ?, ?, ?)');
+    seedCats.forEach(c => insertCat.run(c.id, c.nome, c.icon, c.ordem));
+    console.log('🌱 Categorias de solicitação criadas com dados iniciais.');
+  }
+
+  // Seeds de Funções (apenas se a tabela estiver vazia)
+  const funcCount = db.prepare('SELECT COUNT(*) as c FROM funcoes_cargo').get().c;
+  if (funcCount === 0) {
+    const seedFuncs = [
+      { nome: 'Vigilante',                icone: '👮',  ordem: 1 },
+      { nome: 'Vigilante Folguista',       icone: '🔄',  ordem: 2 },
+      { nome: 'Vigilante Ferista',         icone: '📅',  ordem: 3 },
+      { nome: 'Vigilante Líder',           icone: '⭐',  ordem: 4 },
+      { nome: 'Supervisor Operacional',    icone: '📋',  ordem: 5 },
+      { nome: 'Fiscal de Segurança',       icone: '🔍',  ordem: 6 },
+      { nome: 'Porteiro / Controlador',    icone: '🚪',  ordem: 7 },
+      { nome: 'Monitor CFTV',              icone: '🖥️', ordem: 8 },
+      { nome: 'Vigia',                     icone: '👁️', ordem: 9 },
+      { nome: 'Coordenador Operacional',   icone: '👔',  ordem: 10 },
+      { nome: 'Assistente Administrativo', icone: '💼',  ordem: 11 },
+      { nome: 'Gerente de Contrato',       icone: '🏢',  ordem: 12 },
+      { nome: 'Outro',                     icone: '🏷️', ordem: 13 },
+    ];
+    const insertFunc = db.prepare('INSERT OR IGNORE INTO funcoes_cargo (nome, icone, ordem) VALUES (?, ?, ?)');
+    seedFuncs.forEach(f => insertFunc.run(f.nome, f.icone, f.ordem));
+    console.log('🌱 Funções/Cargos criados com dados iniciais.');
+  }
 
   console.log('✅ Schema do banco de dados criado/verificado com sucesso.');
 }
@@ -311,12 +373,12 @@ function prepareStatements() {
       SELECT * FROM solicitacoes WHERE id = ?
     `),
     insertSolicitacao: db.prepare(`
-      INSERT INTO solicitacoes (id, tipo, titulo, solicitante, cargo, posto_id, posto_nome, turno, quantidade, prazo, data_solicitacao, prioridade, coluna, descricao)
-      VALUES (@id, @tipo, @titulo, @solicitante, @cargo, @posto_id, @posto_nome, @turno, @quantidade, @prazo, @data_solicitacao, @prioridade, @coluna, @descricao)
+      INSERT INTO solicitacoes (id, tipo, titulo, solicitante, cpf, cargo, posto_id, posto_nome, turno, quantidade, prazo, data_solicitacao, prioridade, coluna, descricao)
+      VALUES (@id, @tipo, @titulo, @solicitante, @cpf, @cargo, @posto_id, @posto_nome, @turno, @quantidade, @prazo, @data_solicitacao, @prioridade, @coluna, @descricao)
     `),
     updateSolicitacao: db.prepare(`
       UPDATE solicitacoes
-      SET tipo = @tipo, titulo = @titulo, solicitante = @solicitante,
+      SET tipo = @tipo, titulo = @titulo, solicitante = @solicitante, cpf = @cpf,
           cargo = @cargo, posto_id = @posto_id, posto_nome = @posto_nome, turno = @turno,
           quantidade = @quantidade, prazo = @prazo, data_solicitacao = @data_solicitacao,
           prioridade = @prioridade,
@@ -359,6 +421,20 @@ function prepareStatements() {
           updated_at = datetime('now', 'localtime')
       WHERE id = ?
     `),
+
+    // Categorias de Solicitação
+    getAllCategorias: db.prepare(`SELECT * FROM categorias_solicitacao ORDER BY ordem, nome`),
+    getCategoriaById: db.prepare(`SELECT * FROM categorias_solicitacao WHERE id = ?`),
+    insertCategoria: db.prepare(`INSERT INTO categorias_solicitacao (id, nome, icon, ativo, ordem) VALUES (@id, @nome, @icon, @ativo, @ordem)`),
+    updateCategoria: db.prepare(`UPDATE categorias_solicitacao SET nome = @nome, icon = @icon, ativo = @ativo, ordem = @ordem WHERE id = @id`),
+    deleteCategoria: db.prepare(`DELETE FROM categorias_solicitacao WHERE id = ?`),
+
+    // Funções / Cargos
+    getAllFuncoes: db.prepare(`SELECT * FROM funcoes_cargo ORDER BY ordem, nome`),
+    getFuncaoById: db.prepare(`SELECT * FROM funcoes_cargo WHERE id = ?`),
+    insertFuncao: db.prepare(`INSERT INTO funcoes_cargo (nome, icone, ativo, ordem) VALUES (@nome, @icone, @ativo, @ordem)`),
+    updateFuncao: db.prepare(`UPDATE funcoes_cargo SET nome = @nome, icone = @icone, ativo = @ativo, ordem = @ordem WHERE id = @id`),
+    deleteFuncao: db.prepare(`DELETE FROM funcoes_cargo WHERE id = ?`),
   };
 }
 
@@ -809,6 +885,7 @@ module.exports = {
       tipo: data.tipo,
       titulo: data.titulo,
       solicitante: data.solicitante,
+      cpf: data.cpf || null,
       cargo: data.cargo || null,
       posto_id: data.posto_id || null,
       posto_nome: data.posto_nome || null,
@@ -835,6 +912,7 @@ module.exports = {
       tipo: data.tipo !== undefined ? data.tipo : cur.tipo,
       titulo: data.titulo !== undefined ? data.titulo : cur.titulo,
       solicitante: data.solicitante !== undefined ? data.solicitante : cur.solicitante,
+      cpf: data.cpf !== undefined ? data.cpf : cur.cpf,
       cargo: data.cargo !== undefined ? data.cargo : cur.cargo,
       posto_id: data.posto_id !== undefined ? data.posto_id : cur.posto_id,
       posto_nome: data.posto_nome !== undefined ? data.posto_nome : cur.posto_nome,
@@ -890,6 +968,38 @@ module.exports = {
       return [];
     }
   },
-  excluirSolicitacao: (id) => stmts.deleteSolicitacao.run(id)
+  excluirSolicitacao: (id) => stmts.deleteSolicitacao.run(id),
+
+  // Categorias de Solicitação
+  getAllCategorias: () => stmts.getAllCategorias.all(),
+  getCategoriaById: (id) => stmts.getCategoriaById.get(id),
+  createCategoria: (data) => {
+    const id = data.id || data.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+    stmts.insertCategoria.run({ id, nome: data.nome, icon: data.icon || '📦', ativo: 1, ordem: data.ordem || 99 });
+    return stmts.getCategoriaById.get(id);
+  },
+  updateCategoria: (id, data) => {
+    const cur = stmts.getCategoriaById.get(id);
+    if (!cur) return null;
+    stmts.updateCategoria.run({ id, nome: data.nome || cur.nome, icon: data.icon || cur.icon, ativo: data.ativo !== undefined ? data.ativo : cur.ativo, ordem: data.ordem !== undefined ? data.ordem : cur.ordem });
+    return stmts.getCategoriaById.get(id);
+  },
+  deleteCategoria: (id) => stmts.deleteCategoria.run(id),
+
+  // Funções / Cargos
+  getAllFuncoes: () => stmts.getAllFuncoes.all(),
+  getFuncaoById: (id) => stmts.getFuncaoById.get(id),
+  createFuncao: (data) => {
+    const info = stmts.insertFuncao.run({ nome: data.nome, icone: data.icone || '👤', ativo: 1, ordem: data.ordem || 99 });
+    return stmts.getFuncaoById.get(info.lastInsertRowid);
+  },
+  updateFuncao: (id, data) => {
+    const cur = stmts.getFuncaoById.get(id);
+    if (!cur) return null;
+    stmts.updateFuncao.run({ id, nome: data.nome || cur.nome, icone: data.icone || cur.icone, ativo: data.ativo !== undefined ? data.ativo : cur.ativo, ordem: data.ordem !== undefined ? data.ordem : cur.ordem });
+    return stmts.getFuncaoById.get(id);
+  },
+  deleteFuncao: (id) => stmts.deleteFuncao.run(id),
 };
+
 

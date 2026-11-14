@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -323,11 +323,31 @@
             <option value="Gerente de Contrato">🏢 Gerente de Contrato</option>
             <option value="Outro">🏷️ Outro</option>
           </select>
+        <script>
+          (async function() {
+            try {
+              const r = await fetch('/api/funcoes');
+              if (!r.ok) return;
+              const funcoes = await r.json();
+              const sel = document.getElementById('pCargo');
+              if (!sel || !funcoes.length) return;
+              const curVal = sel.value;
+              sel.innerHTML = '<option value="">Selecione o cargo...</option>' +
+                funcoes.map(f => <option value=""> </option>).join('');
+              if (curVal) sel.value = curVal;
+            } catch(e) {}
+          })();
+        </script>
         </div>
 
         <div class="form-group">
           <label>Nome do Solicitante *</label>
           <input type="text" id="pNome" placeholder="Digite seu nome completo">
+        </div>
+
+        <div class="form-group">
+          <label>CPF do Solicitante</label>
+          <input type="text" id="pCpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
         </div>
 
         <div class="nav-btns">
@@ -505,6 +525,19 @@
     // ========================================================
     // REGRA DO SISTEMA: PRAZO AUTOMÁTICO DE 8 DIAS CORRIDOS
     // ========================================================
+    function mascaraCPF(input) {
+      if (!input) return;
+      let v = input.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length > 9) {
+        v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+      } else if (v.length > 6) {
+        v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+      } else if (v.length > 3) {
+        v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+      }
+      input.value = v;
+    }
+
     function formatarDataBR(isoStr) {
       if (!isoStr) return '--/--/----';
       const partes = isoStr.split('-');
@@ -688,6 +721,7 @@
       const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
       const cargo = document.getElementById('pCargo').value;
       const nome = document.getElementById('pNome').value.trim();
+      const cpf = document.getElementById('pCpf') ? document.getElementById('pCpf').value.trim() : '';
       const solicitante = cargo ? `${nome} (${cargo})` : nome;
       const titulo = document.getElementById('pTitulo').value;
       const qtd = document.getElementById('pQtd').value;
@@ -706,6 +740,7 @@
         <div><strong>Posto:</strong> ${postoNome}</div>
         <div><strong>Cargo:</strong> ${cargo}</div>
         <div><strong>Solicitante:</strong> ${nome}</div>
+        ${cpf ? `<div><strong>CPF:</strong> ${cpf}</div>` : ''}
         <div><strong>Resumo:</strong> ${titulo}</div>
         ${qtd ? `<div><strong>Quantidade/Efetivo:</strong> ${qtd}</div>` : ''}
         <div><strong>Prioridade:</strong> ${prio.toUpperCase()}</div>
@@ -723,6 +758,7 @@
       const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
       const cargo = document.getElementById('pCargo').value;
       const nome = document.getElementById('pNome').value.trim();
+      const cpf = document.getElementById('pCpf') ? document.getElementById('pCpf').value.trim() : '';
       const solicitante = cargo ? `${nome} (${cargo})` : nome;
 
       const payload = {
@@ -731,6 +767,7 @@
         posto_nome: postoNome,
         cargo: cargo,
         solicitante: solicitante,
+        cpf: cpf || null,
         titulo: document.getElementById('pTitulo').value.trim(),
         data_solicitacao: dataSol,
         prazo: dataEntrega,

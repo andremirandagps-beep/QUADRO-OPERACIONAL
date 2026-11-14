@@ -272,6 +272,72 @@ async function handleApi(req, res, pathname, method) {
     }
 
     // -------------------------------------------------------
+    // CATEGORIAS DE SOLICITAÇÃO
+    // -------------------------------------------------------
+    if (pathname === '/api/categorias' && method === 'GET') {
+      sendJson(res, 200, database.getAllCategorias());
+      return;
+    }
+
+    if (pathname === '/api/categorias' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.nome) return sendError(res, 400, 'Campo "nome" obrigatório');
+      const result = database.createCategoria(body);
+      sendJson(res, 201, result);
+      return;
+    }
+
+    const catMatch = pathname.match(/^\/api\/categorias\/([^/]+)$/);
+    if (catMatch) {
+      const catId = decodeURIComponent(catMatch[1]);
+      if (method === 'PUT') {
+        const body = await parseBody(req);
+        const result = database.updateCategoria(catId, body);
+        if (!result) return sendError(res, 404, 'Categoria não encontrada');
+        sendJson(res, 200, result);
+        return;
+      }
+      if (method === 'DELETE') {
+        database.deleteCategoria(catId);
+        sendJson(res, 200, { success: true });
+        return;
+      }
+    }
+
+    // -------------------------------------------------------
+    // FUNÇÕES / CARGOS
+    // -------------------------------------------------------
+    if (pathname === '/api/funcoes' && method === 'GET') {
+      sendJson(res, 200, database.getAllFuncoes());
+      return;
+    }
+
+    if (pathname === '/api/funcoes' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.nome) return sendError(res, 400, 'Campo "nome" obrigatório');
+      const result = database.createFuncao(body);
+      sendJson(res, 201, result);
+      return;
+    }
+
+    const funcMatch = pathname.match(/^\/api\/funcoes\/(\d+)$/);
+    if (funcMatch) {
+      const funcId = parseInt(funcMatch[1], 10);
+      if (method === 'PUT') {
+        const body = await parseBody(req);
+        const result = database.updateFuncao(funcId, body);
+        if (!result) return sendError(res, 404, 'Função não encontrada');
+        sendJson(res, 200, result);
+        return;
+      }
+      if (method === 'DELETE') {
+        database.deleteFuncao(funcId);
+        sendJson(res, 200, { success: true });
+        return;
+      }
+    }
+
+    // -------------------------------------------------------
     // POSTOS
     // -------------------------------------------------------
     if (pathname === '/api/postos' && method === 'GET') {
