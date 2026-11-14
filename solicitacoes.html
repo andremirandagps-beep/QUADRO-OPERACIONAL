@@ -1418,11 +1418,36 @@
       }, 45000);
     });
 
+    // Comunicação unificada com a API central do Node/SQLite
+    function getApiUrl(endpoint) {
+      if (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3333')) {
+        return `http://localhost:3333${endpoint}`;
+      }
+      return endpoint;
+    }
+
+    async function apiFetch(endpoint, options = {}) {
+      const url = getApiUrl(endpoint);
+      try {
+        const res = await fetch(url, options);
+        return res;
+      } catch (err) {
+        if (!url.startsWith('http://localhost:3333')) {
+          try {
+            return await fetch(`http://localhost:3333${endpoint}`, options);
+          } catch (e) {
+            throw err;
+          }
+        }
+        throw err;
+      }
+    }
+
     async function carregarPostos() {
       try {
         const [resPostos, resColabs] = await Promise.all([
-          fetch('/api/postos'),
-          fetch('/api/colaboradores')
+          apiFetch('/api/postos'),
+          apiFetch('/api/colaboradores')
         ]);
         if (resPostos.ok) {
           postosLista = await resPostos.json();
@@ -1464,9 +1489,10 @@
 
     async function carregarSolicitacoes() {
       try {
-        const res = await fetch('/api/solicitacoes');
+        const res = await apiFetch('/api/solicitacoes');
         if (res.ok) {
           solicitacoesLista = await res.json();
+          localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
         } else {
           solicitacoesLista = JSON.parse(localStorage.getItem('solic_gps_local') || '[]');
         }
@@ -1813,7 +1839,7 @@
       }
 
       try {
-        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/reprovar`, {
+        const res = await apiFetch(`/api/solicitacoes/${encodeURIComponent(id)}/reprovar`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ motivo, decidido_por: 'GESTOR' })
@@ -1823,21 +1849,21 @@
           fecharModalDetalhes();
           await carregarSolicitacoes();
           return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert('Erro ao reprovar solicitação: ' + (errData.error || 'Falha no servidor'));
+          return;
         }
-      } catch (e) {}
-
-      // Fallback local
-      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna: 'reprovado', motivo_reprovacao: motivo } : s);
-      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
-      fecharModalReprovar();
-      fecharModalDetalhes();
-      renderizarQuadro();
+      } catch (e) {
+        console.error('Falha na requisição de reprovação:', e);
+        alert('Erro de conexão: Verifique se o servidor central está ativo na porta 3333.');
+      }
     }
 
     // Ações de Aprovar, Concluir e Reabrir
     async function aprovarSolic(id) {
       try {
-        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/aprovar`, {
+        const res = await apiFetch(`/api/solicitacoes/${encodeURIComponent(id)}/aprovar`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ decidido_por: 'GESTOR' })
@@ -1846,18 +1872,20 @@
           fecharModalDetalhes();
           await carregarSolicitacoes();
           return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert('Erro ao aprovar solicitação: ' + (errData.error || 'Falha no servidor'));
+          return;
         }
-      } catch (e) {}
-
-      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna: 'aprovado' } : s);
-      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
-      fecharModalDetalhes();
-      renderizarQuadro();
+      } catch (e) {
+        console.error('Falha na requisição de aprovação:', e);
+        alert('Erro de conexão: Verifique se o servidor central está ativo na porta 3333.');
+      }
     }
 
     async function concluirSolic(id) {
       try {
-        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/concluir`, {
+        const res = await apiFetch(`/api/solicitacoes/${encodeURIComponent(id)}/concluir`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -1865,18 +1893,20 @@
           fecharModalDetalhes();
           await carregarSolicitacoes();
           return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert('Erro ao concluir solicitação: ' + (errData.error || 'Falha no servidor'));
+          return;
         }
-      } catch (e) {}
-
-      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna: 'concluido' } : s);
-      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
-      fecharModalDetalhes();
-      renderizarQuadro();
+      } catch (e) {
+        console.error('Falha na requisição de conclusão:', e);
+        alert('Erro de conexão: Verifique se o servidor central está ativo na porta 3333.');
+      }
     }
 
     async function reabrirSolic(id) {
       try {
-        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/reabrir`, {
+        const res = await apiFetch(`/api/solicitacoes/${encodeURIComponent(id)}/reabrir`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -1884,13 +1914,15 @@
           fecharModalDetalhes();
           await carregarSolicitacoes();
           return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert('Erro ao reabrir solicitação: ' + (errData.error || 'Falha no servidor'));
+          return;
         }
-      } catch (e) {}
-
-      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna: 'pendente' } : s);
-      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
-      fecharModalDetalhes();
-      renderizarQuadro();
+      } catch (e) {
+        console.error('Falha na requisição de reabertura:', e);
+        alert('Erro de conexão: Verifique se o servidor central está ativo na porta 3333.');
+      }
     }
 
     function excluirSolicAtual() {
@@ -1906,7 +1938,7 @@
       area.innerHTML = '<div style="color:#64748b; font-size:0.78rem;">Carregando histórico...</div>';
 
       try {
-        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/historico`);
+        const res = await apiFetch(`/api/solicitacoes/${encodeURIComponent(id)}/historico`);
         if (res.ok) {
           const hist = await res.json();
           if (Array.isArray(hist) && hist.length > 0) {
@@ -2013,7 +2045,7 @@
 
     async function moverColuna(id, coluna) {
       try {
-        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/coluna`, {
+        const res = await apiFetch(`/api/solicitacoes/${encodeURIComponent(id)}/coluna`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ coluna })
@@ -2021,28 +2053,30 @@
         if (res.ok) {
           await carregarSolicitacoes();
           return;
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          alert('Erro ao mover solicitação: ' + (errData.error || 'Falha no servidor'));
         }
-      } catch (e) {}
-
-      // Fallback local
-      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna } : s);
-      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
-      renderizarQuadro();
+      } catch (e) {
+        console.error('Falha na requisição de movimentação:', e);
+        alert('Erro de conexão: Verifique se o servidor central está ativo na porta 3333.');
+      }
     }
 
     async function excluirSolic(id) {
       if (!confirm('Deseja realmente remover esta solicitação operacional?')) return;
       try {
-        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        const res = await apiFetch(`/api/solicitacoes/${encodeURIComponent(id)}`, { method: 'DELETE' });
         if (res.ok) {
           await carregarSolicitacoes();
           return;
+        } else {
+          alert('Erro ao excluir solicitação no servidor.');
         }
-      } catch (e) {}
-
-      solicitacoesLista = solicitacoesLista.filter(s => s.id !== id);
-      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
-      renderizarQuadro();
+      } catch (e) {
+        console.error('Erro ao excluir solicitação:', e);
+        alert('Erro de conexão: Verifique se o servidor central está ativo na porta 3333.');
+      }
     }
 
     function configurarDragAndDrop() {
@@ -2059,7 +2093,17 @@
           col.classList.remove('drag-over');
           const id = e.dataTransfer.getData('text/plain');
           const targetCol = col.dataset.col;
-          if (id && targetCol) {
+          if (!id || !targetCol) return;
+
+          if (targetCol === 'reprovado') {
+            abrirModalReprovar(id);
+          } else if (targetCol === 'aprovado') {
+            await aprovarSolic(id);
+          } else if (targetCol === 'concluido') {
+            await concluirSolic(id);
+          } else if (targetCol === 'pendente') {
+            await reabrirSolic(id);
+          } else {
             await moverColuna(id, targetCol);
           }
         });
@@ -2190,7 +2234,7 @@
       };
 
       try {
-        const res = await fetch('/api/solicitacoes', {
+        const res = await apiFetch('/api/solicitacoes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -2199,15 +2243,13 @@
           fecharModalNova();
           await carregarSolicitacoes();
           return;
+        } else {
+          alert('Erro ao registrar nova solicitação no servidor central.');
         }
-      } catch (e) {}
-
-      // Fallback local
-      const localId = `SEG-${Date.now().toString().slice(-4)}`;
-      solicitacoesLista.unshift({ id: localId, ...payload, created_at: new Date().toISOString() });
-      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
-      fecharModalNova();
-      renderizarQuadro();
+      } catch (e) {
+        console.error('Erro ao salvar demanda:', e);
+        alert('Erro de conexão: Verifique se o servidor central está ativo na porta 3333.');
+      }
     }
 
     function escapeHtml(str) {

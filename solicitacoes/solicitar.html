@@ -3,524 +3,758 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Solicitação de Suporte — Equipe de Segurança</title>
-<script>
-  if (!window.location.pathname.endsWith('/solicitar.html') || window.location.pathname.includes('/solicitacoes/')) {
-    window.location.replace('../solicitar.html' + window.location.search + window.location.hash);
-  }
-</script>
-<link rel="stylesheet" href="style.css">
+<title>GRUPO GPS — Solicitação de Apoio Operacional</title>
+<link rel="icon" type="image/png" href="logo-gps.png">
+<link rel="stylesheet" href="styles.css">
 <style>
-  body { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1e40af 100%); }
-
-  .collab-wrap { padding-top: 30px; }
-
-  .back-link {
-    display: inline-flex;
+  body {
+    background: linear-gradient(135deg, #090e17 0%, #111c30 50%, #1e293b 100%);
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    padding: 30px 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 6px;
-    color: rgba(255,255,255,.85);
-    text-decoration: none;
-    font-size: .84rem;
-    font-weight: 600;
-    margin-bottom: 16px;
-    transition: color .15s;
   }
-  .back-link:hover { color: #fff; }
 
-  .step-indicator {
+  .wrap-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 620px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+
+  .card-gps-top {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    padding: 28px 24px;
+    text-align: center;
+    border-bottom: 1px solid #334155;
+  }
+  .card-gps-top img { height: 44px; margin-bottom: 12px; }
+  .card-gps-top h1 { font-size: 1.35rem; margin: 0 0 6px; color: #fff; }
+  .card-gps-top p { font-size: 0.88rem; color: #94a3b8; margin: 0; }
+
+  .card-gps-body { padding: 28px 24px; }
+
+  .step-bar {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin-bottom: 24px;
-    font-size: .78rem;
-    font-weight: 600;
-    color: var(--texto2);
   }
-
-  .step {
+  .s-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #334155;
+    color: #94a3b8;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: var(--cinza-bg);
-    color: var(--cinza);
+    font-size: 0.82rem;
     font-weight: 700;
-    font-size: .8rem;
-    flex-shrink: 0;
   }
+  .s-dot.active { background: #3b82f6; color: #fff; }
+  .s-dot.done { background: #10b981; color: #fff; }
+  .s-line { flex: 1; height: 2px; background: #334155; }
+  .s-line.done { background: #10b981; }
 
-  .step.active { background: #2563eb; color: #fff; }
-  .step.done   { background: #16a34a; color: #fff; }
+  .etapa-area { display: none; }
+  .etapa-area.active { display: block; }
 
-  .step-line { flex: 1; height: 2px; background: var(--borda); }
-  .step-line.done { background: #16a34a; }
-
-  .form-section { display: none; }
-  .form-section.active { display: block; }
-
-  .nav-btns {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 20px;
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;
   }
-
-  .btn-nav {
-    padding: 12px 24px;
-    border-radius: var(--radius-sm);
-    font-size: .9rem;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    transition: all .15s;
-    flex: 1;
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.92rem;
+    box-sizing: border-box;
   }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: #3b82f6;
+  }
+  .form-group textarea { min-height: 90px; resize: vertical; }
 
-  .btn-nav.prev { background: var(--cinza-bg); color: var(--texto2); }
-  .btn-nav.prev:hover { background: var(--borda); }
-
-  .btn-nav.next { background: #2563eb; color: #fff; }
-  .btn-nav.next:hover { background: #1d4ed8; }
-
-  .btn-nav.submit { background: #16a34a; color: #fff; }
-  .btn-nav.submit:hover { background: #15803d; }
-
-  .tipo-grid-collab {
+  .chips-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
   }
-
-  .tipo-chip-collab {
-    border: 2px solid var(--borda);
-    border-radius: var(--radius);
-    padding: 16px 12px;
+  .chip-item {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 14px 10px;
     text-align: center;
     cursor: pointer;
-    transition: all .15s;
-    background: #fff;
-    font-size: .84rem;
-    font-weight: 600;
-    color: var(--texto2);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #94a3b8;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
+    transition: all 0.15s;
+  }
+  .chip-item .ico { font-size: 1.8rem; }
+  .chip-item.selected {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+    color: #93c5fd;
+    transform: scale(1.02);
   }
 
-  .tipo-chip-collab .chip-icon { font-size: 2rem; }
-  .tipo-chip-collab.selected   { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; transform: scale(1.02); }
-  .tipo-chip-collab:hover:not(.selected) { border-color: #94a3b8; }
-
-  .review-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--borda); font-size: .87rem; }
-  .review-row:last-child { border-bottom: none; }
-  .review-label { color: var(--texto2); }
-  .review-val   { font-weight: 600; text-align: right; max-width: 60%; }
-
-  .success-screen {
-    text-align: center; padding: 40px 20px; display: none;
+  .nav-btns {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
   }
+  .btn-step {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    transition: all 0.15s;
+  }
+  .btn-step.prev { background: #334155; color: #cbd5e1; }
+  .btn-step.next { background: #3b82f6; color: #fff; }
+  .btn-step.submit { background: #10b981; color: #fff; }
 
-  .success-screen .big-icon { font-size: 5rem; margin-bottom: 16px; }
-  .success-screen h2 { font-size: 1.4rem; color: #16a34a; margin-bottom: 8px; }
-  .success-screen p  { color: var(--texto2); font-size: .9rem; margin-bottom: 24px; line-height: 1.6; }
-
-  .protocol-box {
-    background: #dcfce7;
-    border: 2px solid #16a34a;
-    border-radius: var(--radius-sm);
-    padding: 16px;
-    margin-bottom: 20px;
-    font-size: 1.1rem;
+  .success-box {
+    text-align: center;
+    padding: 30px 10px;
+    display: none;
+  }
+  .success-box .big-ico { font-size: 4.5rem; margin-bottom: 16px; }
+  .success-box h2 { color: #34d399; margin: 0 0 10px; font-size: 1.4rem; }
+  .proto-tag {
+    background: #064e3b;
+    border: 1px solid #059669;
+    color: #6ee7b7;
+    font-size: 1.15rem;
     font-weight: 800;
-    color: #15803d;
+    padding: 14px;
+    border-radius: 8px;
+    margin: 18px 0;
     letter-spacing: 1px;
+  }
+
+  /* Bloco de Data da Solicitação & Prazo Automático (Regra dos 8 dias corridos) */
+  .box-regra-prazo {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 2px solid #3b82f6;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+  .box-regra-prazo .titulo-regra {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #93c5fd;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.25);
+  }
+  .grid-prazo-auto {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  @media (max-width: 500px) {
+    .grid-prazo-auto { grid-template-columns: 1fr; }
+  }
+  .card-prazo-info {
+    background: #0b1329;
+    border: 1px solid #1e3a8a;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .card-prazo-info.destaque-entrega {
+    background: linear-gradient(135deg, rgba(6, 78, 59, 0.6) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 2px solid #10b981;
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.2);
+  }
+  .lbl-prazo-info {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .card-prazo-info.destaque-entrega .lbl-prazo-info {
+    color: #6ee7b7;
+  }
+  .val-prazo-info {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #f1f5f9;
+  }
+  .card-prazo-info.destaque-entrega .val-prazo-info {
+    color: #34d399;
+    font-size: 1.45rem;
+  }
+  .sub-prazo-info {
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+  .card-prazo-info.destaque-entrega .sub-prazo-info {
+    color: #a7f3d0;
   }
 </style>
 </head>
 <body>
 
-<div class="collab-wrap">
-  <a href="index.html" class="back-link">← Voltar ao Quadro de Segurança</a>
-
-  <div class="collab-card">
-    <div class="collab-header">
-      <div style="font-size:2.6rem;margin-bottom:8px">🛡️</div>
-      <h1>Solicitação de Apoio & Efetivo</h1>
-      <p>Canal direto para postos de vigilância, portarias e rondas</p>
+  <div class="wrap-card">
+    <div class="card-gps-top">
+      <img src="logo-gps.png" alt="Logo Grupo GPS">
+      <h1>Solicitação de Efetivo & Apoio Operacional</h1>
+      <p>Canal oficial para envio de necessidades do posto de trabalho</p>
     </div>
 
-    <div class="collab-body" id="formArea">
-
-      <!-- Passos -->
-      <div class="step-indicator" id="stepIndicator">
-        <div class="step active" id="step1">1</div>
-        <div class="step-line" id="line1"></div>
-        <div class="step active" id="step2" style="opacity:.4">2</div>
-        <div class="step-line" id="line2"></div>
-        <div class="step" id="step3" style="opacity:.4">3</div>
+    <div class="card-gps-body" id="formArea">
+      <!-- Indicador Etapas -->
+      <div class="step-bar">
+        <div class="s-dot active" id="dot1">1</div>
+        <div class="s-line" id="line1"></div>
+        <div class="s-dot" id="dot2">2</div>
+        <div class="s-line" id="line2"></div>
+        <div class="s-dot" id="dot3">3</div>
       </div>
 
-      <div class="progress-bar-wrap">
-        <div class="progress-bar" id="progressBar" style="width:33%"></div>
-      </div>
-
-      <!-- ETAPA 1: O que você precisa? -->
-      <div class="form-section active" id="sec1">
+      <!-- Etapa 1 -->
+      <div class="etapa-area active" id="etapa1">
         <!-- BLOCO DA NOVA REGRA: DATA DA SOLICITAÇÃO + PRAZO AUTOMÁTICO 8 DIAS -->
-        <div style="background: #f8fafc; border: 2px solid #2563eb; border-radius: var(--radius); padding: 16px; margin-bottom: 20px;">
-          <div style="font-size: 0.78rem; font-weight: 800; color: #1d4ed8; text-transform: uppercase; margin-bottom: 10px;">
-            📅 Requisito Operacional de Atendimento
+        <div class="box-regra-prazo">
+          <div class="titulo-regra">
+            <span>📅</span> REQUISITO OPERACIONAL DE ATENDIMENTO
           </div>
-          <div class="form-group" style="margin-bottom: 10px;">
-            <label style="color: #1e3a8a; font-weight: 800;">DATA DA SOLICITAÇÃO <span class="required">*</span></label>
-            <input type="date" id="colDataSolicitacao" style="font-size: 1rem; font-weight: 700;">
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="color: #93c5fd; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.5px;">DATA DA SOLICITAÇÃO *</label>
+            <input type="date" id="pDataSolicitacao" required style="font-size: 1.05rem; font-weight: 700; color: #fff; background: #0b1329; border: 2px solid #3b82f6;">
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-            <div style="background: #fff; border: 1px solid var(--borda); border-radius: var(--radius-sm); padding: 10px;">
-              <div style="font-size: 0.72rem; font-weight: 800; color: var(--texto2); text-transform: uppercase;">PRAZO AUTOMÁTICO</div>
-              <div style="font-size: 1.15rem; font-weight: 800; color: #1e293b;">8 dias corridos</div>
-              <div style="font-size: 0.7rem; color: #64748b;">Inclui sábados, domingos e feriados</div>
+
+          <div class="grid-prazo-auto">
+            <div class="card-prazo-info">
+              <span class="lbl-prazo-info">PRAZO AUTOMÁTICO</span>
+              <span class="val-prazo-info">8 dias corridos</span>
+              <span class="sub-prazo-info">Contabiliza sábados, domingos e feriados</span>
             </div>
-            <div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: var(--radius-sm); padding: 10px;">
-              <div style="font-size: 0.72rem; font-weight: 800; color: #047857; text-transform: uppercase;">DATA PREVISTA DE ENTREGA</div>
-              <div style="font-size: 1.25rem; font-weight: 900; color: #059669;" id="colDataEntregaTexto">--/--/----</div>
-              <div style="font-size: 0.7rem; color: #065f46;">Calculado automaticamente</div>
+
+            <div class="card-prazo-info destaque-entrega">
+              <span class="lbl-prazo-info">DATA PREVISTA DE ENTREGA</span>
+              <span class="val-prazo-info" id="pDataEntregaTexto">--/--/----</span>
+              <span class="sub-prazo-info" id="pDataEntregaSub">Calculado automaticamente pelo sistema</span>
             </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Qual o tipo de necessidade? <span class="required">*</span></label>
-          <div class="tipo-grid-collab" id="tipoGridCollab">
-            <div class="tipo-chip-collab" data-tipo="alimentacao">
-              <span class="chip-icon">🍱</span>Alimentação / Refeição
-            </div>
-            <div class="tipo-chip-collab" data-tipo="efetivo">
-              <span class="chip-icon">👮‍♂️</span>Reforço / Rendição
-            </div>
-            <div class="tipo-chip-collab" data-tipo="material">
-              <span class="chip-icon">🔦</span>Material Tático / Pilhas
-            </div>
-            <div class="tipo-chip-collab" data-tipo="comunicacao">
-              <span class="chip-icon">📻</span>Rádios HT / PTT
-            </div>
-            <div class="tipo-chip-collab" data-tipo="epi">
-              <span class="chip-icon">🛡️</span>EPI / Capa / Calçado
-            </div>
-            <div class="tipo-chip-collab" data-tipo="transporte">
-              <span class="chip-icon">🚔</span>Ronda / VTR / Combustível
-            </div>
+          <label>Qual a categoria da solicitação? *</label>
+          <div class="chips-grid">
+            <div class="chip-item" data-val="alimentacao"><span class="ico">🍱</span>Alimentação / Plantão</div>
+            <div class="chip-item" data-val="efetivo"><span class="ico">👮‍♂️</span>Reforço / Rendição</div>
+            <div class="chip-item" data-val="material"><span class="ico">🔦</span>Material Tático / Pilhas</div>
+            <div class="chip-item" data-val="comunicacao"><span class="ico">📻</span>Rádios HT / PTT</div>
+            <div class="chip-item" data-val="epi"><span class="ico">🛡️</span>EPI / Calçado / Capa</div>
+            <div class="chip-item" data-val="transporte"><span class="ico">🚔</span>Ronda / VTR / Combustível</div>
           </div>
-          <input type="hidden" id="tipoCol">
+          <input type="hidden" id="pTipo">
         </div>
 
         <div class="form-group">
-          <label>Nome do Vigilante / Solicitante <span class="required">*</span></label>
-          <input type="text" id="colNome" placeholder="Ex: Vig. Carlos Souza">
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Posto de Serviço / Local <span class="required">*</span></label>
-            <input type="text" id="colPosto" placeholder="Ex: Portaria 1, Ronda Noturna...">
-          </div>
-          <div class="form-group">
-            <label>Turno Atual</label>
-            <select id="colTurno">
-              <option value="Noturno (18h às 06h)">Noturno (18h às 06h)</option>
-              <option value="Diurno (06h às 18h)">Diurno (06h às 18h)</option>
-              <option value="Plantão 12x36">Plantão 12x36</option>
-              <option value="Comercial (08h às 17h)">Comercial (08h às 17h)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="nav-btns">
-          <div></div>
-          <button class="btn-nav next" id="btnNext1">Avançar →</button>
-        </div>
-      </div>
-
-      <!-- ETAPA 2: Detalhes -->
-      <div class="form-section" id="sec2">
-        <div class="form-group">
-          <label>Resumo da Demanda <span class="required">*</span></label>
-          <input type="text" id="colTitulo" placeholder="Ex: Marmitas do plantão ou Baterias para rádio">
-        </div>
-
-        <div style="background: #ecfdf5; border: 1px solid #10b981; border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 0.72rem; font-weight: 800; color: #047857; text-transform: uppercase;">Prazo Automático de 8 Dias Corridos</div>
-            <div style="font-size: 1rem; font-weight: 800; color: #065f46;">Entrega prevista: <span id="colResumoEntrega">--/--/----</span></div>
-          </div>
-          <span style="font-size: 1.6rem;">⏱️</span>
-        </div>
-
-        <div class="form-group">
-          <label>Quantidade / Efetivo</label>
-          <input type="number" id="colQtd" placeholder="Ex: 4" min="1">
-        </div>
-
-        <div class="form-group">
-          <label>Urgência Operacional <span class="required">*</span></label>
-          <select id="colPrioridade">
-            <option value="baixa">🔵 Baixa — Reposição de rotina</option>
-            <option value="normal" selected>🟡 Normal — Padrão do posto</option>
-            <option value="alta">🔴 Alta — Necessidade rápida</option>
-            <option value="urgente">🚨 Urgente — Risco à operação / Falta no posto</option>
+          <label>Posto de Trabalho *</label>
+          <select id="pPosto">
+            <option value="">Selecione seu posto...</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Justificativa / Detalhes</label>
-          <textarea id="colDescricao" placeholder="Informe detalhes para o supervisor agilizar o atendimento..."></textarea>
+          <label>Cargo / Função *</label>
+          <select id="pCargo">
+            <option value="">Selecione o cargo...</option>
+            <option value="Vigilante">👮 Vigilante</option>
+            <option value="Vigilante Folguista">🔄 Vigilante Folguista</option>
+            <option value="Vigilante Ferista">📅 Vigilante Ferista</option>
+            <option value="Vigilante Líder">⭐ Vigilante Líder</option>
+            <option value="Supervisor Operacional">📋 Supervisor Operacional</option>
+            <option value="Fiscal de Segurança">🔍 Fiscal de Segurança</option>
+            <option value="Porteiro / Controlador">🚪 Porteiro / Controlador de Acesso</option>
+            <option value="Monitor CFTV">🖥️ Monitor CFTV</option>
+            <option value="Vigia">👁️ Vigia</option>
+            <option value="Coordenador Operacional">👔 Coordenador Operacional</option>
+            <option value="Assistente Administrativo">💼 Assistente Administrativo</option>
+            <option value="Gerente de Contrato">🏢 Gerente de Contrato</option>
+            <option value="Outro">🏷️ Outro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nome do Solicitante *</label>
+          <input type="text" id="pNome" placeholder="Digite seu nome completo">
         </div>
 
         <div class="nav-btns">
-          <button class="btn-nav prev" id="btnPrev2">← Voltar</button>
-          <button class="btn-nav next" id="btnNext2">Revisar Informações →</button>
+          <div></div>
+          <button class="btn-step next" id="btnNext1">Avançar →</button>
         </div>
       </div>
 
-      <!-- ETAPA 3: Revisão -->
-      <div class="form-section" id="sec3">
-        <p style="font-size:.88rem;color:var(--texto2);margin-bottom:16px">
-          Verifique os dados da sua solicitação antes do envio:
-        </p>
-        <div id="reviewContent"></div>
+      <!-- Etapa 2 -->
+      <div class="etapa-area" id="etapa2">
+        <div class="form-group">
+          <label>Resumo do que precisa *</label>
+          <input type="text" id="pTitulo" placeholder="Ex: Refeições para plantão noturno ou 2 baterias de rádio">
+        </div>
+
+        <!-- Alerta informativo do prazo calculado de 8 dias corridos -->
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 0.72rem; font-weight: 800; color: #6ee7b7; text-transform: uppercase; letter-spacing: 0.5px;">Prazo Automático: 8 Dias Corridos</div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: #34d399; margin-top: 2px;">Data Prevista de Entrega: <span id="pResumoEntrega">--/--/----</span></div>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Calculada a partir da Data da Solicitação (inclui sábados, domingos e feriados)</div>
+          </div>
+          <span style="font-size: 2rem;">⏱️</span>
+        </div>
+
+        <div class="form-group">
+          <label>Quantidade / Efetivo</label>
+          <input type="number" id="pQtd" placeholder="Ex: 4" min="1">
+        </div>
+
+        <div class="form-group">
+          <label>Urgência Operacional *</label>
+          <select id="pPrioridade">
+            <option value="baixa">🔵 Baixa — Reposição de rotina</option>
+            <option value="normal" selected>🟡 Normal — Padrão operacional</option>
+            <option value="alta">🔴 Alta — Necessidade rápida</option>
+            <option value="urgente">🚨 Urgente — Risco à operação do posto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Detalhes da Demanda</label>
+          <textarea id="pDescricao" placeholder="Descreva tamanhos, especificações, horários da entrega no posto..."></textarea>
+        </div>
 
         <div class="nav-btns">
-          <button class="btn-nav prev" id="btnPrev3">← Corrigir</button>
-          <button class="btn-nav submit" id="btnEnviar">🛡️ Confirmar & Enviar</button>
+          <button class="btn-step prev" id="btnPrev2">← Voltar</button>
+          <button class="btn-step next" id="btnNext2">Revisar →</button>
         </div>
       </div>
 
+      <!-- Etapa 3 -->
+      <div class="etapa-area" id="etapa3">
+        <h4 style="margin: 0 0 14px; color: #fff;">Confirmar Envio da Demanda</h4>
+        <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; font-size: 0.88rem; line-height: 1.8;" id="revContent"></div>
+
+        <div class="nav-btns">
+          <button class="btn-step prev" id="btnPrev3">← Corrigir</button>
+          <button class="btn-step submit" id="btnEnviar">✅ Confirmar & Enviar</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Tela de Sucesso -->
-    <div class="success-screen" id="successScreen">
-      <div class="big-icon">✅</div>
-      <h2>Demanda de Segurança Registrada!</h2>
-      <p>Sua solicitação já está disponível no quadro da supervisão de segurança.</p>
-      <div class="protocol-box" id="protocolBox"></div>
-      <p style="font-size:.85rem;color:var(--texto2)">Acompanhe o atendimento pelo número de protocolo informado acima.</p>
-      <button class="btn-nav next" style="max-width:240px;margin:16px auto 0" id="btnNovaSol">+ Nova Solicitação</button>
+    <!-- Tela Concluído -->
+    <div class="success-box" id="successBox">
+      <div class="big-ico">🛡️</div>
+      <h2>Solicitação Enviada!</h2>
+      <p style="color: #94a3b8; font-size: 0.92rem;">
+        Sua demanda já caiu no Quadro Operacional da Supervisão.
+      </p>
+      <div class="proto-tag" id="protoTag">PROTOCOLO: SEG-0000</div>
+      
+      <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 10px; padding: 14px 18px; margin: 16px 0 20px; text-align: center;">
+        <div style="font-size: 0.76rem; font-weight: 800; color: #6ee7b7; text-transform: uppercase; letter-spacing: 0.6px;">Previsão de Atendimento</div>
+        <div style="font-size: 1.35rem; font-weight: 900; color: #34d399; margin: 4px 0;" id="protoDataTxt">--/--/----</div>
+        <div style="font-size: 0.78rem; color: #cbd5e1;">Prazo calculado de <strong>8 dias corridos</strong> (inclui sábados, domingos e feriados)</div>
+      </div>
+
+      <p style="font-size: 0.8rem; color: #64748b;">Guarde este número para acompanhamento no posto.</p>
+      <button class="btn-step next" style="max-width: 200px; margin: 18px auto 0;" onclick="location.reload()">+ Nova Solicitação</button>
     </div>
   </div>
-</div>
 
-<div class="toast-container" id="toastContainer"></div>
+  <script>
+    const POSTOS_INICIAIS = [
+      { id: "posto-gestao-operacional", name: "00001 - PR - GESTÃO OPERACIONAL E ADMINISTRATIVA" },
+      { id: "posto-62", name: "1001 NOITES" },
+      { id: "posto-45", name: "50741 - PR - MON - FRANCISCO SIMEAO" },
+      { id: "posto-27", name: "82265 - PR - MAP - ITAU POR" },
+      { id: "posto-40", name: "ADM DO BRASIL - YERBALATINA" },
+      { id: "posto-51", name: "ALBRATECH" },
+      { id: "posto-54", name: "ALFAMA" },
+      { id: "posto-44", name: "ALUBAUEN" },
+      { id: "posto-32", name: "ANA AMELIA CUNHA" },
+      { id: "posto-57", name: "BECTON" },
+      { id: "posto-4", name: "BRASLOG" },
+      { id: "posto-1794501164898", name: "BUNGE" },
+      { id: "posto-22", name: "COND CHACARA SHANGAI II" },
+      { id: "posto-17", name: "COND DO ED MARQUES DE MONT ALEGRE" },
+      { id: "posto-16", name: "COND RESIDENCIAL SPAZIO CATENA" },
+      { id: "posto-26", name: "COND. CENTRO CIVICO" },
+      { id: "posto-21", name: "COND. EDIFICIO TOM & VINICIUS" },
+      { id: "posto-18", name: "COND. ILHAS BALEARES" },
+      { id: "posto-20", name: "COND. ORBIT" },
+      { id: "posto-23", name: "COND. PINEFIELDS" },
+      { id: "posto-25", name: "CONDOMINIO EDIFICIO GREEN PALACE" },
+      { id: "posto-15", name: "CONDOMINIO EDIFICIO LUGANO" },
+      { id: "posto-33", name: "CPL" },
+      { id: "posto-28", name: "CRISTINA MARIA CUNHA" },
+      { id: "posto-10", name: "DATAPROM (FCE)" },
+      { id: "posto-7", name: "DIAGNOSTICO BRASIL" },
+      { id: "posto-9", name: "DIMED - PANVEL" },
+      { id: "posto-47", name: "DIST DE MED SANTA CRUZ" },
+      { id: "posto-19", name: "EDIFICIO SAO RAFAEL" },
+      { id: "posto-39", name: "ESCOLA INTERNACIONAL" },
+      { id: "posto-63", name: "FLEURY" },
+      { id: "posto-12", name: "HELISUL FBO /SIDERAL" },
+      { id: "posto-31", name: "HELOISA HELENA GOMES" },
+      { id: "posto-2", name: "ID DO BRASIL LOGISTICA" },
+      { id: "posto-55", name: "INFORMOBILE kastrup" },
+      { id: "posto-49", name: "ISRINGHAUSEN INDUSTRIAL LTDA" },
+      { id: "posto-52", name: "ITW DO BRASIL" },
+      { id: "posto-36", name: "JALL CARDS" },
+      { id: "posto-11", name: "KUHN DO BRASIL" },
+      { id: "posto-53", name: "LAMINORT INDUSTRIA" },
+      { id: "posto-8", name: "LOGGI CTBA" },
+      { id: "posto-30", name: "MARIA ELSA DE ALMEIDA" },
+      { id: "posto-56", name: "MASADIM ADMINISTRADORA FLOW" },
+      { id: "posto-59", name: "MAXI" },
+      { id: "posto-46", name: "MESSER CURITIBA" },
+      { id: "posto-50", name: "METALKRAFT" },
+      { id: "posto-37", name: "MOINHO DO NORDESTE PINHAIS" },
+      { id: "posto-38", name: "MOINHO PIRAQUARA" },
+      { id: "posto-61", name: "MPS" },
+      { id: "posto-6", name: "MULTILIT" },
+      { id: "posto-48", name: "PLASTIC OMNIUM AUTO INERGY" },
+      { id: "posto-29", name: "REGINA A. LEAL" },
+      { id: "posto-68", name: "RESERVA TECNICA SEGURANCA 1 FERISTAS" },
+      { id: "posto-69", name: "RESERVA TECNICA SEGURANCA 1 RESERVA TECNICA" },
+      { id: "posto-13", name: "RIO HOTEL BY BOURBON" },
+      { id: "posto-14", name: "RIO HOTEL DON RICARDO" },
+      { id: "posto-24", name: "RIO SAO FRANCISCO" },
+      { id: "posto-65", name: "SELECTAS" },
+      { id: "posto-67", name: "SOUZA CRUZ BAT - MAPI" },
+      { id: "posto-66", name: "SOUZA CRUZ BAT USINA - RIO NEGRO" },
+      { id: "posto-3", name: "SUZANO" },
+      { id: "posto-1", name: "TEGMA" },
+      { id: "posto-34", name: "TERESINHA DORING" },
+      { id: "posto-35", name: "THALES GROUP" },
+      { id: "posto-60", name: "TRUTZSCHLER" },
+      { id: "posto-41", name: "VIBRA ENERGIA CURITIBA E REGIAO" },
+      { id: "posto-58", name: "VIDROLAR" },
+      { id: "posto-43", name: "WHITE MARTINS ARAUCARIA" },
+      { id: "posto-42", name: "WHITE MARTINS ARAUCARIA" },
+      { id: "posto-64", name: "WISE UP" },
+      { id: "posto-5", name: "ZANINI" }
+    ];
 
-<script src="data.js"></script>
-<script>
-let etapaAtual = 1;
-const totalEtapas = 3;
+    let postos = [...POSTOS_INICIAIS];
 
-function formatarDataBR(isoStr) {
-  if (!isoStr) return '--/--/----';
-  const partes = isoStr.split('-');
-  if (partes.length !== 3) return isoStr;
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
-}
+    function renderizarSelectPostos(lista) {
+      const sel = document.getElementById('pPosto');
+      if (!sel) return;
+      const valAtual = sel.value;
+      sel.innerHTML = '<option value="">Selecione seu posto...</option>';
+      lista.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.short_name || p.name;
+        sel.appendChild(opt);
+      });
+      if (valAtual) sel.value = valAtual;
+    }
 
-function somarDiasCorridos(dataIsoStr, diasParaSomar = 8) {
-  if (!dataIsoStr) return { iso: '', formatada: '--/--/----' };
-  const [anoStr, mesStr, diaStr] = dataIsoStr.split('-');
-  const ano = parseInt(anoStr, 10);
-  const mes = parseInt(mesStr, 10) - 1;
-  const dia = parseInt(diaStr, 10);
+    // ========================================================
+    // REGRA DO SISTEMA: PRAZO AUTOMÁTICO DE 8 DIAS CORRIDOS
+    // ========================================================
+    function formatarDataBR(isoStr) {
+      if (!isoStr) return '--/--/----';
+      const partes = isoStr.split('-');
+      if (partes.length !== 3) return isoStr;
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
 
-  const d = new Date(ano, mes, dia);
-  d.setDate(d.getDate() + diasParaSomar);
+    function somarDiasCorridos(dataIsoStr, diasParaSomar = 8) {
+      if (!dataIsoStr) return { iso: '', formatada: '--/--/----' };
+      const [anoStr, mesStr, diaStr] = dataIsoStr.split('-');
+      const ano = parseInt(anoStr, 10);
+      const mes = parseInt(mesStr, 10) - 1;
+      const dia = parseInt(diaStr, 10);
 
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const dt = String(d.getDate()).padStart(2, '0');
+      // Instanciação local para preservação do dia do calendário
+      const d = new Date(ano, mes, dia);
+      d.setDate(d.getDate() + diasParaSomar);
 
-  return {
-    iso: `${y}-${m}-${dt}`,
-    formatada: `${dt}/${m}/${y}`
-  };
-}
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dt = String(d.getDate()).padStart(2, '0');
 
-let dataEntregaPrevistaISO = '';
-let dataEntregaPrevistaFormatada = '';
+      return {
+        iso: `${y}-${m}-${dt}`,
+        formatada: `${dt}/${m}/${y}`
+      };
+    }
 
-function atualizarCalculoPrazo() {
-  const campo = document.getElementById('colDataSolicitacao');
-  const dataSol = campo ? campo.value : '';
-  if (!dataSol) {
-    document.getElementById('colDataEntregaTexto').textContent = '--/--/----';
-    const res = document.getElementById('colResumoEntrega');
-    if (res) res.textContent = '--/--/----';
-    dataEntregaPrevistaISO = '';
-    dataEntregaPrevistaFormatada = '';
-    return;
-  }
-  const r = somarDiasCorridos(dataSol, 8);
-  dataEntregaPrevistaISO = r.iso;
-  dataEntregaPrevistaFormatada = r.formatada;
+    let dataEntregaPrevistaISO = '';
+    let dataEntregaPrevistaFormatada = '';
 
-  document.getElementById('colDataEntregaTexto').textContent = r.formatada;
-  const res = document.getElementById('colResumoEntrega');
-  if (res) res.textContent = r.formatada;
-}
+    function atualizarCalculoPrazo() {
+      const campo = document.getElementById('pDataSolicitacao');
+      const dataSol = campo ? campo.value : '';
+      if (!dataSol) {
+        const txtEl = document.getElementById('pDataEntregaTexto');
+        if (txtEl) txtEl.textContent = '--/--/----';
+        const resumo = document.getElementById('pResumoEntrega');
+        if (resumo) resumo.textContent = '--/--/----';
+        dataEntregaPrevistaISO = '';
+        dataEntregaPrevistaFormatada = '';
+        return;
+      }
 
-const inputDataSol = document.getElementById('colDataSolicitacao');
-if (inputDataSol) {
-  const hoje = new Date();
-  const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-  inputDataSol.value = hojeISO;
-  inputDataSol.addEventListener('input', atualizarCalculoPrazo);
-  inputDataSol.addEventListener('change', atualizarCalculoPrazo);
-  atualizarCalculoPrazo();
-}
+      const res = somarDiasCorridos(dataSol, 8);
+      dataEntregaPrevistaISO = res.iso;
+      dataEntregaPrevistaFormatada = res.formatada;
 
-document.querySelectorAll('.tipo-chip-collab').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.querySelectorAll('.tipo-chip-collab').forEach(c => c.classList.remove('selected'));
-    chip.classList.add('selected');
-    document.getElementById('tipoCol').value = chip.dataset.tipo;
-  });
-});
+      const txtEl = document.getElementById('pDataEntregaTexto');
+      if (txtEl) txtEl.textContent = res.formatada;
 
-document.getElementById('btnNext1').addEventListener('click', () => {
-  if (!document.getElementById('colDataSolicitacao').value) {
-    toast('Informe a data da solicitação', 'error'); return;
-  }
-  if (!document.getElementById('tipoCol').value) {
-    toast('Selecione a necessidade', 'error'); return;
-  }
-  if (!document.getElementById('colNome').value.trim()) {
-    toast('Informe seu nome ou cargo', 'error'); return;
-  }
-  if (!document.getElementById('colPosto').value.trim()) {
-    toast('Informe o posto de serviço', 'error'); return;
-  }
-  irPara(2);
-});
+      const resumo = document.getElementById('pResumoEntrega');
+      if (resumo) resumo.textContent = res.formatada;
+    }
 
-document.getElementById('btnPrev2').addEventListener('click', () => irPara(1));
-document.getElementById('btnNext2').addEventListener('click', () => {
-  if (!document.getElementById('colTitulo').value.trim()) {
-    toast('Preencha o resumo da demanda', 'error'); return;
-  }
-  renderReview();
-  irPara(3);
-});
+    function getApiUrl(endpoint) {
+      if (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3333')) {
+        return `http://localhost:3333${endpoint}`;
+      }
+      return endpoint;
+    }
 
-document.getElementById('btnPrev3').addEventListener('click', () => irPara(2));
-document.getElementById('btnEnviar').addEventListener('click', enviar);
-document.getElementById('btnNovaSol').addEventListener('click', resetar);
+    async function apiFetch(endpoint, options = {}) {
+      const url = getApiUrl(endpoint);
+      try {
+        const res = await fetch(url, options);
+        return res;
+      } catch (err) {
+        if (!url.startsWith('http://localhost:3333')) {
+          try {
+            return await fetch(`http://localhost:3333${endpoint}`, options);
+          } catch (e) {
+            throw err;
+          }
+        }
+        throw err;
+      }
+    }
 
-function irPara(n) {
-  etapaAtual = n;
-  for (let i = 1; i <= 3; i++) {
-    document.getElementById(`sec${i}`).classList.toggle('active', i === n);
-  }
-  document.getElementById('progressBar').style.width = `${(n / totalEtapas) * 100}%`;
-  updateStepIndicator(n);
-}
+    async function inicializarApp() {
+      // 1. Popula os postos imediatamente (sem depender de servidor)
+      renderizarSelectPostos(postos);
 
-function updateStepIndicator(n) {
-  for (let i = 1; i <= 3; i++) {
-    const el = document.getElementById(`step${i}`);
-    el.style.opacity = '1';
-    if (i < n)       { el.className = 'step done'; el.textContent = '✓'; }
-    else if (i === n){ el.className = 'step active'; el.textContent = i; }
-    else             { el.className = 'step'; el.textContent = i; el.style.opacity = '.5'; }
-  }
-  for (let i = 1; i <= 2; i++) {
-    document.getElementById(`line${i}`).className = `step-line${i < n ? ' done' : ''}`;
-  }
-}
+      // 2. Inicializar Data da Solicitação com a data atual (padrão) e calcular os 8 dias
+      const inputDataSol = document.getElementById('pDataSolicitacao');
+      if (inputDataSol) {
+        if (!inputDataSol.value) {
+          const hoje = new Date();
+          const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+          inputDataSol.value = hojeISO;
+        }
+        inputDataSol.addEventListener('input', atualizarCalculoPrazo);
+        inputDataSol.addEventListener('change', atualizarCalculoPrazo);
+        atualizarCalculoPrazo();
+      }
 
-function renderReview() {
-  const tInfo = TIPOS_SEGURANCA[document.getElementById('tipoCol').value] || { nome: 'Outro', icon: '📦' };
-  const prioMap = { baixa:'🔵 Baixa', normal:'🟡 Normal', alta:'🔴 Alta', urgente:'🚨 Urgente' };
+      // 3. Se a API estiver ativa, atualiza com postos do banco
+      try {
+        const res = await apiFetch('/api/postos');
+        if (res.ok) {
+          const dados = await res.json();
+          if (Array.isArray(dados) && dados.length > 0) {
+            postos = dados;
+            renderizarSelectPostos(postos);
+          }
+        }
+      } catch (e) {
+        // Modo offline / servidor estático: já está com os 71 postos carregados
+      }
 
-  const dataSol = document.getElementById('colDataSolicitacao').value;
-  const dataSolFmt = formatarDataBR(dataSol);
-  const dataEntregaFmt = dataEntregaPrevistaFormatada || formatarDataBR(somarDiasCorridos(dataSol, 8).iso);
+      // 4. Configurar Seleção de Categoria (.chip-item)
+      document.querySelectorAll('.chip-item').forEach(c => {
+        c.addEventListener('click', () => {
+          document.querySelectorAll('.chip-item').forEach(x => x.classList.remove('selected'));
+          c.classList.add('selected');
+          const inputTipo = document.getElementById('pTipo');
+          if (inputTipo) inputTipo.value = c.dataset.val;
+        });
+      });
 
-  const nome   = document.getElementById('colNome').value;
-  const posto  = document.getElementById('colPosto').value;
-  const turno  = document.getElementById('colTurno').value;
-  const titulo = document.getElementById('colTitulo').value;
-  const qtd    = document.getElementById('colQtd').value;
-  const prio   = document.getElementById('colPrioridade').value;
-  const desc   = document.getElementById('colDescricao').value;
+      // 5. Wizard Nav
+      const btnNext1 = document.getElementById('btnNext1');
+      if (btnNext1) {
+        btnNext1.onclick = () => {
+          if (!document.getElementById('pDataSolicitacao').value) return alert('Informe a data da solicitação');
+          if (!document.getElementById('pTipo').value) return alert('Selecione a categoria da solicitação');
+          if (!document.getElementById('pPosto').value) return alert('Selecione o posto de trabalho no seletor');
+          if (!document.getElementById('pCargo').value) return alert('Selecione o seu cargo no seletor');
+          const nome = document.getElementById('pNome').value.trim();
+          if (!nome) return alert('Digite o seu nome completo');
+          irPara(2);
+        };
+      }
 
-  document.getElementById('reviewContent').innerHTML = `
-    <div style="border:2px solid var(--borda);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px">
-      <div class="review-row"><span class="review-label">Data da Solicitação</span><span class="review-val">📅 ${dataSolFmt}</span></div>
-      <div class="review-row"><span class="review-label">Prazo Automático</span><span class="review-val">8 dias corridos</span></div>
-      <div class="review-row"><span class="review-label">Data Prevista de Entrega</span><span class="review-val" style="color:#16a34a;font-weight:800">📦 ${dataEntregaFmt}</span></div>
-      <div class="review-row"><span class="review-label">Categoria</span><span class="review-val">${tInfo.icon} ${tInfo.nome}</span></div>
-      <div class="review-row"><span class="review-label">Solicitante</span><span class="review-val">${esc(nome)}</span></div>
-      <div class="review-row"><span class="review-label">Posto / Turno</span><span class="review-val">${esc(posto)} (${esc(turno)})</span></div>
-      <div class="review-row"><span class="review-label">Resumo</span><span class="review-val">${esc(titulo)}</span></div>
-      ${qtd ? `<div class="review-row"><span class="review-label">Quantidade / Efetivo</span><span class="review-val">${qtd}</span></div>` : ''}
-      <div class="review-row"><span class="review-label">Urgência</span><span class="review-val">${prioMap[prio]||prio}</span></div>
-      ${desc ? `<div class="review-row"><span class="review-label">Justificativa</span><span class="review-val" style="white-space:pre-line">${esc(desc)}</span></div>` : ''}
-    </div>
-  `;
-}
+      const btnPrev2 = document.getElementById('btnPrev2');
+      if (btnPrev2) btnPrev2.onclick = () => irPara(1);
 
-function enviar() {
-  const dataSol = document.getElementById('colDataSolicitacao').value;
-  const dataEntrega = dataEntregaPrevistaISO || somarDiasCorridos(dataSol, 8).iso;
+      const btnNext2 = document.getElementById('btnNext2');
+      if (btnNext2) {
+        btnNext2.onclick = () => {
+          if (!document.getElementById('pTitulo').value.trim()) return alert('Informe o resumo da solicitação');
+          gerarRevisao();
+          irPara(3);
+        };
+      }
 
-  const sol = criar({
-    tipo:             document.getElementById('tipoCol').value,
-    solicitante:      document.getElementById('colNome').value.trim(),
-    posto:            document.getElementById('colPosto').value.trim(),
-    turno:            document.getElementById('colTurno').value,
-    titulo:           document.getElementById('colTitulo').value.trim(),
-    data_solicitacao: dataSol,
-    prazo:            dataEntrega,
-    quantidade:       document.getElementById('colQtd').value,
-    prioridade:       document.getElementById('colPrioridade').value,
-    descricao:        document.getElementById('colDescricao').value.trim(),
-    coluna:           'pendente',
-  });
+      const btnPrev3 = document.getElementById('btnPrev3');
+      if (btnPrev3) btnPrev3.onclick = () => irPara(2);
 
-  document.getElementById('protocolBox').textContent = `PROTOCOLO: ${sol.id}`;
-  document.getElementById('formArea').style.display = 'none';
-  document.getElementById('successScreen').style.display = 'block';
-}
+      const btnEnviar = document.getElementById('btnEnviar');
+      if (btnEnviar) btnEnviar.onclick = enviarDemanda;
+    }
 
-function resetar() {
-  document.getElementById('formArea').style.display = 'block';
-  document.getElementById('successScreen').style.display = 'none';
-  document.getElementById('tipoCol').value = '';
-  document.querySelectorAll('.tipo-chip-collab').forEach(c => c.classList.remove('selected'));
-  ['colNome','colPosto','colTitulo','colQtd','colDescricao'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
-  document.getElementById('colPrioridade').value = 'normal';
-  if (inputDataSol) {
-    const hoje = new Date();
-    inputDataSol.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-    atualizarCalculoPrazo();
-  }
-  irPara(1);
-}
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializarApp);
+    } else {
+      inicializarApp();
+    }
 
-function toast(msg, tipo='info') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast ${tipo}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
-}
+    function irPara(n) {
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`etapa${i}`).classList.toggle('active', i === n);
+        const dot = document.getElementById(`dot${i}`);
+        if (i < n) { dot.className = 's-dot done'; dot.textContent = '✓'; }
+        else if (i === n) { dot.className = 's-dot active'; dot.textContent = i; }
+        else { dot.className = 's-dot'; dot.textContent = i; }
+      }
+      for (let i = 1; i <= 2; i++) {
+        document.getElementById(`line${i}`).className = `s-line${i < n ? ' done' : ''}`;
+      }
+    }
 
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-</script>
+    function gerarRevisao() {
+      const dataSol = document.getElementById('pDataSolicitacao').value;
+      const dataSolFmt = formatarDataBR(dataSol);
+      const dataEntregaFmt = dataEntregaPrevistaFormatada || formatarDataBR(somarDiasCorridos(dataSol, 8).iso);
 
+      const tipo = document.getElementById('pTipo').value;
+      const postoId = document.getElementById('pPosto').value;
+      const postoObj = postos.find(p => p.id === postoId);
+      const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
+      const cargo = document.getElementById('pCargo').value;
+      const nome = document.getElementById('pNome').value.trim();
+      const solicitante = cargo ? `${nome} (${cargo})` : nome;
+      const titulo = document.getElementById('pTitulo').value;
+      const qtd = document.getElementById('pQtd').value;
+      const prio = document.getElementById('pPrioridade').value;
+      const desc = document.getElementById('pDescricao').value;
+
+      document.getElementById('revContent').innerHTML = `
+        <div style="background: rgba(30, 58, 138, 0.4); border: 2px solid #3b82f6; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+          <div style="font-size: 0.92rem;"><strong>📅 Data da Solicitação:</strong> ${dataSolFmt}</div>
+          <div style="font-size: 0.92rem; margin: 3px 0;"><strong>⏱️ Prazo Automático:</strong> 8 dias corridos (contabiliza sábados, domingos e feriados)</div>
+          <div style="color: #34d399; font-weight: 900; font-size: 1.15rem; margin-top: 6px;">
+            <strong>📦 Data Prevista de Entrega:</strong> ${dataEntregaFmt}
+          </div>
+        </div>
+        <div><strong>Categoria:</strong> ${tipo.toUpperCase()}</div>
+        <div><strong>Posto:</strong> ${postoNome}</div>
+        <div><strong>Cargo:</strong> ${cargo}</div>
+        <div><strong>Solicitante:</strong> ${nome}</div>
+        <div><strong>Resumo:</strong> ${titulo}</div>
+        ${qtd ? `<div><strong>Quantidade/Efetivo:</strong> ${qtd}</div>` : ''}
+        <div><strong>Prioridade:</strong> ${prio.toUpperCase()}</div>
+        ${desc ? `<div><strong>Detalhes:</strong> ${desc}</div>` : ''}
+      `;
+    }
+
+    async function enviarDemanda() {
+      const dataSol = document.getElementById('pDataSolicitacao').value;
+      const dataEntrega = dataEntregaPrevistaISO || somarDiasCorridos(dataSol, 8).iso;
+      const dataEntregaFmt = dataEntregaPrevistaFormatada || somarDiasCorridos(dataSol, 8).formatada;
+
+      const postoId = document.getElementById('pPosto').value;
+      const postoObj = postos.find(p => p.id === postoId);
+      const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
+      const cargo = document.getElementById('pCargo').value;
+      const nome = document.getElementById('pNome').value.trim();
+      const solicitante = cargo ? `${nome} (${cargo})` : nome;
+
+      const payload = {
+        tipo: document.getElementById('pTipo').value,
+        posto_id: postoId,
+        posto_nome: postoNome,
+        cargo: cargo,
+        solicitante: solicitante,
+        titulo: document.getElementById('pTitulo').value.trim(),
+        data_solicitacao: dataSol,
+        prazo: dataEntrega,
+        quantidade: document.getElementById('pQtd').value ? parseInt(document.getElementById('pQtd').value, 10) : null,
+        prioridade: document.getElementById('pPrioridade').value,
+        descricao: document.getElementById('pDescricao').value.trim(),
+        coluna: 'pendente'
+      };
+
+      let protocolo = `SEG-${Date.now().toString().slice(-4)}`;
+
+      try {
+        const res = await apiFetch('/api/solicitacoes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          protocolo = data.id;
+        }
+      } catch (e) {
+        // Fallback local
+        const lista = JSON.parse(localStorage.getItem('solic_gps_local') || '[]');
+        lista.unshift({ id: protocolo, ...payload, created_at: new Date().toISOString() });
+        localStorage.setItem('solic_gps_local', JSON.stringify(lista));
+      }
+
+      document.getElementById('protoTag').textContent = `PROTOCOLO: ${protocolo}`;
+      const protoDataTxt = document.getElementById('protoDataTxt');
+      if (protoDataTxt) protoDataTxt.textContent = dataEntregaFmt;
+
+      document.getElementById('formArea').style.display = 'none';
+      document.getElementById('successBox').style.display = 'block';
+    }
+  </script>
 </body>
 </html>
+

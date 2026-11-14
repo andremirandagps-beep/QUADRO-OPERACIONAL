@@ -548,6 +548,30 @@
       if (resumo) resumo.textContent = res.formatada;
     }
 
+    function getApiUrl(endpoint) {
+      if (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3333')) {
+        return `http://localhost:3333${endpoint}`;
+      }
+      return endpoint;
+    }
+
+    async function apiFetch(endpoint, options = {}) {
+      const url = getApiUrl(endpoint);
+      try {
+        const res = await fetch(url, options);
+        return res;
+      } catch (err) {
+        if (!url.startsWith('http://localhost:3333')) {
+          try {
+            return await fetch(`http://localhost:3333${endpoint}`, options);
+          } catch (e) {
+            throw err;
+          }
+        }
+        throw err;
+      }
+    }
+
     async function inicializarApp() {
       // 1. Popula os postos imediatamente (sem depender de servidor)
       renderizarSelectPostos(postos);
@@ -567,7 +591,7 @@
 
       // 3. Se a API estiver ativa, atualiza com postos do banco
       try {
-        const res = await fetch('/api/postos');
+        const res = await apiFetch('/api/postos');
         if (res.ok) {
           const dados = await res.json();
           if (Array.isArray(dados) && dados.length > 0) {
@@ -707,7 +731,7 @@
       let protocolo = `SEG-${Date.now().toString().slice(-4)}`;
 
       try {
-        const res = await fetch('/api/solicitacoes', {
+        const res = await apiFetch('/api/solicitacoes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

@@ -164,6 +164,7 @@ function initSchema() {
       FOREIGN KEY (solicitacao_id) REFERENCES solicitacoes(id) ON DELETE CASCADE
     );
     CREATE INDEX IF NOT EXISTS idx_hist_solic ON solicitacoes_historico(solicitacao_id);
+    UPDATE solicitacoes SET coluna = 'pendente' WHERE coluna = 'analise' OR coluna IS NULL;
   `);
 
   console.log('✅ Schema do banco de dados criado/verificado com sucesso.');
