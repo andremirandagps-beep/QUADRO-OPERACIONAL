@@ -939,7 +939,7 @@
         state.sortBy = 'NOME_ASC';
         document.getElementById('sort-label').textContent = 'Ordenar: A-Z';
       } else {
-        state.sortBy === 'CRITICO_FIRST';
+        state.sortBy = 'CRITICO_FIRST';
         document.getElementById('sort-label').textContent = 'Ordenar: Críticos 1º';
       }
       applyFilters();
