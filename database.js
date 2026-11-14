@@ -134,6 +134,12 @@ function initSchema() {
     db.exec(`ALTER TABLE postos ADD COLUMN longitude REAL`);
   }
 
+  // Migrações dinâmicas para solicitacoes
+  const solicCols = db.pragma('table_info(solicitacoes)').map(c => c.name);
+  if (!solicCols.includes('cargo')) {
+    db.exec(`ALTER TABLE solicitacoes ADD COLUMN cargo TEXT`);
+  }
+
   console.log('✅ Schema do banco de dados criado/verificado com sucesso.');
 }
 
@@ -278,8 +284,8 @@ function prepareStatements() {
       SELECT * FROM solicitacoes WHERE id = ?
     `),
     insertSolicitacao: db.prepare(`
-      INSERT INTO solicitacoes (id, tipo, titulo, solicitante, posto_id, posto_nome, turno, quantidade, prazo, prioridade, coluna, descricao)
-      VALUES (@id, @tipo, @titulo, @solicitante, @posto_id, @posto_nome, @turno, @quantidade, @prazo, @prioridade, @coluna, @descricao)
+      INSERT INTO solicitacoes (id, tipo, titulo, solicitante, cargo, posto_id, posto_nome, turno, quantidade, prazo, prioridade, coluna, descricao)
+      VALUES (@id, @tipo, @titulo, @solicitante, @cargo, @posto_id, @posto_nome, @turno, @quantidade, @prazo, @prioridade, @coluna, @descricao)
     `),
     updateSolicitacao: db.prepare(`
       UPDATE solicitacoes
@@ -748,6 +754,7 @@ module.exports = {
       tipo: data.tipo,
       titulo: data.titulo,
       solicitante: data.solicitante,
+      cargo: data.cargo || null,
       posto_id: data.posto_id || null,
       posto_nome: data.posto_nome || null,
       turno: data.turno || 'Diurno',

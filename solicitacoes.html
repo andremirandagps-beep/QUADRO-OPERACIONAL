@@ -596,8 +596,30 @@
             </select>
           </div>
           <div class="f-group">
-            <label>Solicitante / Vigilante *</label>
-            <input type="text" id="fSolicitante" placeholder="Nome completo / Cargo">
+            <label>Cargo / Função *</label>
+            <select id="fCargo">
+              <option value="">Selecione o cargo...</option>
+              <option value="Vigilante">👮 Vigilante</option>
+              <option value="Vigilante Folguista">🔄 Vigilante Folguista</option>
+              <option value="Vigilante Ferista">📅 Vigilante Ferista</option>
+              <option value="Vigilante Líder">⭐ Vigilante Líder</option>
+              <option value="Supervisor Operacional">📋 Supervisor Operacional</option>
+              <option value="Fiscal de Segurança">🔍 Fiscal de Segurança</option>
+              <option value="Porteiro / Controlador">🚪 Porteiro / Controlador de Acesso</option>
+              <option value="Monitor CFTV">🖥️ Monitor CFTV</option>
+              <option value="Vigia">👁️ Vigia</option>
+              <option value="Coordenador Operacional">👔 Coordenador Operacional</option>
+              <option value="Assistente Administrativo">💼 Assistente Administrativo</option>
+              <option value="Gerente de Contrato">🏢 Gerente de Contrato</option>
+              <option value="Outro">🏷️ Outro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="f-row">
+          <div class="f-group" style="grid-column: span 2;">
+            <label>Nome do Solicitante *</label>
+            <input type="text" id="fSolicitante" placeholder="Digite o nome completo do solicitante">
           </div>
         </div>
 
@@ -716,6 +738,7 @@
     };
 
     let postosLista = [];
+    let colabsLista = [];
     let solicitacoesLista = [];
     let filtroAtual = 'todos';
 
@@ -729,6 +752,8 @@
       if (tit) tit.value = '';
       const sol = document.getElementById('fSolicitante');
       if (sol) sol.value = '';
+      const cargo = document.getElementById('fCargo');
+      if (cargo) cargo.value = '';
       const prz = document.getElementById('fPrazo');
       if (prz) prz.value = '';
       const qtd = document.getElementById('fQuantidade');
@@ -1023,12 +1048,18 @@
 
     async function carregarPostos() {
       try {
-        const res = await fetch('/api/postos');
-        if (res.ok) {
-          postosLista = await res.json();
+        const [resPostos, resColabs] = await Promise.all([
+          fetch('/api/postos'),
+          fetch('/api/colaboradores')
+        ]);
+        if (resPostos.ok) {
+          postosLista = await resPostos.json();
           popularSelectPostos();
-          return;
         }
+        if (resColabs.ok) {
+          colabsLista = await resColabs.json();
+        }
+        return;
       } catch (e) {
         console.warn('Usando armazenamento local de postos:', e);
       }
@@ -1049,6 +1080,7 @@
 
     function popularSelectPostos() {
       const select = document.getElementById('fPosto');
+      if (!select) return;
       select.innerHTML = '<option value="">Selecione o posto...</option>';
       postosLista.forEach(p => {
         const opt = document.createElement('option');
@@ -1325,7 +1357,8 @@
     async function salvarNovaSolicitacao() {
       const tipo = document.getElementById('fTipo').value;
       const titulo = document.getElementById('fTitulo').value.trim();
-      const solicitante = document.getElementById('fSolicitante').value.trim();
+      const cargo = document.getElementById('fCargo').value;
+      const nomeSolicitante = document.getElementById('fSolicitante').value.trim();
       const postoId = document.getElementById('fPosto').value;
       const turno = document.getElementById('fTurno').value;
       const prioridade = document.getElementById('fPrioridade').value;
@@ -1335,15 +1368,18 @@
 
       if (!tipo) return alert('Selecione a categoria da demanda.');
       if (!titulo) return alert('Preencha o resumo da solicitação.');
-      if (!solicitante) return alert('Informe o nome do solicitante.');
+      if (!cargo) return alert('Selecione o cargo / função.');
+      if (!nomeSolicitante) return alert('Informe ou selecione o nome do solicitante.');
       if (!prazo) return alert('Informe o prazo limite.');
 
+      const solicitante = `${nomeSolicitante} (${cargo})`;
       const postoObj = postosLista.find(p => p.id === postoId);
       const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
 
       const payload = {
         tipo,
         titulo,
+        cargo,
         solicitante,
         posto_id: postoId || null,
         posto_nome: postoNome,

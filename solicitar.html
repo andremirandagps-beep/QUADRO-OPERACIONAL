@@ -191,13 +191,33 @@
         <div class="form-group">
           <label>Posto de Trabalho *</label>
           <select id="pPosto">
-            <option value="">Carregando postos...</option>
+            <option value="">Selecione seu posto...</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Seu Nome / Cargo *</label>
-          <input type="text" id="pSolicitante" placeholder="Ex: Vig. Carlos Souza ou Fiscal Silva">
+          <label>Cargo / Função *</label>
+          <select id="pCargo">
+            <option value="">Selecione o cargo...</option>
+            <option value="Vigilante">👮 Vigilante</option>
+            <option value="Vigilante Folguista">🔄 Vigilante Folguista</option>
+            <option value="Vigilante Ferista">📅 Vigilante Ferista</option>
+            <option value="Vigilante Líder">⭐ Vigilante Líder</option>
+            <option value="Supervisor Operacional">📋 Supervisor Operacional</option>
+            <option value="Fiscal de Segurança">🔍 Fiscal de Segurança</option>
+            <option value="Porteiro / Controlador">🚪 Porteiro / Controlador de Acesso</option>
+            <option value="Monitor CFTV">🖥️ Monitor CFTV</option>
+            <option value="Vigia">👁️ Vigia</option>
+            <option value="Coordenador Operacional">👔 Coordenador Operacional</option>
+            <option value="Assistente Administrativo">💼 Assistente Administrativo</option>
+            <option value="Gerente de Contrato">🏢 Gerente de Contrato</option>
+            <option value="Outro">🏷️ Outro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nome do Solicitante *</label>
+          <input type="text" id="pNome" placeholder="Digite seu nome completo">
         </div>
 
         <div class="nav-btns">
@@ -270,28 +290,115 @@
   </div>
 
   <script>
-    let postos = [];
+    const POSTOS_INICIAIS = [
+      { id: "posto-gestao-operacional", name: "00001 - PR - GESTÃO OPERACIONAL E ADMINISTRATIVA" },
+      { id: "posto-62", name: "1001 NOITES" },
+      { id: "posto-45", name: "50741 - PR - MON - FRANCISCO SIMEAO" },
+      { id: "posto-27", name: "82265 - PR - MAP - ITAU POR" },
+      { id: "posto-40", name: "ADM DO BRASIL - YERBALATINA" },
+      { id: "posto-51", name: "ALBRATECH" },
+      { id: "posto-54", name: "ALFAMA" },
+      { id: "posto-44", name: "ALUBAUEN" },
+      { id: "posto-32", name: "ANA AMELIA CUNHA" },
+      { id: "posto-57", name: "BECTON" },
+      { id: "posto-4", name: "BRASLOG" },
+      { id: "posto-1794501164898", name: "BUNGE" },
+      { id: "posto-22", name: "COND CHACARA SHANGAI II" },
+      { id: "posto-17", name: "COND DO ED MARQUES DE MONT ALEGRE" },
+      { id: "posto-16", name: "COND RESIDENCIAL SPAZIO CATENA" },
+      { id: "posto-26", name: "COND. CENTRO CIVICO" },
+      { id: "posto-21", name: "COND. EDIFICIO TOM & VINICIUS" },
+      { id: "posto-18", name: "COND. ILHAS BALEARES" },
+      { id: "posto-20", name: "COND. ORBIT" },
+      { id: "posto-23", name: "COND. PINEFIELDS" },
+      { id: "posto-25", name: "CONDOMINIO EDIFICIO GREEN PALACE" },
+      { id: "posto-15", name: "CONDOMINIO EDIFICIO LUGANO" },
+      { id: "posto-33", name: "CPL" },
+      { id: "posto-28", name: "CRISTINA MARIA CUNHA" },
+      { id: "posto-10", name: "DATAPROM (FCE)" },
+      { id: "posto-7", name: "DIAGNOSTICO BRASIL" },
+      { id: "posto-9", name: "DIMED - PANVEL" },
+      { id: "posto-47", name: "DIST DE MED SANTA CRUZ" },
+      { id: "posto-19", name: "EDIFICIO SAO RAFAEL" },
+      { id: "posto-39", name: "ESCOLA INTERNACIONAL" },
+      { id: "posto-63", name: "FLEURY" },
+      { id: "posto-12", name: "HELISUL FBO /SIDERAL" },
+      { id: "posto-31", name: "HELOISA HELENA GOMES" },
+      { id: "posto-2", name: "ID DO BRASIL LOGISTICA" },
+      { id: "posto-55", name: "INFORMOBILE kastrup" },
+      { id: "posto-49", name: "ISRINGHAUSEN INDUSTRIAL LTDA" },
+      { id: "posto-52", name: "ITW DO BRASIL" },
+      { id: "posto-36", name: "JALL CARDS" },
+      { id: "posto-11", name: "KUHN DO BRASIL" },
+      { id: "posto-53", name: "LAMINORT INDUSTRIA" },
+      { id: "posto-8", name: "LOGGI CTBA" },
+      { id: "posto-30", name: "MARIA ELSA DE ALMEIDA" },
+      { id: "posto-56", name: "MASADIM ADMINISTRADORA FLOW" },
+      { id: "posto-59", name: "MAXI" },
+      { id: "posto-46", name: "MESSER CURITIBA" },
+      { id: "posto-50", name: "METALKRAFT" },
+      { id: "posto-37", name: "MOINHO DO NORDESTE PINHAIS" },
+      { id: "posto-38", name: "MOINHO PIRAQUARA" },
+      { id: "posto-61", name: "MPS" },
+      { id: "posto-6", name: "MULTILIT" },
+      { id: "posto-48", name: "PLASTIC OMNIUM AUTO INERGY" },
+      { id: "posto-29", name: "REGINA A. LEAL" },
+      { id: "posto-68", name: "RESERVA TECNICA SEGURANCA 1 FERISTAS" },
+      { id: "posto-69", name: "RESERVA TECNICA SEGURANCA 1 RESERVA TECNICA" },
+      { id: "posto-13", name: "RIO HOTEL BY BOURBON" },
+      { id: "posto-14", name: "RIO HOTEL DON RICARDO" },
+      { id: "posto-24", name: "RIO SAO FRANCISCO" },
+      { id: "posto-65", name: "SELECTAS" },
+      { id: "posto-67", name: "SOUZA CRUZ BAT - MAPI" },
+      { id: "posto-66", name: "SOUZA CRUZ BAT USINA - RIO NEGRO" },
+      { id: "posto-3", name: "SUZANO" },
+      { id: "posto-1", name: "TEGMA" },
+      { id: "posto-34", name: "TERESINHA DORING" },
+      { id: "posto-35", name: "THALES GROUP" },
+      { id: "posto-60", name: "TRUTZSCHLER" },
+      { id: "posto-41", name: "VIBRA ENERGIA CURITIBA E REGIAO" },
+      { id: "posto-58", name: "VIDROLAR" },
+      { id: "posto-43", name: "WHITE MARTINS ARAUCARIA" },
+      { id: "posto-42", name: "WHITE MARTINS ARAUCARIA" },
+      { id: "posto-64", name: "WISE UP" },
+      { id: "posto-5", name: "ZANINI" }
+    ];
+
+    let postos = [...POSTOS_INICIAIS];
+
+    function renderizarSelectPostos(lista) {
+      const sel = document.getElementById('pPosto');
+      if (!sel) return;
+      const valAtual = sel.value;
+      sel.innerHTML = '<option value="">Selecione seu posto...</option>';
+      lista.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.short_name || p.name;
+        sel.appendChild(opt);
+      });
+      if (valAtual) sel.value = valAtual;
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
-      // Carregar postos reais do banco SQLite
+      // 1. Popula os postos imediatamente (sem depender de servidor)
+      renderizarSelectPostos(postos);
+
+      // 2. Se a API estiver ativa, atualiza com postos do banco
       try {
         const res = await fetch('/api/postos');
         if (res.ok) {
-          postos = await res.json();
-          const sel = document.getElementById('pPosto');
-          sel.innerHTML = '<option value="">Selecione seu posto...</option>';
-          postos.forEach(p => {
-            const opt = document.createElement('option');
-            opt.value = p.id;
-            opt.textContent = p.short_name || p.name;
-            sel.appendChild(opt);
-          });
+          const dados = await res.json();
+          if (Array.isArray(dados) && dados.length > 0) {
+            postos = dados;
+            renderizarSelectPostos(postos);
+          }
         }
       } catch (e) {
-        document.getElementById('pPosto').innerHTML = '<option value="">Posto Operacional</option>';
+        // Modo offline / servidor estático: já está com os 71 postos carregados
       }
 
-      // Configurar Seleção de Tipo
+      // Configurar Seleção de Categoria
       document.querySelectorAll('.chip-item').forEach(c => {
         c.addEventListener('click', () => {
           document.querySelectorAll('.chip-item').forEach(x => x.classList.remove('selected'));
@@ -302,9 +409,11 @@
 
       // Wizard Nav
       document.getElementById('btnNext1').onclick = () => {
-        if (!document.getElementById('pTipo').value) return alert('Selecione a categoria');
-        if (!document.getElementById('pPosto').value) return alert('Selecione o posto de trabalho');
-        if (!document.getElementById('pSolicitante').value.trim()) return alert('Informe seu nome ou cargo');
+        if (!document.getElementById('pTipo').value) return alert('Selecione a categoria da solicitação');
+        if (!document.getElementById('pPosto').value) return alert('Selecione o posto de trabalho no seletor');
+        if (!document.getElementById('pCargo').value) return alert('Selecione o seu cargo no seletor');
+        const nome = document.getElementById('pNome').value.trim();
+        if (!nome) return alert('Digite o seu nome completo');
         irPara(2);
       };
 
@@ -338,7 +447,9 @@
       const postoId = document.getElementById('pPosto').value;
       const postoObj = postos.find(p => p.id === postoId);
       const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
-      const solicitante = document.getElementById('pSolicitante').value;
+      const cargo = document.getElementById('pCargo').value;
+      const nome = document.getElementById('pNome').value.trim();
+      const solicitante = cargo ? `${nome} (${cargo})` : nome;
       const titulo = document.getElementById('pTitulo').value;
       const prazo = document.getElementById('pPrazo').value;
       const qtd = document.getElementById('pQtd').value;
@@ -348,7 +459,8 @@
       document.getElementById('revContent').innerHTML = `
         <div><strong>Categoria:</strong> ${tipo.toUpperCase()}</div>
         <div><strong>Posto:</strong> ${postoNome}</div>
-        <div><strong>Solicitante:</strong> ${solicitante}</div>
+        <div><strong>Cargo:</strong> ${cargo}</div>
+        <div><strong>Solicitante:</strong> ${nome}</div>
         <div><strong>Resumo:</strong> ${titulo}</div>
         <div><strong>Prazo Necessário:</strong> ${prazo ? new Date(prazo+'T00:00:00').toLocaleDateString('pt-BR') : '—'}</div>
         ${qtd ? `<div><strong>Quantidade/Efetivo:</strong> ${qtd}</div>` : ''}
@@ -361,12 +473,16 @@
       const postoId = document.getElementById('pPosto').value;
       const postoObj = postos.find(p => p.id === postoId);
       const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
+      const cargo = document.getElementById('pCargo').value;
+      const nome = document.getElementById('pNome').value.trim();
+      const solicitante = cargo ? `${nome} (${cargo})` : nome;
 
       const payload = {
         tipo: document.getElementById('pTipo').value,
         posto_id: postoId,
         posto_nome: postoNome,
-        solicitante: document.getElementById('pSolicitante').value.trim(),
+        cargo: cargo,
+        solicitante: solicitante,
         titulo: document.getElementById('pTitulo').value.trim(),
         prazo: document.getElementById('pPrazo').value,
         quantidade: document.getElementById('pQtd').value ? parseInt(document.getElementById('pQtd').value, 10) : null,
