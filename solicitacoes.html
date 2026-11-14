@@ -3052,8 +3052,14 @@
       try {
         const r = await apiFetch('/api/categorias');
         cfgCategoriasData = await r.json();
+        if (Array.isArray(cfgCategoriasData)) {
+          cfgCategoriasData.forEach(c => {
+            TIPOS_MAP[c.id] = { icon: c.icon || '📦', label: c.nome };
+          });
+        }
         cfgRenderCategorias();
         reconstruirChipsCategorias();
+        renderizarQuadro();
       } catch(e) { console.error('Erro ao carregar categorias (cfg):', e); }
     }
 

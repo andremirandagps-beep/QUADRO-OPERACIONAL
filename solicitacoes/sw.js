@@ -1,5 +1,5 @@
 // Service Worker - Grupo GPS Operacional PWA
-const CACHE_NAME = 'gps-app-v2';
+const CACHE_NAME = 'gps-app-v3';
 
 const ASSETS_TO_CACHE = [
   '/',

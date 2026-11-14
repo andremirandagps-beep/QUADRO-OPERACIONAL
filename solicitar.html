@@ -287,7 +287,7 @@
 
         <div class="form-group">
           <label>Qual a categoria da solicitação? *</label>
-          <div class="chips-grid">
+          <div class="chips-grid" id="chipsCategorias">
             <div class="chip-item" data-val="alimentacao"><span class="ico">🍱</span>Alimentação / Plantão</div>
             <div class="chip-item" data-val="efetivo"><span class="ico">👮‍♂️</span>Reforço / Rendição</div>
             <div class="chip-item" data-val="material"><span class="ico">🔦</span>Material Tático / Pilhas</div>
@@ -323,21 +323,7 @@
             <option value="Gerente de Contrato">🏢 Gerente de Contrato</option>
             <option value="Outro">🏷️ Outro</option>
           </select>
-        <script>
-          (async function() {
-            try {
-              const r = await fetch('/api/funcoes');
-              if (!r.ok) return;
-              const funcoes = await r.json();
-              const sel = document.getElementById('pCargo');
-              if (!sel || !funcoes.length) return;
-              const curVal = sel.value;
-              sel.innerHTML = '<option value="">Selecione o cargo...</option>' +
-                funcoes.map(f => <option value=""> </option>).join('');
-              if (curVal) sel.value = curVal;
-            } catch(e) {}
-          })();
-        </script>
+
         </div>
 
         <div class="form-group">
@@ -617,6 +603,61 @@
       }
     }
 
+    let categoriasCarregadas = [];
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function configurarSelecaoCategoria() {
+      document.querySelectorAll('.chip-item').forEach(c => {
+        c.onclick = () => {
+          document.querySelectorAll('.chip-item').forEach(x => x.classList.remove('selected'));
+          c.classList.add('selected');
+          const inputTipo = document.getElementById('pTipo');
+          if (inputTipo) inputTipo.value = c.dataset.val;
+        };
+      });
+    }
+
+    function renderizarCategorias(cats) {
+      const container = document.getElementById('chipsCategorias') || document.querySelector('.chips-grid');
+      if (!container || !Array.isArray(cats) || !cats.length) return;
+      const inputTipo = document.getElementById('pTipo');
+      const curVal = inputTipo ? inputTipo.value : '';
+
+      container.innerHTML = cats
+        .filter(c => c.ativo !== 0)
+        .map(c => `
+          <div class="chip-item ${curVal === c.id ? 'selected' : ''}" data-val="${escapeHtml(c.id)}">
+            <span class="ico">${escapeHtml(c.icon || '📦')}</span>
+            ${escapeHtml(c.nome)}
+          </div>
+        `).join('');
+
+      configurarSelecaoCategoria();
+    }
+
+    function renderizarFuncoes(funcoes) {
+      const sel = document.getElementById('pCargo');
+      if (!sel || !Array.isArray(funcoes) || !funcoes.length) return;
+      const curVal = sel.value;
+      const ativas = funcoes.filter(f => f.ativo !== 0);
+      if (!ativas.length) return;
+      sel.innerHTML = '<option value="">Selecione o cargo...</option>' +
+        ativas.map(f => {
+          const ico = f.icone ? `${escapeHtml(f.icone)} ` : '';
+          return `<option value="${escapeHtml(f.nome)}">${ico}${escapeHtml(f.nome)}</option>`;
+        }).join('');
+      if (curVal) sel.value = curVal;
+    }
+
     async function inicializarApp() {
       // 1. Popula os postos imediatamente (sem depender de servidor)
       renderizarSelectPostos(postos);
@@ -648,15 +689,35 @@
         // Modo offline / servidor estático: já está com os 71 postos carregados
       }
 
-      // 4. Configurar Seleção de Categoria (.chip-item)
-      document.querySelectorAll('.chip-item').forEach(c => {
-        c.addEventListener('click', () => {
-          document.querySelectorAll('.chip-item').forEach(x => x.classList.remove('selected'));
-          c.classList.add('selected');
-          const inputTipo = document.getElementById('pTipo');
-          if (inputTipo) inputTipo.value = c.dataset.val;
-        });
-      });
+      // 4. Carregar Categorias dinâmicas do Banco
+      try {
+        const resCat = await apiFetch('/api/categorias');
+        if (resCat.ok) {
+          const dadosCat = await resCat.json();
+          if (Array.isArray(dadosCat) && dadosCat.length > 0) {
+            categoriasCarregadas = dadosCat;
+            renderizarCategorias(dadosCat);
+          }
+        }
+      } catch (e) {
+        console.warn('Categorias do servidor indisponíveis, mantendo padrão:', e);
+      }
+
+      // 5. Carregar Funções/Cargos dinâmicos do Banco
+      try {
+        const resFun = await apiFetch('/api/funcoes');
+        if (resFun.ok) {
+          const dadosFun = await resFun.json();
+          if (Array.isArray(dadosFun) && dadosFun.length > 0) {
+            renderizarFuncoes(dadosFun);
+          }
+        }
+      } catch (e) {
+        console.warn('Funções do servidor indisponíveis, mantendo padrão:', e);
+      }
+
+      // 6. Configurar Seleção de Categoria (.chip-item)
+      configurarSelecaoCategoria();
 
       // 5. Wizard Nav
       const btnNext1 = document.getElementById('btnNext1');
@@ -728,6 +789,9 @@
       const prio = document.getElementById('pPrioridade').value;
       const desc = document.getElementById('pDescricao').value;
 
+      const catObj = categoriasCarregadas.find(c => c.id === tipo);
+      const catNome = catObj ? `${catObj.icon || '📦'} ${catObj.nome}` : tipo.toUpperCase();
+
       document.getElementById('revContent').innerHTML = `
         <div style="background: rgba(30, 58, 138, 0.4); border: 2px solid #3b82f6; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
           <div style="font-size: 0.92rem;"><strong>📅 Data da Solicitação:</strong> ${dataSolFmt}</div>
@@ -736,7 +800,7 @@
             <strong>📦 Data Prevista de Entrega:</strong> ${dataEntregaFmt}
           </div>
         </div>
-        <div><strong>Categoria:</strong> ${tipo.toUpperCase()}</div>
+        <div><strong>Categoria:</strong> ${catNome}</div>
         <div><strong>Posto:</strong> ${postoNome}</div>
         <div><strong>Cargo:</strong> ${cargo}</div>
         <div><strong>Solicitante:</strong> ${nome}</div>
