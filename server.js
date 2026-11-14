@@ -11,7 +11,7 @@ const { exec } = require('child_process');
 // Load Database
 const database = require('./database.js');
 
-const PORT = 3333;
+const PORT = process.env.PORT || 3333;
 const BASE_DIR = __dirname;
 
 const MIME_TYPES = {
