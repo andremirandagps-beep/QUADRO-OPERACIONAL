@@ -438,6 +438,175 @@
     flex: 1;
   }
   .link-box-gps input:focus { outline: none; }
+
+  /* Novas regras de Acompanhamento: Pendente, Aprovado, Reprovado, Concluido */
+  .stat-box.reprovado { border-left-color: #ef4444; }
+  .stat-box.reprovado .stat-num { color: #f87171; }
+  .stat-box.aprovado { border-left-color: #10b981; }
+  .stat-box.aprovado .stat-num { color: #34d399; }
+  .stat-box.pendente { border-left-color: #f59e0b; }
+  .stat-box.pendente .stat-num { color: #fbbf24; }
+
+  .k-column[data-col="reprovado"] {
+    background: #191424;
+    border-color: #3b1b2f;
+  }
+  .k-column[data-col="aprovado"] {
+    background: #0f241d;
+    border-color: #14532d;
+  }
+  .k-column[data-col="pendente"] {
+    background: #1e1e2d;
+    border-color: #3b352b;
+  }
+  .k-column[data-col="concluido"] {
+    background: #131d31;
+    border-color: #223049;
+  }
+
+  /* Cards Clicáveis */
+  .card-item {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .card-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    border-color: #3b82f6;
+  }
+  .card-item.st-reprovado {
+    border-left-color: #ef4444 !important;
+    background: #1f1422;
+  }
+
+  .card-motivo-box {
+    background: rgba(239, 68, 68, 0.14);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-top: 8px;
+    font-size: 0.74rem;
+    color: #fca5a5;
+    line-height: 1.35;
+  }
+
+  .btn-action-sm {
+    border: none;
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-action-sm.aprovar {
+    background: #065f46;
+    color: #a7f3d0;
+    border: 1px solid #059669;
+  }
+  .btn-action-sm.aprovar:hover {
+    background: #059669;
+    color: #fff;
+  }
+  .btn-action-sm.reprovar {
+    background: #7f1d1d;
+    color: #fecaca;
+    border: 1px solid #b91c1c;
+  }
+  .btn-action-sm.reprovar:hover {
+    background: #b91c1c;
+    color: #fff;
+  }
+  .btn-action-sm.concluir {
+    background: #1e3a8a;
+    color: #bfdbfe;
+    border: 1px solid #2563eb;
+  }
+  .btn-action-sm.concluir:hover {
+    background: #2563eb;
+    color: #fff;
+  }
+  .btn-action-sm.reabrir {
+    background: #334155;
+    color: #cbd5e1;
+    border: 1px solid #475569;
+  }
+  .btn-action-sm.reabrir:hover {
+    background: #475569;
+    color: #fff;
+  }
+
+  /* Badges de Status */
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-status.pendente { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+  .badge-status.aprovado { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+  .badge-status.reprovado { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+  .badge-status.concluido { background: rgba(100, 116, 139, 0.25); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); }
+
+  /* Detalhes Modal Grid */
+  .detalhe-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 600px) {
+    .detalhe-grid { grid-template-columns: 1fr; }
+  }
+  .detalhe-item {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .detalhe-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .detalhe-val {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+
+  .timeline-hist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .timeline-row {
+    background: #0f172a;
+    border-left: 3px solid #3b82f6;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .timeline-row.REPROVADA { border-left-color: #ef4444; }
+  .timeline-row.APROVADA { border-left-color: #10b981; }
+  .timeline-row.CONCLUIDA { border-left-color: #64748b; }
 </style>
 </head>
 <body class="theme-dark">
@@ -461,6 +630,9 @@
       <a href="mapa.html" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #059669; text-decoration: none;">
         <span>🗺️ Mapa & Visitas</span>
       </a>
+      <button class="btn btn-secondary" id="btnHistGeral" style="cursor: pointer;" onclick="abrirModalHistoricoGeral()">
+        <span>📜 Histórico Geral</span>
+      </button>
       <button class="btn btn-primary" id="btnLinkPostos" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); cursor: pointer;" onclick="abrirModalLinkPostos()">
         <span>🔗 Link para Postos</span>
       </button>
@@ -478,27 +650,27 @@
       <div id="alertBarLiveText">Existem demandas em prazo crítico ou vencidas!</div>
     </div>
 
-    <!-- Estatísticas Gerais -->
+    <!-- Estatísticas Gerais de Acompanhamento -->
     <div class="stats-row">
       <div class="stat-box total">
         <div class="stat-num" id="stTotal">0</div>
-        <div class="stat-desc">Total de Solicitações</div>
+        <div class="stat-desc">Total Geral</div>
       </div>
-      <div class="stat-box ok">
-        <div class="stat-num" id="stOk">0</div>
-        <div class="stat-desc">Em Dia 🟢</div>
+      <div class="stat-box pendente">
+        <div class="stat-num" id="stPendente">0</div>
+        <div class="stat-desc">Pendentes ⏳</div>
       </div>
-      <div class="stat-box aviso">
-        <div class="stat-num" id="stAviso">0</div>
-        <div class="stat-desc">Atenção (&le; 20d) 🟡</div>
+      <div class="stat-box aprovado">
+        <div class="stat-num" id="stAprovado">0</div>
+        <div class="stat-desc">Aprovadas ✅</div>
       </div>
-      <div class="stat-box critico">
-        <div class="stat-num" id="stCritico">0</div>
-        <div class="stat-desc">Crítico (&le; 10d) 🔴</div>
+      <div class="stat-box reprovado">
+        <div class="stat-num" id="stReprovado">0</div>
+        <div class="stat-desc">Reprovadas ❌</div>
       </div>
       <div class="stat-box concluido">
-        <div class="stat-num" id="stAtendido">0</div>
-        <div class="stat-desc">Atendidos ✓</div>
+        <div class="stat-num" id="stConcluido">0</div>
+        <div class="stat-desc">Concluídas 📦</div>
       </div>
     </div>
 
@@ -515,43 +687,43 @@
       </div>
 
       <div style="font-size: 0.85rem; color: #94a3b8;">
-        💡 Arraste os cards entre as colunas para atualizar a fase
+        💡 <strong>Clique em qualquer pedido</strong> para ver detalhes completos, aprovar ou reprovar
       </div>
     </div>
 
-    <!-- Kanban Board 4 Colunas -->
+    <!-- Kanban Board 4 Colunas: Pendentes, Aprovadas, Reprovadas, Concluídas -->
     <div class="kanban-grid">
-      <!-- Coluna 1 -->
+      <!-- Coluna 1: Pendentes -->
       <div class="k-column" data-col="pendente">
         <div class="k-col-head">
-          <div class="k-col-title"><span>⏳</span> Solicitação Nova</div>
+          <div class="k-col-title"><span>⏳</span> Pendentes</div>
           <span class="k-badge-count" id="cCount-pendente">0</span>
         </div>
         <div class="cards-list" id="list-pendente"></div>
       </div>
 
-      <!-- Coluna 2 -->
-      <div class="k-column" data-col="analise">
-        <div class="k-col-head">
-          <div class="k-col-title"><span>🔍</span> Em Análise / Cotação</div>
-          <span class="k-badge-count" id="cCount-analise">0</span>
-        </div>
-        <div class="cards-list" id="list-analise"></div>
-      </div>
-
-      <!-- Coluna 3 -->
+      <!-- Coluna 2: Aprovadas -->
       <div class="k-column" data-col="aprovado">
         <div class="k-col-head">
-          <div class="k-col-title"><span>📦</span> Aprovado / Em Envio</div>
+          <div class="k-col-title"><span>✅</span> Aprovadas</div>
           <span class="k-badge-count" id="cCount-aprovado">0</span>
         </div>
         <div class="cards-list" id="list-aprovado"></div>
       </div>
 
-      <!-- Coluna 4 -->
+      <!-- Coluna 3: Reprovadas -->
+      <div class="k-column" data-col="reprovado">
+        <div class="k-col-head">
+          <div class="k-col-title"><span>❌</span> Reprovadas</div>
+          <span class="k-badge-count" id="cCount-reprovado">0</span>
+        </div>
+        <div class="cards-list" id="list-reprovado"></div>
+      </div>
+
+      <!-- Coluna 4: Concluídas -->
       <div class="k-column" data-col="concluido">
         <div class="k-col-head">
-          <div class="k-col-title"><span>✅</span> Entregue no Posto</div>
+          <div class="k-col-title"><span>📦</span> Concluídas</div>
           <span class="k-badge-count" id="cCount-concluido">0</span>
         </div>
         <div class="cards-list" id="list-concluido"></div>
@@ -730,6 +902,185 @@
         <p style="font-size: 0.75rem; color: #475569; margin-top: 14px; margin-bottom: 0;">
           💡 Verifique que o celular está na <strong style="color:#94a3b8">mesma rede Wi-Fi</strong> que este computador.
         </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhes da Solicitação -->
+  <div class="modal-overlay" id="modalDetalhes" onclick="if(event.target===this) fecharModalDetalhes()">
+    <div class="modal-box" style="max-width: 680px;" onclick="event.stopPropagation()">
+      <div class="m-header">
+        <div>
+          <h3 id="detModalTitle" style="display:flex; align-items:center; gap:8px;">
+            <span>🛡️</span> Detalhes da Demanda
+          </h3>
+          <div id="detModalSub" style="font-size:0.75rem; color:#94a3b8; margin-top:2px;"></div>
+        </div>
+        <button class="m-close" onclick="fecharModalDetalhes()">&times;</button>
+      </div>
+
+      <div class="m-body">
+        <!-- Badge Status Grande -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <span id="detStatusBadge" class="badge-status pendente">⏳ PENDENTE</span>
+          <span id="detPrioridadeBadge" class="card-prio prio-normal">NORMAL</span>
+        </div>
+
+        <!-- Alerta de Motivo de Reprovação (se houver) -->
+        <div id="detMotivoReprovacaoBox" style="display:none; background:rgba(239,68,68,0.18); border:1px solid #ef4444; border-radius:8px; padding:12px 16px; margin-bottom:16px;">
+          <div style="font-size:0.75rem; font-weight:800; color:#fca5a5; text-transform:uppercase;">❌ MOTIVO DA REPROVAÇÃO:</div>
+          <div id="detMotivoReprovacaoTxt" style="font-size:0.95rem; color:#fecaca; margin-top:4px; font-weight:600;"></div>
+        </div>
+
+        <!-- Grid de Informações -->
+        <div class="detalhe-grid">
+          <div class="detalhe-item">
+            <div class="detalhe-label">👮 Solicitante / Efetivo</div>
+            <div class="detalhe-val" id="detSolicitante">--</div>
+            <div style="font-size:0.75rem; color:#94a3b8; margin-top:2px;" id="detCargo">--</div>
+          </div>
+
+          <div class="detalhe-item">
+            <div class="detalhe-label">📍 Posto de Serviço / Turno</div>
+            <div class="detalhe-val" id="detPosto">--</div>
+            <div style="font-size:0.75rem; color:#38bdf8; margin-top:2px;" id="detTurno">--</div>
+          </div>
+
+          <div class="detalhe-item">
+            <div class="detalhe-label">📦 Categoria de Demanda</div>
+            <div class="detalhe-val" id="detCategoria">--</div>
+          </div>
+
+          <div class="detalhe-item">
+            <div class="detalhe-label">🔢 Quantidade / Efetivo</div>
+            <div class="detalhe-val" id="detQtd">Não informada</div>
+          </div>
+        </div>
+
+        <!-- Bloco de Prazos -->
+        <div style="background:linear-gradient(135deg, rgba(30,58,138,0.35) 0%, rgba(15,23,42,0.9) 100%); border:1px solid #3b82f6; border-radius:10px; padding:14px 16px; margin-bottom:16px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div>
+              <div style="font-size:0.72rem; font-weight:800; color:#94a3b8; text-transform:uppercase;">📅 Data da Solicitação</div>
+              <div style="font-size:1.05rem; font-weight:800; color:#fff;" id="detDataSol">--/--/----</div>
+              <div style="font-size:0.7rem; color:#60a5fa; margin-top:2px;">⏱️ Prazo: 8 dias corridos</div>
+            </div>
+            <div>
+              <div style="font-size:0.72rem; font-weight:800; color:#6ee7b7; text-transform:uppercase;">📦 Data Prevista de Entrega</div>
+              <div style="font-size:1.15rem; font-weight:900; color:#34d399;" id="detDataEntrega">--/--/----</div>
+              <div style="font-size:0.72rem; color:#a7f3d0;" id="detDiasRestantesTxt">Calculado automaticamente</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Descrição / Detalhes -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:0.75rem; font-weight:800; color:#cbd5e1; text-transform:uppercase; margin-bottom:6px;">
+            📝 Resumo & Descrição do Pedido
+          </div>
+          <div id="detTitulo" style="font-size:1rem; font-weight:800; color:#fff; margin-bottom:6px;"></div>
+          <div id="detDescricao" style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px; font-size:0.88rem; color:#cbd5e1; line-height:1.6; white-space:pre-wrap; min-height:50px;"></div>
+        </div>
+
+        <!-- Histórico e Auditoria -->
+        <div>
+          <div style="font-size:0.75rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:6px;">
+            📜 Histórico de Tramitação
+          </div>
+          <div class="timeline-hist" id="detTimeline">
+            <div style="color:#64748b; font-size:0.78rem;">Carregando histórico...</div>
+          </div>
+        </div>
+
+        <!-- Barra de Ações -->
+        <div style="display:flex; justify-content:space-between; gap:10px; margin-top:22px; flex-wrap:wrap; border-top:1px solid #334155; padding-top:16px;">
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="fecharModalDetalhes()">Fechar</button>
+            <button class="btn btn-secondary btn-sm" id="btnDetExcluir" style="color:#f87171; border-color:#ef4444;" onclick="excluirSolicAtual()">🗑️ Excluir</button>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;" id="detBotoesAcao">
+            <!-- Injetado dinamicamente -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Informar Motivo da Reprovação -->
+  <div class="modal-overlay" id="modalReprovar" onclick="if(event.target===this) fecharModalReprovar()">
+    <div class="modal-box" style="max-width: 520px;" onclick="event.stopPropagation()">
+      <div class="m-header" style="border-bottom-color:#ef4444;">
+        <h3 style="color:#f87171; display:flex; align-items:center; gap:8px;">
+          <span>❌</span> Reprovar Solicitação
+        </h3>
+        <button class="m-close" onclick="fecharModalReprovar()">&times;</button>
+      </div>
+      <div class="m-body">
+        <input type="hidden" id="reprovarId">
+        <p style="font-size:0.88rem; color:#cbd5e1; margin-top:0;">
+          Informe o <strong style="color:#f87171;">motivo da reprovação</strong> para registro no sistema e visualização pelo solicitante e gestores:
+        </p>
+
+        <div class="f-group">
+          <label style="color:#fca5a5;">Justificativa / Motivo da Reprovação *</label>
+          <textarea id="motivoReprovacaoInput" placeholder="Ex: Material disponível no almoxarifado central, cotação acima do limite, solicitação em duplicidade..." style="border-color:#ef4444; min-height:100px;"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+          <button class="btn btn-secondary" onclick="fecharModalReprovar()">Cancelar</button>
+          <button class="btn btn-primary" id="btnConfirmarReprovar" onclick="confirmarReprovacao()" style="background:#dc2626; border-color:#dc2626;">
+            ❌ Confirmar Reprovação
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Histórico Geral de Todas as Solicitações -->
+  <div class="modal-overlay" id="modalHistoricoGeral" onclick="if(event.target===this) fecharModalHistoricoGeral()">
+    <div class="modal-box" style="max-width: 960px;" onclick="event.stopPropagation()">
+      <div class="m-header">
+        <h3 style="display:flex; align-items:center; gap:8px;">
+          <span>📜</span> Histórico Geral de Solicitações
+        </h3>
+        <button class="m-close" onclick="fecharModalHistoricoGeral()">&times;</button>
+      </div>
+      <div class="m-body">
+        <p style="font-size:0.85rem; color:#94a3b8; margin-top:0;">
+          Acompanhamento permanente de todas as demandas enviadas pelo efetivo (pendentes, aprovadas, reprovadas e concluídas):
+        </p>
+
+        <!-- Barra de busca e filtros -->
+        <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+          <input type="text" id="histBuscaInput" placeholder="🔍 Buscar por nome do efetivo, posto, protocolo ou resumo..." style="flex:1; min-width:240px; padding:10px 14px; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff;" oninput="filtrarHistoricoTabela()">
+          <select id="histStatusFiltro" style="padding:10px 14px; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#fff; width:170px;" onchange="filtrarHistoricoTabela()">
+            <option value="todos">Todos os Status</option>
+            <option value="pendente">⏳ Pendentes</option>
+            <option value="aprovado">✅ Aprovadas</option>
+            <option value="reprovado">❌ Reprovadas</option>
+            <option value="concluido">📦 Concluídas</option>
+          </select>
+        </div>
+
+        <div style="overflow-x:auto; max-height:450px;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.84rem; text-align:left;">
+            <thead>
+              <tr style="background:#0f172a; color:#94a3b8; border-bottom:2px solid #334155;">
+                <th style="padding:10px 12px;">Protocolo</th>
+                <th style="padding:10px 12px;">Efetivo / Posto</th>
+                <th style="padding:10px 12px;">Demanda</th>
+                <th style="padding:10px 12px;">Solicitado</th>
+                <th style="padding:10px 12px;">Entrega Prevista</th>
+                <th style="padding:10px 12px;">Status</th>
+                <th style="padding:10px 12px; text-align:right;">Ação</th>
+              </tr>
+            </thead>
+            <tbody id="histTabelaBody">
+              <!-- Injetado dinamicamente -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -1154,12 +1505,22 @@
       return { txt: `🟢 Em dia (${dias} dias)`, cls: 'prazo-verde' };
     }
 
+    let solicitacaoAtualId = null;
+
     function renderizarQuadro() {
-      const stats = { total: 0, verde: 0, amarelo: 0, vermelho: 0, atendido: 0 };
-      const colunas = ['pendente', 'analise', 'aprovado', 'concluido'];
+      // 4 Colunas Oficiais: Pendente, Aprovado, Reprovado, Concluído
+      const stats = { total: 0, pendente: 0, aprovado: 0, reprovado: 0, concluido: 0 };
+      const colunas = ['pendente', 'aprovado', 'reprovado', 'concluido'];
+
+      // Normaliza qualquer status antigo para as novas colunas
+      solicitacoesLista.forEach(s => {
+        if (s.coluna === 'analise') s.coluna = 'pendente';
+        if (!colunas.includes(s.coluna)) s.coluna = 'pendente';
+      });
 
       colunas.forEach(col => {
         const area = document.getElementById(`list-${col}`);
+        if (!area) return;
         area.innerHTML = '';
         let count = 0;
 
@@ -1175,56 +1536,59 @@
           .forEach(sol => {
             const st = calcularStatus(sol);
             const prazoFmt = formatarPrazo(sol);
-
-            if (col === 'concluido') stats.atendido++;
-            else {
-              stats.total++;
-              if (st === 'verde') stats.verde++;
-              if (st === 'amarelo') stats.amarelo++;
-              if (st === 'vermelho') stats.vermelho++;
-            }
-
             area.appendChild(criarCardElement(sol, st, prazoFmt));
             count++;
           });
 
-        document.getElementById(`cCount-${col}`).textContent = count;
+        const cntEl = document.getElementById(`cCount-${col}`);
+        if (cntEl) cntEl.textContent = count;
       });
 
-      // Atualiza Stats
-      document.getElementById('stTotal').textContent = solicitacoesLista.length;
-      document.getElementById('stOk').textContent = stats.verde;
-      document.getElementById('stAviso').textContent = stats.amarelo;
-      document.getElementById('stCritico').textContent = stats.vermelho;
-      document.getElementById('stAtendido').textContent = stats.atendido;
+      // Contagem de Estatísticas de Acompanhamento
+      solicitacoesLista.forEach(s => {
+        stats.total++;
+        if (stats[s.coluna] !== undefined) stats[s.coluna]++;
+      });
 
-      // Barra de Alerta
+      // Atualiza os Stats no Topo
+      if (document.getElementById('stTotal')) document.getElementById('stTotal').textContent = stats.total;
+      if (document.getElementById('stPendente')) document.getElementById('stPendente').textContent = stats.pendente;
+      if (document.getElementById('stAprovado')) document.getElementById('stAprovado').textContent = stats.aprovado;
+      if (document.getElementById('stReprovado')) document.getElementById('stReprovado').textContent = stats.reprovado;
+      if (document.getElementById('stConcluido')) document.getElementById('stConcluido').textContent = stats.concluido;
+
+      // Barra de Alerta Dinâmico para demandas ativas críticas (<= 2 dias)
+      let criticos = 0;
+      solicitacoesLista.forEach(s => {
+        if (s.coluna === 'pendente' || s.coluna === 'aprovado') {
+          const dias = diasRestantes(s.prazo);
+          if (dias !== null && dias <= 2) criticos++;
+        }
+      });
+
       const alertBar = document.getElementById('alertBarLive');
-      if (stats.vermelho > 0) {
-        alertBar.classList.add('active');
-        document.getElementById('alertBarLiveText').textContent =
-          `ATENÇÃO: Existem ${stats.vermelho} solicitação(ões) em prazo crítico (≤ 2 dias ou vencidas) necessitando de ação!`;
-      } else {
-        alertBar.classList.remove('active');
+      if (alertBar) {
+        if (criticos > 0) {
+          alertBar.classList.add('active');
+          document.getElementById('alertBarLiveText').textContent =
+            `ATENÇÃO: Existem ${criticos} solicitação(ões) em prazo crítico (≤ 2 dias ou vencidas) necessitando de ação!`;
+        } else {
+          alertBar.classList.remove('active');
+        }
       }
     }
 
     function criarCardElement(sol, st, prazoFmt) {
       const card = document.createElement('div');
-      card.className = `card-item st-${st}`;
+      card.className = `card-item st-${st} ${sol.coluna === 'reprovado' ? 'st-reprovado' : ''}`;
       card.draggable = true;
       card.dataset.id = sol.id;
 
+      // Clique em qualquer pedido abre os detalhes completos
+      card.onclick = () => abrirDetalhesSolicitacao(sol.id);
+
       const tInfo = TIPOS_MAP[sol.tipo] || { icon: '📦', label: sol.tipo };
       const prioCls = `prio-${sol.prioridade || 'normal'}`;
-
-      const colMoves = {
-        pendente: { next: 'analise', nextTxt: '▶ Cotação' },
-        analise:  { next: 'aprovado', nextTxt: '▶ Aprovado', prev: 'pendente', prevTxt: '◀ Nova' },
-        aprovado: { next: 'concluido', nextTxt: '▶ Entregue', prev: 'analise', prevTxt: '◀ Cotação' },
-        concluido:{ prev: 'aprovado', prevTxt: '◀ Reabrir' }
-      };
-      const nav = colMoves[sol.coluna] || {};
 
       let dataSolHtml = '';
       if (sol.data_solicitacao) {
@@ -1233,6 +1597,35 @@
       }
 
       const dataPrevistaEntregaStr = sol.prazo ? new Date(sol.prazo + 'T00:00:00').toLocaleDateString('pt-BR') : '';
+
+      // Caixa de motivo se for reprovado
+      let motivoHtml = '';
+      if (sol.coluna === 'reprovado' && sol.motivo_reprovacao) {
+        motivoHtml = `<div class="card-motivo-box">❌ <strong>Motivo:</strong> ${escapeHtml(sol.motivo_reprovacao)}</div>`;
+      }
+
+      // Botões de ação rápida no card
+      let botoesCardHtml = '';
+      if (sol.coluna === 'pendente') {
+        botoesCardHtml = `
+          <button class="btn-action-sm aprovar" title="Aprovar Solicitação" onclick="event.stopPropagation(); aprovarSolic('${sol.id}')">✓ Aprovar</button>
+          <button class="btn-action-sm reprovar" title="Reprovar Solicitação" onclick="event.stopPropagation(); abrirModalReprovar('${sol.id}')">✕ Reprovar</button>
+        `;
+      } else if (sol.coluna === 'aprovado') {
+        botoesCardHtml = `
+          <button class="btn-action-sm concluir" title="Concluir / Marcar como Entregue" onclick="event.stopPropagation(); concluirSolic('${sol.id}')">📦 Entregue</button>
+          <button class="btn-action-sm reprovar" title="Reprovar Solicitação" onclick="event.stopPropagation(); abrirModalReprovar('${sol.id}')">✕ Reprovar</button>
+        `;
+      } else if (sol.coluna === 'reprovado') {
+        botoesCardHtml = `
+          <button class="btn-action-sm reabrir" title="Reabrir Demanda" onclick="event.stopPropagation(); reabrirSolic('${sol.id}')">🔄 Reabrir</button>
+          <button class="btn-action-sm aprovar" title="Aprovar Demanda" onclick="event.stopPropagation(); aprovarSolic('${sol.id}')">✓ Aprovar</button>
+        `;
+      } else if (sol.coluna === 'concluido') {
+        botoesCardHtml = `
+          <button class="btn-action-sm reabrir" title="Reabrir Demanda" onclick="event.stopPropagation(); reabrirSolic('${sol.id}')">🔄 Reabrir</button>
+        `;
+      }
 
       card.innerHTML = `
         <div class="card-top">
@@ -1245,10 +1638,10 @@
         ${sol.quantidade ? `<div class="card-info-row">🔢 Quantidade/Efetivo: <strong>${sol.quantidade}</strong></div>` : ''}
         ${dataSolHtml}
         <div class="card-prazo-tag ${prazoFmt.cls}">📦 Entrega: <strong>${dataPrevistaEntregaStr}</strong> (${prazoFmt.txt})</div>
+        ${motivoHtml}
         <div class="card-btns">
-          ${nav.prev ? `<button class="btn-k-action" onclick="moverColuna('${sol.id}', '${nav.prev}')">${nav.prevTxt}</button>` : ''}
-          ${nav.next ? `<button class="btn-k-action" onclick="moverColuna('${sol.id}', '${nav.next}')">${nav.nextTxt}</button>` : ''}
-          <button class="btn-k-action del" onclick="excluirSolic('${sol.id}')">🗑</button>
+          ${botoesCardHtml}
+          <button class="btn-action-sm del" title="Excluir Demanda" style="margin-left:auto; background:transparent; color:#64748b;" onclick="event.stopPropagation(); excluirSolic('${sol.id}')">🗑</button>
         </div>
       `;
 
@@ -1259,6 +1652,363 @@
       card.addEventListener('dragend', () => card.classList.remove('dragging'));
 
       return card;
+    }
+
+    // ========================================================
+    // MODAL DE DETALHES, APROVAÇÃO, REPROVAÇÃO E HISTÓRICO
+    // ========================================================
+    async function abrirDetalhesSolicitacao(id) {
+      const sol = solicitacoesLista.find(s => s.id === id);
+      if (!sol) return;
+
+      solicitacaoAtualId = sol.id;
+      const modal = document.getElementById('modalDetalhes');
+      if (!modal) return;
+
+      const tInfo = TIPOS_MAP[sol.tipo] || { icon: '📦', label: sol.tipo };
+      document.getElementById('detModalTitle').innerHTML = `<span>${tInfo.icon}</span> Solicitação ${sol.id}`;
+      document.getElementById('detModalSub').innerHTML = `Enviada pelo efetivo &bull; Categoria: <strong>${tInfo.label}</strong>`;
+
+      // Status Badge
+      const statusMap = {
+        pendente: { txt: '⏳ PENDENTE', cls: 'pendente' },
+        aprovado: { txt: '✅ APROVADA', cls: 'aprovado' },
+        reprovado: { txt: '❌ REPROVADA', cls: 'reprovado' },
+        concluido: { txt: '📦 CONCLUÍDA', cls: 'concluido' }
+      };
+      const stInfo = statusMap[sol.coluna] || { txt: sol.coluna.toUpperCase(), cls: 'pendente' };
+      const badgeSt = document.getElementById('detStatusBadge');
+      badgeSt.className = `badge-status ${stInfo.cls}`;
+      badgeSt.textContent = stInfo.txt;
+
+      // Prioridade
+      const prioEl = document.getElementById('detPrioridadeBadge');
+      prioEl.className = `card-prio prio-${sol.prioridade || 'normal'}`;
+      prioEl.textContent = (sol.prioridade || 'normal').toUpperCase();
+
+      // Motivo de Reprovação
+      const boxMotivo = document.getElementById('detMotivoReprovacaoBox');
+      if (sol.coluna === 'reprovado' && sol.motivo_reprovacao) {
+        boxMotivo.style.display = 'block';
+        document.getElementById('detMotivoReprovacaoTxt').textContent = sol.motivo_reprovacao;
+      } else {
+        boxMotivo.style.display = 'none';
+      }
+
+      // Dados principais
+      document.getElementById('detSolicitante').textContent = sol.solicitante || 'Não informado';
+      document.getElementById('detCargo').textContent = sol.cargo ? `Função: ${sol.cargo}` : '';
+      document.getElementById('detPosto').textContent = sol.posto_nome || 'Posto não especificado';
+      document.getElementById('detTurno').textContent = sol.turno ? `Turno: ${sol.turno}` : 'Turno Operacional';
+      document.getElementById('detCategoria').textContent = `${tInfo.icon} ${tInfo.label}`;
+      document.getElementById('detQtd').textContent = sol.quantidade ? `${sol.quantidade} unidade(s)/pessoa(s)` : 'Não especificada';
+
+      // Prazos
+      const dtSol = sol.data_solicitacao ? new Date(sol.data_solicitacao + 'T00:00:00').toLocaleDateString('pt-BR') : '--/--/----';
+      document.getElementById('detDataSol').textContent = dtSol;
+
+      const dtEntrega = sol.prazo ? new Date(sol.prazo + 'T00:00:00').toLocaleDateString('pt-BR') : '--/--/----';
+      document.getElementById('detDataEntrega').textContent = dtEntrega;
+
+      const dias = diasRestantes(sol.prazo);
+      const diasTxt = dias === null ? 'Sem prazo' : (dias < 0 ? `🚨 Vencido há ${Math.abs(dias)} dias` : (dias === 0 ? '🔴 Vence hoje' : `Tempo restante: ${dias} dia(s)`));
+      document.getElementById('detDiasRestantesTxt').textContent = diasTxt;
+
+      // Texto
+      document.getElementById('detTitulo').textContent = sol.titulo || 'Sem título';
+      document.getElementById('detDescricao').textContent = sol.descricao || 'Nenhuma observação ou justificativa adicional informada.';
+
+      // Montar Botões de Ação
+      const containerAcoes = document.getElementById('detBotoesAcao');
+      containerAcoes.innerHTML = '';
+
+      if (sol.coluna === 'pendente') {
+        containerAcoes.innerHTML = `
+          <button class="btn btn-secondary" style="background:#dc2626; border-color:#b91c1c; color:#fff;" onclick="abrirModalReprovar('${sol.id}')">
+            ❌ Reprovar Solicitação
+          </button>
+          <button class="btn btn-primary" style="background:#10b981; border-color:#059669;" onclick="aprovarSolic('${sol.id}')">
+            ✅ Aprovar Solicitação
+          </button>
+        `;
+      } else if (sol.coluna === 'aprovado') {
+        containerAcoes.innerHTML = `
+          <button class="btn btn-secondary" style="background:#7f1d1d; border-color:#b91c1c; color:#fecaca;" onclick="abrirModalReprovar('${sol.id}')">
+            ❌ Reprovar
+          </button>
+          <button class="btn btn-primary" style="background:#2563eb; border-color:#1d4ed8;" onclick="concluirSolic('${sol.id}')">
+            📦 Marcar como Concluída / Entregue
+          </button>
+        `;
+      } else if (sol.coluna === 'reprovado') {
+        containerAcoes.innerHTML = `
+          <button class="btn btn-secondary" style="background:#334155; border-color:#475569;" onclick="reabrirSolic('${sol.id}')">
+            🔄 Reabrir Demanda
+          </button>
+          <button class="btn btn-primary" style="background:#10b981; border-color:#059669;" onclick="aprovarSolic('${sol.id}')">
+            ✅ Aprovar Solicitação
+          </button>
+        `;
+      } else if (sol.coluna === 'concluido') {
+        containerAcoes.innerHTML = `
+          <button class="btn btn-secondary" style="background:#334155; border-color:#475569;" onclick="reabrirSolic('${sol.id}')">
+            🔄 Reabrir Demanda
+          </button>
+        `;
+      }
+
+      // Carregar Timeline do Histórico
+      carregarTimelineSolicitacao(sol.id);
+
+      modal.style.display = 'flex';
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
+      modal.classList.add('open', 'active');
+    }
+
+    function fecharModalDetalhes() {
+      const modal = document.getElementById('modalDetalhes');
+      if (modal) {
+        modal.classList.remove('open', 'active');
+        modal.style.display = 'none';
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
+      }
+      solicitacaoAtualId = null;
+    }
+
+    // Modal de Reprovação
+    function abrirModalReprovar(id) {
+      document.getElementById('reprovarId').value = id;
+      const inp = document.getElementById('motivoReprovacaoInput');
+      if (inp) {
+        inp.value = '';
+        setTimeout(() => inp.focus(), 150);
+      }
+      const modal = document.getElementById('modalReprovar');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'auto';
+        modal.classList.add('open', 'active');
+      }
+    }
+
+    function fecharModalReprovar() {
+      const modal = document.getElementById('modalReprovar');
+      if (modal) {
+        modal.classList.remove('open', 'active');
+        modal.style.display = 'none';
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
+      }
+    }
+
+    async function confirmarReprovacao() {
+      const id = document.getElementById('reprovarId').value;
+      const motivo = document.getElementById('motivoReprovacaoInput').value.trim();
+      if (!motivo) {
+        alert('Por favor, informe a justificativa / motivo da reprovação.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/reprovar`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ motivo, decidido_por: 'GESTOR' })
+        });
+        if (res.ok) {
+          fecharModalReprovar();
+          fecharModalDetalhes();
+          await carregarSolicitacoes();
+          return;
+        }
+      } catch (e) {}
+
+      // Fallback local
+      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna: 'reprovado', motivo_reprovacao: motivo } : s);
+      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
+      fecharModalReprovar();
+      fecharModalDetalhes();
+      renderizarQuadro();
+    }
+
+    // Ações de Aprovar, Concluir e Reabrir
+    async function aprovarSolic(id) {
+      try {
+        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/aprovar`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ decidido_por: 'GESTOR' })
+        });
+        if (res.ok) {
+          fecharModalDetalhes();
+          await carregarSolicitacoes();
+          return;
+        }
+      } catch (e) {}
+
+      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna: 'aprovado' } : s);
+      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
+      fecharModalDetalhes();
+      renderizarQuadro();
+    }
+
+    async function concluirSolic(id) {
+      try {
+        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/concluir`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (res.ok) {
+          fecharModalDetalhes();
+          await carregarSolicitacoes();
+          return;
+        }
+      } catch (e) {}
+
+      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna: 'concluido' } : s);
+      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
+      fecharModalDetalhes();
+      renderizarQuadro();
+    }
+
+    async function reabrirSolic(id) {
+      try {
+        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/reabrir`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (res.ok) {
+          fecharModalDetalhes();
+          await carregarSolicitacoes();
+          return;
+        }
+      } catch (e) {}
+
+      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna: 'pendente' } : s);
+      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
+      fecharModalDetalhes();
+      renderizarQuadro();
+    }
+
+    function excluirSolicAtual() {
+      if (solicitacaoAtualId) {
+        fecharModalDetalhes();
+        excluirSolic(solicitacaoAtualId);
+      }
+    }
+
+    async function carregarTimelineSolicitacao(id) {
+      const area = document.getElementById('detTimeline');
+      if (!area) return;
+      area.innerHTML = '<div style="color:#64748b; font-size:0.78rem;">Carregando histórico...</div>';
+
+      try {
+        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/historico`);
+        if (res.ok) {
+          const hist = await res.json();
+          if (Array.isArray(hist) && hist.length > 0) {
+            area.innerHTML = hist.map(h => {
+              const dt = new Date(h.data_hora.replace(' ', 'T')).toLocaleString('pt-BR');
+              return `
+                <div class="timeline-row ${h.acao}">
+                  <div>
+                    <strong style="color:#fff;">${h.acao}</strong> &bull; ${escapeHtml(h.descricao || '')}
+                    <div style="font-size:0.7rem; color:#64748b;">Responsável: ${escapeHtml(h.usuario || 'ADMIN')}</div>
+                  </div>
+                  <div style="color:#94a3b8; font-size:0.72rem; white-space:nowrap; margin-left:10px;">${dt}</div>
+                </div>
+              `;
+            }).join('');
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // Fallback
+      const sol = solicitacoesLista.find(s => s.id === id);
+      const dtCriado = sol && sol.created_at ? new Date(sol.created_at.replace(' ', 'T')).toLocaleString('pt-BR') : 'Data não registrada';
+      area.innerHTML = `
+        <div class="timeline-row CRIADA">
+          <div><strong style="color:#fff;">CRIADA</strong> &bull; Solicitação registrada pelo efetivo</div>
+          <div style="color:#94a3b8; font-size:0.72rem;">${dtCriado}</div>
+        </div>
+      `;
+    }
+
+    // Modal de Histórico Geral
+    function abrirModalHistoricoGeral() {
+      const modal = document.getElementById('modalHistoricoGeral');
+      if (!modal) return;
+      modal.style.display = 'flex';
+      modal.style.opacity = '1';
+      modal.style.pointerEvents = 'auto';
+      modal.classList.add('open', 'active');
+      filtrarHistoricoTabela();
+    }
+
+    function fecharModalHistoricoGeral() {
+      const modal = document.getElementById('modalHistoricoGeral');
+      if (modal) {
+        modal.classList.remove('open', 'active');
+        modal.style.display = 'none';
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
+      }
+    }
+
+    function filtrarHistoricoTabela() {
+      const termo = (document.getElementById('histBuscaInput')?.value || '').toLowerCase().trim();
+      const stFiltro = document.getElementById('histStatusFiltro')?.value || 'todos';
+      const tbody = document.getElementById('histTabelaBody');
+      if (!tbody) return;
+
+      const filtrados = solicitacoesLista.filter(s => {
+        if (stFiltro !== 'todos' && s.coluna !== stFiltro) return false;
+        if (!termo) return true;
+        const textoFull = `${s.id} ${s.solicitante||''} ${s.cargo||''} ${s.posto_nome||''} ${s.titulo||''} ${s.descricao||''}`.toLowerCase();
+        return textoFull.includes(termo);
+      });
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:#64748b;">Nenhuma solicitação encontrada com os critérios informados.</td></tr>`;
+        return;
+      }
+
+      const statusMap = {
+        pendente: { txt: '⏳ Pendente', cls: 'pendente' },
+        aprovado: { txt: '✅ Aprovada', cls: 'aprovado' },
+        reprovado: { txt: '❌ Reprovada', cls: 'reprovado' },
+        concluido: { txt: '📦 Concluída', cls: 'concluido' }
+      };
+
+      tbody.innerHTML = filtrados.map(s => {
+        const st = statusMap[s.coluna] || { txt: s.coluna, cls: 'pendente' };
+        const dtSol = s.data_solicitacao ? new Date(s.data_solicitacao + 'T00:00:00').toLocaleDateString('pt-BR') : (s.created_at ? new Date(s.created_at.replace(' ', 'T')).toLocaleDateString('pt-BR') : '--');
+        const dtPrev = s.prazo ? new Date(s.prazo + 'T00:00:00').toLocaleDateString('pt-BR') : '--';
+
+        return `
+          <tr style="border-bottom:1px solid #1e293b; transition:background 0.15s; cursor:pointer;" onclick="fecharModalHistoricoGeral(); abrirDetalhesSolicitacao('${s.id}')" onmouseover="this.style.background='#131d31'" onmouseout="this.style.background='transparent'">
+            <td style="padding:10px 12px; font-weight:700; color:#60a5fa;">${s.id}</td>
+            <td style="padding:10px 12px;">
+              <strong style="color:#fff;">${escapeHtml(s.solicitante||'')}</strong><br>
+              <span style="font-size:0.75rem; color:#94a3b8;">${escapeHtml(s.posto_nome||'')}</span>
+            </td>
+            <td style="padding:10px 12px;">
+              <div style="font-weight:600; color:#e2e8f0;">${escapeHtml(s.titulo||'')}</div>
+              ${s.motivo_reprovacao ? `<div style="font-size:0.72rem; color:#f87171;">Motivo: ${escapeHtml(s.motivo_reprovacao)}</div>` : ''}
+            </td>
+            <td style="padding:10px 12px; color:#94a3b8; white-space:nowrap;">${dtSol}</td>
+            <td style="padding:10px 12px; color:#34d399; font-weight:700; white-space:nowrap;">${dtPrev}</td>
+            <td style="padding:10px 12px;"><span class="badge-status ${st.cls}">${st.txt}</span></td>
+            <td style="padding:10px 12px; text-align:right;">
+              <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); fecharModalHistoricoGeral(); abrirDetalhesSolicitacao('${s.id}')">🔍 Ver</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
 
     async function moverColuna(id, coluna) {

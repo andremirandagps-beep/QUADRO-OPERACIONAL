@@ -199,6 +199,51 @@ async function handleApi(req, res, pathname, method) {
       return;
     }
 
+    const solicAprovarMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)\/aprovar$/);
+    if (solicAprovarMatch && method === 'PUT') {
+      const id = decodeURIComponent(solicAprovarMatch[1]);
+      const body = await parseBody(req);
+      const updated = database.aprovarSolicitacao(id, body.decidido_por || 'ADMIN');
+      sendJson(res, 200, updated);
+      return;
+    }
+
+    const solicReprovarMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)\/reprovar$/);
+    if (solicReprovarMatch && method === 'PUT') {
+      const id = decodeURIComponent(solicReprovarMatch[1]);
+      const body = await parseBody(req);
+      if (!body.motivo || !body.motivo.trim()) {
+        return sendError(res, 400, 'Informe o motivo da reprovação.');
+      }
+      const updated = database.reprovarSolicitacao(id, body.motivo.trim(), body.decidido_por || 'ADMIN');
+      sendJson(res, 200, updated);
+      return;
+    }
+
+    const solicConcluirMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)\/concluir$/);
+    if (solicConcluirMatch && method === 'PUT') {
+      const id = decodeURIComponent(solicConcluirMatch[1]);
+      const updated = database.concluirSolicitacao(id, 'ADMIN');
+      sendJson(res, 200, updated);
+      return;
+    }
+
+    const solicReabrirMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)\/reabrir$/);
+    if (solicReabrirMatch && method === 'PUT') {
+      const id = decodeURIComponent(solicReabrirMatch[1]);
+      const updated = database.reabrirSolicitacao(id, 'ADMIN');
+      sendJson(res, 200, updated);
+      return;
+    }
+
+    const solicHistMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)\/historico$/);
+    if (solicHistMatch && method === 'GET') {
+      const id = decodeURIComponent(solicHistMatch[1]);
+      const hist = database.getHistoricoSolicitacao(id);
+      sendJson(res, 200, hist);
+      return;
+    }
+
     const solicColMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)\/coluna$/);
     if (solicColMatch && method === 'PUT') {
       const id = decodeURIComponent(solicColMatch[1]);

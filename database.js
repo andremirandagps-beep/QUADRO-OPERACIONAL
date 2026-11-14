@@ -142,6 +142,29 @@ function initSchema() {
   if (!solicCols.includes('data_solicitacao')) {
     db.exec(`ALTER TABLE solicitacoes ADD COLUMN data_solicitacao TEXT`);
   }
+  if (!solicCols.includes('motivo_reprovacao')) {
+    db.exec(`ALTER TABLE solicitacoes ADD COLUMN motivo_reprovacao TEXT`);
+  }
+  if (!solicCols.includes('data_decisao')) {
+    db.exec(`ALTER TABLE solicitacoes ADD COLUMN data_decisao TEXT`);
+  }
+  if (!solicCols.includes('decidido_por')) {
+    db.exec(`ALTER TABLE solicitacoes ADD COLUMN decidido_por TEXT`);
+  }
+
+  // Tabela de Histórico de Ações da Solicitação
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS solicitacoes_historico (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      solicitacao_id  TEXT NOT NULL,
+      acao            TEXT NOT NULL,
+      descricao       TEXT,
+      usuario         TEXT DEFAULT 'ADMIN',
+      data_hora       TEXT DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (solicitacao_id) REFERENCES solicitacoes(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_hist_solic ON solicitacoes_historico(solicitacao_id);
+  `);
 
   console.log('✅ Schema do banco de dados criado/verificado com sucesso.');
 }
@@ -307,6 +330,33 @@ function prepareStatements() {
     `),
     deleteSolicitacao: db.prepare(`
       DELETE FROM solicitacoes WHERE id = ?
+    `),
+    insertSolicitacaoHistorico: db.prepare(`
+      INSERT INTO solicitacoes_historico (solicitacao_id, acao, descricao, usuario)
+      VALUES (?, ?, ?, ?)
+    `),
+    getHistoricoBySolicitacao: db.prepare(`
+      SELECT * FROM solicitacoes_historico
+      WHERE solicitacao_id = ?
+      ORDER BY data_hora DESC, id DESC
+    `),
+    aprovarSolicitacao: db.prepare(`
+      UPDATE solicitacoes
+      SET coluna = 'aprovado',
+          data_decisao = datetime('now', 'localtime'),
+          decidido_por = ?,
+          motivo_reprovacao = NULL,
+          updated_at = datetime('now', 'localtime')
+      WHERE id = ?
+    `),
+    reprovarSolicitacao: db.prepare(`
+      UPDATE solicitacoes
+      SET coluna = 'reprovado',
+          motivo_reprovacao = ?,
+          data_decisao = datetime('now', 'localtime'),
+          decidido_por = ?,
+          updated_at = datetime('now', 'localtime')
+      WHERE id = ?
     `),
   };
 }
@@ -769,6 +819,11 @@ module.exports = {
       coluna: data.coluna || 'pendente',
       descricao: data.descricao || ''
     });
+
+    try {
+      stmts.insertSolicitacaoHistorico.run(id, 'CRIADA', 'Solicitação registrada no sistema pelo efetivo', data.solicitante || 'EFETIVO');
+    } catch (e) {}
+
     return stmts.getSolicitacaoById.get(id);
   },
   atualizarSolicitacao: (id, data) => {
@@ -794,7 +849,45 @@ module.exports = {
   },
   moverSolicitacaoColuna: (id, coluna) => {
     stmts.updateSolicitacaoColuna.run(coluna, id);
+    try {
+      stmts.insertSolicitacaoHistorico.run(id, 'MOVIMENTADA', `Solicitação movida para ${coluna.toUpperCase()}`, 'ADMIN');
+    } catch (e) {}
     return stmts.getSolicitacaoById.get(id);
+  },
+  aprovarSolicitacao: (id, decididoPor = 'ADMIN') => {
+    stmts.aprovarSolicitacao.run(decididoPor, id);
+    try {
+      stmts.insertSolicitacaoHistorico.run(id, 'APROVADA', 'Solicitação aprovada pelo gestor', decididoPor);
+    } catch (e) {}
+    return stmts.getSolicitacaoById.get(id);
+  },
+  reprovarSolicitacao: (id, motivo, decididoPor = 'ADMIN') => {
+    stmts.reprovarSolicitacao.run(motivo, decididoPor, id);
+    try {
+      stmts.insertSolicitacaoHistorico.run(id, 'REPROVADA', `Motivo: ${motivo}`, decididoPor);
+    } catch (e) {}
+    return stmts.getSolicitacaoById.get(id);
+  },
+  concluirSolicitacao: (id, usuario = 'ADMIN') => {
+    stmts.updateSolicitacaoColuna.run('concluido', id);
+    try {
+      stmts.insertSolicitacaoHistorico.run(id, 'CONCLUIDA', 'Demanda entregue / concluída no posto', usuario);
+    } catch (e) {}
+    return stmts.getSolicitacaoById.get(id);
+  },
+  reabrirSolicitacao: (id, usuario = 'ADMIN') => {
+    stmts.updateSolicitacaoColuna.run('pendente', id);
+    try {
+      stmts.insertSolicitacaoHistorico.run(id, 'REABERTA', 'Solicitação reaberta para reavaliação', usuario);
+    } catch (e) {}
+    return stmts.getSolicitacaoById.get(id);
+  },
+  getHistoricoSolicitacao: (id) => {
+    try {
+      return stmts.getHistoricoBySolicitacao.all(id);
+    } catch (e) {
+      return [];
+    }
   },
   excluirSolicitacao: (id) => stmts.deleteSolicitacao.run(id)
 };
