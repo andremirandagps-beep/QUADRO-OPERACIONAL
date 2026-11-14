@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solicitação de Suporte — Equipe de Segurança</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1e40af 100%); }
+
+  .collab-wrap { padding-top: 30px; }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255,255,255,.85);
+    text-decoration: none;
+    font-size: .84rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    transition: color .15s;
+  }
+  .back-link:hover { color: #fff; }
+
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 24px;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--texto2);
+  }
+
+  .step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--cinza-bg);
+    color: var(--cinza);
+    font-weight: 700;
+    font-size: .8rem;
+    flex-shrink: 0;
+  }
+
+  .step.active { background: #2563eb; color: #fff; }
+  .step.done   { background: #16a34a; color: #fff; }
+
+  .step-line { flex: 1; height: 2px; background: var(--borda); }
+  .step-line.done { background: #16a34a; }
+
+  .form-section { display: none; }
+  .form-section.active { display: block; }
+
+  .nav-btns {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-nav {
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    font-size: .9rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all .15s;
+    flex: 1;
+  }
+
+  .btn-nav.prev { background: var(--cinza-bg); color: var(--texto2); }
+  .btn-nav.prev:hover { background: var(--borda); }
+
+  .btn-nav.next { background: #2563eb; color: #fff; }
+  .btn-nav.next:hover { background: #1d4ed8; }
+
+  .btn-nav.submit { background: #16a34a; color: #fff; }
+  .btn-nav.submit:hover { background: #15803d; }
+
+  .tipo-grid-collab {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .tipo-chip-collab {
+    border: 2px solid var(--borda);
+    border-radius: var(--radius);
+    padding: 16px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .15s;
+    background: #fff;
+    font-size: .84rem;
+    font-weight: 600;
+    color: var(--texto2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tipo-chip-collab .chip-icon { font-size: 2rem; }
+  .tipo-chip-collab.selected   { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; transform: scale(1.02); }
+  .tipo-chip-collab:hover:not(.selected) { border-color: #94a3b8; }
+
+  .review-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--borda); font-size: .87rem; }
+  .review-row:last-child { border-bottom: none; }
+  .review-label { color: var(--texto2); }
+  .review-val   { font-weight: 600; text-align: right; max-width: 60%; }
+
+  .success-screen {
+    text-align: center; padding: 40px 20px; display: none;
+  }
+
+  .success-screen .big-icon { font-size: 5rem; margin-bottom: 16px; }
+  .success-screen h2 { font-size: 1.4rem; color: #16a34a; margin-bottom: 8px; }
+  .success-screen p  { color: var(--texto2); font-size: .9rem; margin-bottom: 24px; line-height: 1.6; }
+
+  .protocol-box {
+    background: #dcfce7;
+    border: 2px solid #16a34a;
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #15803d;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="collab-wrap">
+  <a href="index.html" class="back-link">← Voltar ao Quadro de Segurança</a>
+
+  <div class="collab-card">
+    <div class="collab-header">
+      <div style="font-size:2.6rem;margin-bottom:8px">🛡️</div>
+      <h1>Solicitação de Apoio & Efetivo</h1>
+      <p>Canal direto para postos de vigilância, portarias e rondas</p>
+    </div>
+
+    <div class="collab-body" id="formArea">
+
+      <!-- Passos -->
+      <div class="step-indicator" id="stepIndicator">
+        <div class="step active" id="step1">1</div>
+        <div class="step-line" id="line1"></div>
+        <div class="step active" id="step2" style="opacity:.4">2</div>
+        <div class="step-line" id="line2"></div>
+        <div class="step" id="step3" style="opacity:.4">3</div>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar" style="width:33%"></div>
+      </div>
+
+      <!-- ETAPA 1: O que você precisa? -->
+      <div class="form-section active" id="sec1">
+        <div class="form-group">
+          <label>Qual o tipo de necessidade? <span class="required">*</span></label>
+          <div class="tipo-grid-collab" id="tipoGridCollab">
+            <div class="tipo-chip-collab" data-tipo="alimentacao">
+              <span class="chip-icon">🍱</span>Alimentação / Refeição
+            </div>
+            <div class="tipo-chip-collab" data-tipo="efetivo">
+              <span class="chip-icon">👮‍♂️</span>Reforço / Rendição
+            </div>
+            <div class="tipo-chip-collab" data-tipo="material">
+              <span class="chip-icon">🔦</span>Material Tático / Pilhas
+            </div>
+            <div class="tipo-chip-collab" data-tipo="comunicacao">
+              <span class="chip-icon">📻</span>Rádios HT / PTT
+            </div>
+            <div class="tipo-chip-collab" data-tipo="epi">
+              <span class="chip-icon">🛡️</span>EPI / Capa / Calçado
+            </div>
+            <div class="tipo-chip-collab" data-tipo="transporte">
+              <span class="chip-icon">🚔</span>Ronda / VTR / Combustível
+            </div>
+          </div>
+          <input type="hidden" id="tipoCol">
+        </div>
+
+        <div class="form-group">
+          <label>Nome do Vigilante / Solicitante <span class="required">*</span></label>
+          <input type="text" id="colNome" placeholder="Ex: Vig. Carlos Souza">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Posto de Serviço / Local <span class="required">*</span></label>
+            <input type="text" id="colPosto" placeholder="Ex: Portaria 1, Ronda Noturna...">
+          </div>
+          <div class="form-group">
+            <label>Turno Atual</label>
+            <select id="colTurno">
+              <option value="Noturno (18h às 06h)">Noturno (18h às 06h)</option>
+              <option value="Diurno (06h às 18h)">Diurno (06h às 18h)</option>
+              <option value="Plantão 12x36">Plantão 12x36</option>
+              <option value="Comercial (08h às 17h)">Comercial (08h às 17h)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="nav-btns">
+          <div></div>
+          <button class="btn-nav next" id="btnNext1">Avançar →</button>
+        </div>
+      </div>
+
+      <!-- ETAPA 2: Detalhes -->
+      <div class="form-section" id="sec2">
+        <div class="form-group">
+          <label>Resumo da Demanda <span class="required">*</span></label>
+          <input type="text" id="colTitulo" placeholder="Ex: Marmitas do plantão ou Baterias para rádio">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prazo Limite Necessário <span class="required">*</span></label>
+            <input type="date" id="colPrazo">
+          </div>
+          <div class="form-group">
+            <label>Quantidade / Efetivo</label>
+            <input type="number" id="colQtd" placeholder="Ex: 4" min="1">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Urgência Operacional <span class="required">*</span></label>
+          <select id="colPrioridade">
+            <option value="baixa">🔵 Baixa — Reposição de rotina</option>
+            <option value="normal" selected>🟡 Normal — Padrão do posto</option>
+            <option value="alta">🔴 Alta — Necessidade rápida</option>
+            <option value="urgente">🚨 Urgente — Risco à operação / Falta no posto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Justificativa / Detalhes</label>
+          <textarea id="colDescricao" placeholder="Informe detalhes para o supervisor agilizar o atendimento..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+          <button class="btn-nav prev" id="btnPrev2">← Voltar</button>
+          <button class="btn-nav next" id="btnNext2">Revisar Informações →</button>
+        </div>
+      </div>
+
+      <!-- ETAPA 3: Revisão -->
+      <div class="form-section" id="sec3">
+        <p style="font-size:.88rem;color:var(--texto2);margin-bottom:16px">
+          Verifique os dados da sua solicitação antes do envio:
+        </p>
+        <div id="reviewContent"></div>
+
+        <div class="nav-btns">
+          <button class="btn-nav prev" id="btnPrev3">← Corrigir</button>
+          <button class="btn-nav submit" id="btnEnviar">🛡️ Confirmar & Enviar</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tela de Sucesso -->
+    <div class="success-screen" id="successScreen">
+      <div class="big-icon">✅</div>
+      <h2>Demanda de Segurança Registrada!</h2>
+      <p>Sua solicitação já está disponível no quadro da supervisão de segurança.</p>
+      <div class="protocol-box" id="protocolBox"></div>
+      <p style="font-size:.85rem;color:var(--texto2)">Acompanhe o atendimento pelo número de protocolo informado acima.</p>
+      <button class="btn-nav next" style="max-width:240px;margin:16px auto 0" id="btnNovaSol">+ Nova Solicitação</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="data.js"></script>
+<script>
+let etapaAtual = 1;
+const totalEtapas = 3;
+
+document.querySelectorAll('.tipo-chip-collab').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.tipo-chip-collab').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    document.getElementById('tipoCol').value = chip.dataset.tipo;
+  });
+});
+
+document.getElementById('btnNext1').addEventListener('click', () => {
+  if (!document.getElementById('tipoCol').value) {
+    toast('Selecione a necessidade', 'error'); return;
+  }
+  if (!document.getElementById('colNome').value.trim()) {
+    toast('Informe seu nome ou cargo', 'error'); return;
+  }
+  if (!document.getElementById('colPosto').value.trim()) {
+    toast('Informe o posto de serviço', 'error'); return;
+  }
+  irPara(2);
+});
+
+document.getElementById('btnPrev2').addEventListener('click', () => irPara(1));
+document.getElementById('btnNext2').addEventListener('click', () => {
+  if (!document.getElementById('colTitulo').value.trim()) {
+    toast('Preencha o resumo da demanda', 'error'); return;
+  }
+  if (!document.getElementById('colPrazo').value) {
+    toast('Informe a data limite', 'error'); return;
+  }
+  renderReview();
+  irPara(3);
+});
+
+document.getElementById('btnPrev3').addEventListener('click', () => irPara(2));
+document.getElementById('btnEnviar').addEventListener('click', enviar);
+document.getElementById('btnNovaSol').addEventListener('click', resetar);
+
+function irPara(n) {
+  etapaAtual = n;
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`sec${i}`).classList.toggle('active', i === n);
+  }
+  document.getElementById('progressBar').style.width = `${(n / totalEtapas) * 100}%`;
+  updateStepIndicator(n);
+}
+
+function updateStepIndicator(n) {
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`step${i}`);
+    el.style.opacity = '1';
+    if (i < n)       { el.className = 'step done'; el.textContent = '✓'; }
+    else if (i === n){ el.className = 'step active'; el.textContent = i; }
+    else             { el.className = 'step'; el.textContent = i; el.style.opacity = '.5'; }
+  }
+  for (let i = 1; i <= 2; i++) {
+    document.getElementById(`line${i}`).className = `step-line${i < n ? ' done' : ''}`;
+  }
+}
+
+function renderReview() {
+  const tInfo = TIPOS_SEGURANCA[document.getElementById('tipoCol').value] || { nome: 'Outro', icon: '📦' };
+  const prioMap = { baixa:'🔵 Baixa', normal:'🟡 Normal', alta:'🔴 Alta', urgente:'🚨 Urgente' };
+
+  const nome   = document.getElementById('colNome').value;
+  const posto  = document.getElementById('colPosto').value;
+  const turno  = document.getElementById('colTurno').value;
+  const titulo = document.getElementById('colTitulo').value;
+  const prazo  = document.getElementById('colPrazo').value;
+  const qtd    = document.getElementById('colQtd').value;
+  const prio   = document.getElementById('colPrioridade').value;
+  const desc   = document.getElementById('colDescricao').value;
+
+  let prazoStr = prazo ? new Date(prazo+'T00:00:00').toLocaleDateString('pt-BR') : '—';
+
+  document.getElementById('reviewContent').innerHTML = `
+    <div style="border:2px solid var(--borda);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px">
+      <div class="review-row"><span class="review-label">Categoria</span><span class="review-val">${tInfo.icon} ${tInfo.nome}</span></div>
+      <div class="review-row"><span class="review-label">Solicitante</span><span class="review-val">${esc(nome)}</span></div>
+      <div class="review-row"><span class="review-label">Posto / Turno</span><span class="review-val">${esc(posto)} (${esc(turno)})</span></div>
+      <div class="review-row"><span class="review-label">Resumo</span><span class="review-val">${esc(titulo)}</span></div>
+      <div class="review-row"><span class="review-label">Prazo</span><span class="review-val">${prazoStr}</span></div>
+      ${qtd ? `<div class="review-row"><span class="review-label">Quantidade / Efetivo</span><span class="review-val">${qtd}</span></div>` : ''}
+      <div class="review-row"><span class="review-label">Urgência</span><span class="review-val">${prioMap[prio]||prio}</span></div>
+      ${desc ? `<div class="review-row"><span class="review-label">Justificativa</span><span class="review-val" style="white-space:pre-line">${esc(desc)}</span></div>` : ''}
+    </div>
+  `;
+}
+
+function enviar() {
+  const sol = criar({
+    tipo:        document.getElementById('tipoCol').value,
+    solicitante: document.getElementById('colNome').value.trim(),
+    posto:       document.getElementById('colPosto').value.trim(),
+    turno:       document.getElementById('colTurno').value,
+    titulo:      document.getElementById('colTitulo').value.trim(),
+    prazo:       document.getElementById('colPrazo').value,
+    quantidade:  document.getElementById('colQtd').value,
+    prioridade:  document.getElementById('colPrioridade').value,
+    descricao:   document.getElementById('colDescricao').value.trim(),
+    coluna:      'pendente',
+  });
+
+  document.getElementById('protocolBox').textContent = `PROTOCOLO: ${sol.id}`;
+  document.getElementById('formArea').style.display = 'none';
+  document.getElementById('successScreen').style.display = 'block';
+}
+
+function resetar() {
+  document.getElementById('formArea').style.display = 'block';
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('tipoCol').value = '';
+  document.querySelectorAll('.tipo-chip-collab').forEach(c => c.classList.remove('selected'));
+  ['colNome','colPosto','colTitulo','colPrazo','colQtd','colDescricao'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('colPrioridade').value = 'normal';
+  irPara(1);
+}
+
+function toast(msg, tipo='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${tipo}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+
+</body>
+</html>

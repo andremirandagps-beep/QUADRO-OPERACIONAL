@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRUPO GPS — Solicitações de Efetivo & Apoio Operacional</title>
+<link rel="icon" type="image/png" href="logo-gps.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root {
+    --verde-alerta: #10b981;
+    --amarelo-alerta: #f59e0b;
+    --vermelho-alerta: #ef4444;
+  }
+
+  body {
+    background: #0b1120;
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  .solic-container {
+    max-width: 1560px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* Barra de Alerta Sirene */
+  .alert-bar-live {
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.25) 0%, rgba(185, 28, 28, 0.35) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin-bottom: 24px;
+    display: none;
+    align-items: center;
+    gap: 14px;
+    color: #fca5a5;
+    font-weight: 600;
+    font-size: 0.95rem;
+    animation: alert-glow 2s infinite ease-in-out;
+  }
+  .alert-bar-live.active { display: flex; }
+
+  @keyframes alert-glow {
+    0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+    50% { box-shadow: 0 0 22px rgba(239, 68, 68, 0.5); }
+  }
+
+  /* Stats Cards */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-box {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-left: 4px solid #64748b;
+  }
+  .stat-box.total { border-left-color: #3b82f6; }
+  .stat-box.ok { border-left-color: #10b981; }
+  .stat-box.aviso { border-left-color: #f59e0b; }
+  .stat-box.critico { border-left-color: #ef4444; }
+  .stat-box.concluido { border-left-color: #94a3b8; }
+
+  .stat-num { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+  .stat-box.total .stat-num { color: #60a5fa; }
+  .stat-box.ok .stat-num { color: #34d399; }
+  .stat-box.aviso .stat-num { color: #fbbf24; }
+  .stat-box.critico .stat-num { color: #f87171; }
+  .stat-box.concluido .stat-num { color: #cbd5e1; }
+
+  .stat-desc { font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+
+  /* Filtros & Barra de Ações */
+  .toolbar-solic {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .f-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .f-btn:hover, .f-btn.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+  }
+
+  /* Kanban Board */
+  .kanban-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  @media (max-width: 1200px) { .kanban-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 680px) { .kanban-grid { grid-template-columns: 1fr; } }
+
+  .k-column {
+    background: #131d31;
+    border: 1px solid #223049;
+    border-radius: 14px;
+    padding: 16px;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .k-column.drag-over {
+    background: #1e2e4a;
+    border: 2px dashed #3b82f6;
+  }
+
+  .k-col-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #223049;
+  }
+
+  .k-col-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .k-badge-count {
+    background: #2563eb;
+    color: #fff;
+    border-radius: 12px;
+    padding: 2px 9px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 200px;
+  }
+
+  /* Cards */
+  .card-item {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 14px;
+    cursor: grab;
+    transition: transform 0.15s, box-shadow 0.15s;
+    user-select: none;
+    border-left: 4px solid #64748b;
+    position: relative;
+  }
+  .card-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+  }
+  .card-item:active { cursor: grabbing; }
+
+  .card-item.dragging {
+    opacity: 0.4;
+    transform: scale(0.97);
+  }
+
+  /* Status e Alertas de Prazos */
+  .card-item.st-verde {
+    border-left-color: var(--verde-alerta);
+  }
+  .card-item.st-amarelo {
+    border-left-color: var(--amarelo-alerta);
+  }
+  .card-item.st-vermelho {
+    border-left-color: var(--vermelho-alerta);
+    animation: red-pulse 2.2s infinite ease-in-out;
+  }
+  .card-item.st-cinza {
+    border-left-color: #64748b;
+  }
+
+  @keyframes red-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+      border-color: #ef4444;
+    }
+    50% {
+      box-shadow: 0 0 16px 2px rgba(239, 68, 68, 0.35);
+      border-color: #f87171;
+    }
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .card-id-cat {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 700;
+  }
+
+  .card-prio {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .prio-baixa { background: #1e3a8a; color: #93c5fd; }
+  .prio-normal { background: #065f46; color: #6ee7b7; }
+  .prio-alta { background: #854d0e; color: #fde047; }
+  .prio-urgente { background: #991b1b; color: #fca5a5; }
+
+  .card-title {
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: #f8fafc;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+
+  .card-posto-tag {
+    background: #0f172a;
+    border: 1px solid #334155;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: #38bdf8;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+
+  .card-info-row {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
+  }
+  .card-info-row strong { color: #e2e8f0; }
+
+  .card-prazo-tag {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #334155;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .prazo-verde { color: #34d399; }
+  .prazo-amarelo { color: #fbbf24; }
+  .prazo-vermelho { color: #f87171; }
+  .prazo-cinza { color: #94a3b8; }
+
+  .card-btns {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn-k-action {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-k-action:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+  }
+  .btn-k-action.del:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+  }
+
+  /* Modal Form */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 620px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  .m-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: #1e293b;
+    z-index: 2;
+  }
+  .m-header h3 { margin: 0; font-size: 1.15rem; color: #fff; }
+  .m-close {
+    background: none; border: none; font-size: 1.4rem; color: #94a3b8; cursor: pointer;
+  }
+  .m-body { padding: 24px; }
+
+  .f-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 500px) { .f-row { grid-template-columns: 1fr; } }
+
+  .f-group { margin-bottom: 16px; }
+  .f-group label {
+    display: block; font-size: 0.82rem; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;
+  }
+  .f-group input, .f-group select, .f-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+  }
+  .f-group input:focus, .f-group select:focus, .f-group textarea:focus {
+    outline: none; border-color: #3b82f6;
+  }
+  .f-group textarea { min-height: 80px; resize: vertical; }
+
+  .tipo-select-chips {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .chip-btn {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 8px 6px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #94a3b8;
+    transition: all 0.15s;
+  }
+  .chip-btn.selected {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+    color: #93c5fd;
+  }
+
+  .link-box-gps {
+    background: #0f172a;
+    border: 1px dashed #3b82f6;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .link-box-gps input {
+    background: transparent;
+    border: none;
+    color: #60a5fa;
+    font-size: 0.88rem;
+    font-weight: 600;
+    flex: 1;
+  }
+  .link-box-gps input:focus { outline: none; }
+</style>
+</head>
+<body class="theme-dark">
+
+  <!-- Header GPS Padrão -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-logo gps-logo-wrapper">
+        <img src="logo-gps.png" alt="Logo Grupo GPS" class="gps-logo-img">
+      </div>
+      <div class="brand-info">
+        <h1>GRUPO GPS &bull; SOLICITAÇÕES DE EFETIVO & APOIO</h1>
+        <p class="subtitle">Demandas Operacionais, Alimentação, Materiais Táticos e Reforços de Posto</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <a href="index.html" class="btn btn-secondary" style="text-decoration: none;">
+        <span>📋 Quadro Operacional</span>
+      </a>
+      <a href="mapa.html" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #059669; text-decoration: none;">
+        <span>🗺️ Mapa & Visitas</span>
+      </a>
+      <button class="btn btn-primary" id="btnLinkPostos" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); cursor: pointer;" onclick="abrirModalLinkPostos()">
+        <span>🔗 Link para Postos</span>
+      </button>
+      <button class="btn btn-primary" id="btnNovaSolic" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #d97706; cursor: pointer;" onclick="abrirModalNovaDemanda()">
+        <span>+ Nova Solicitação</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="solic-container">
+
+    <!-- Barra de Alerta Dinâmico -->
+    <div class="alert-bar-live" id="alertBarLive">
+      <span style="font-size: 1.4rem;">🚨</span>
+      <div id="alertBarLiveText">Existem demandas em prazo crítico ou vencidas!</div>
+    </div>
+
+    <!-- Estatísticas Gerais -->
+    <div class="stats-row">
+      <div class="stat-box total">
+        <div class="stat-num" id="stTotal">0</div>
+        <div class="stat-desc">Total de Solicitações</div>
+      </div>
+      <div class="stat-box ok">
+        <div class="stat-num" id="stOk">0</div>
+        <div class="stat-desc">Em Dia 🟢</div>
+      </div>
+      <div class="stat-box aviso">
+        <div class="stat-num" id="stAviso">0</div>
+        <div class="stat-desc">Atenção (&le; 20d) 🟡</div>
+      </div>
+      <div class="stat-box critico">
+        <div class="stat-num" id="stCritico">0</div>
+        <div class="stat-desc">Crítico (&le; 10d) 🔴</div>
+      </div>
+      <div class="stat-box concluido">
+        <div class="stat-num" id="stAtendido">0</div>
+        <div class="stat-desc">Atendidos ✓</div>
+      </div>
+    </div>
+
+    <!-- Filtros de Categoria -->
+    <div class="toolbar-solic">
+      <div class="filter-group">
+        <button class="f-btn active" data-filtro="todos">Todos</button>
+        <button class="f-btn" data-filtro="alimentacao">🍱 Alimentação / Plantão</button>
+        <button class="f-btn" data-filtro="efetivo">👮‍♂️ Reforço de Efetivo</button>
+        <button class="f-btn" data-filtro="material">🔦 Material Tático</button>
+        <button class="f-btn" data-filtro="comunicacao">📻 Rádios HT / PTT</button>
+        <button class="f-btn" data-filtro="epi">🛡️ EPI & Uniformes</button>
+        <button class="f-btn" data-filtro="transporte">🚔 Ronda / VTR</button>
+      </div>
+
+      <div style="font-size: 0.85rem; color: #94a3b8;">
+        💡 Arraste os cards entre as colunas para atualizar a fase
+      </div>
+    </div>
+
+    <!-- Kanban Board 4 Colunas -->
+    <div class="kanban-grid">
+      <!-- Coluna 1 -->
+      <div class="k-column" data-col="pendente">
+        <div class="k-col-head">
+          <div class="k-col-title"><span>⏳</span> Solicitação Nova</div>
+          <span class="k-badge-count" id="cCount-pendente">0</span>
+        </div>
+        <div class="cards-list" id="list-pendente"></div>
+      </div>
+
+      <!-- Coluna 2 -->
+      <div class="k-column" data-col="analise">
+        <div class="k-col-head">
+          <div class="k-col-title"><span>🔍</span> Em Análise / Cotação</div>
+          <span class="k-badge-count" id="cCount-analise">0</span>
+        </div>
+        <div class="cards-list" id="list-analise"></div>
+      </div>
+
+      <!-- Coluna 3 -->
+      <div class="k-column" data-col="aprovado">
+        <div class="k-col-head">
+          <div class="k-col-title"><span>📦</span> Aprovado / Em Envio</div>
+          <span class="k-badge-count" id="cCount-aprovado">0</span>
+        </div>
+        <div class="cards-list" id="list-aprovado"></div>
+      </div>
+
+      <!-- Coluna 4 -->
+      <div class="k-column" data-col="concluido">
+        <div class="k-col-head">
+          <div class="k-col-title"><span>✅</span> Entregue no Posto</div>
+          <span class="k-badge-count" id="cCount-concluido">0</span>
+        </div>
+        <div class="cards-list" id="list-concluido"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal Nova Demanda -->
+  <div class="modal-overlay" id="modalNova" onclick="if(event.target===this) fecharModalNova()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="m-header">
+        <h3 id="modalTitle">➕ Nova Solicitação Operacional</h3>
+        <button class="m-close" id="btnModalClose" onclick="fecharModalNova()">&times;</button>
+      </div>
+      <div class="m-body">
+        <input type="hidden" id="fEditId">
+
+        <div class="f-group">
+          <label>Categoria de Demanda *</label>
+          <div class="tipo-select-chips">
+            <div class="chip-btn" data-val="alimentacao">🍱 Alimentação</div>
+            <div class="chip-btn" data-val="efetivo">👮‍♂️ Reforço Efetivo</div>
+            <div class="chip-btn" data-val="material">🔦 Material Tático</div>
+            <div class="chip-btn" data-val="comunicacao">📻 Rádios HT</div>
+            <div class="chip-btn" data-val="epi">🛡️ EPI / Fardamento</div>
+            <div class="chip-btn" data-val="transporte">🚔 Ronda / VTR</div>
+          </div>
+          <input type="hidden" id="fTipo">
+        </div>
+
+        <div class="f-group">
+          <label>Resumo / Título da Solicitação *</label>
+          <input type="text" id="fTitulo" placeholder="Ex: Marmitas do plantão noturno ou 2 Vigilantes de reforço">
+        </div>
+
+        <div class="f-row">
+          <div class="f-group">
+            <label>Posto de Trabalho (Cadastrado no Quadro) *</label>
+            <select id="fPosto">
+              <option value="">Selecione o posto...</option>
+            </select>
+          </div>
+          <div class="f-group">
+            <label>Solicitante / Vigilante *</label>
+            <input type="text" id="fSolicitante" placeholder="Nome completo / Cargo">
+          </div>
+        </div>
+
+        <div class="f-row">
+          <div class="f-group">
+            <label>Turno do Posto</label>
+            <select id="fTurno">
+              <option value="Noturno (18h às 06h)">Noturno (18h às 06h)</option>
+              <option value="Diurno (06h às 18h)">Diurno (06h às 18h)</option>
+              <option value="Escala 12x36">Escala 12x36</option>
+              <option value="Comercial (08h às 18h)">Comercial (08h às 18h)</option>
+              <option value="Plantão 24h">Plantão 24h</option>
+            </select>
+          </div>
+          <div class="f-group">
+            <label>Prioridade Operacional *</label>
+            <select id="fPrioridade">
+              <option value="baixa">🔵 Baixa — Rotina</option>
+              <option value="normal" selected>🟡 Normal — Padrão</option>
+              <option value="alta">🔴 Alta — Rápido atendimento</option>
+              <option value="urgente">🚨 Urgente — Risco ao Posto/Plantão</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="f-row">
+          <div class="f-group">
+            <label>Data Limite / Prazo *</label>
+            <input type="date" id="fPrazo">
+          </div>
+          <div class="f-group">
+            <label>Quantidade / Efetivo</label>
+            <input type="number" id="fQuantidade" placeholder="Ex: 4" min="1">
+          </div>
+        </div>
+
+        <div class="f-group">
+          <label>Detalhes e Justificativa</label>
+          <textarea id="fDescricao" placeholder="Descreva as especificações, motivo da solicitação, local de entrega..."></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+          <button class="btn btn-secondary" id="btnModalCancel" onclick="fecharModalNova()">Cancelar</button>
+          <button class="btn btn-primary" id="btnSalvarSolic" onclick="salvarNovaSolicitacao()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #059669;">Salvar Demanda</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Link Postos -->
+  <div class="modal-overlay" id="modalLinkPostos" onclick="if(event.target===this) fecharModalLinkPostos()">
+    <div class="modal-box" style="max-width: 540px;" onclick="event.stopPropagation()">
+      <div class="m-header">
+        <h3>🔗 Link de Solicitação para os Postos</h3>
+        <button class="m-close" id="btnModalLinkClose" onclick="fecharModalLinkPostos()">&times;</button>
+      </div>
+      <div class="m-body">
+        <p style="font-size: 0.88rem; color: #94a3b8; margin-top: 0; line-height: 1.5;">
+          Envie o link abaixo para os vigilantes, porteiros e fiscais de posto abrirem solicitações diretamente pelo celular ou terminal:
+        </p>
+        <div class="link-box-gps">
+          <input type="text" id="inputLinkPosto" readonly>
+          <button class="btn btn-primary btn-sm" id="btnCopiarLink" onclick="copiarLinkPostos()">📋 Copiar</button>
+        </div>
+        <div style="margin-top: 14px; display: flex; gap: 8px;">
+          <a id="btnAbrirLinkTestar" href="solicitar.html" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration: none; flex: 1; text-align: center;">
+            🚀 Testar Abrir Página no Navegador
+          </a>
+        </div>
+        <p style="font-size: 0.78rem; color: #64748b; margin-top: 14px; margin-bottom: 0;">
+          💡 Em rede Wi-Fi / cabo, os outros celulares e computadores acessam via o endereço IP exibido.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TIPOS_MAP = {
+      alimentacao: { icon: '🍱', label: 'Alimentação / Plantão' },
+      efetivo:     { icon: '👮‍♂️', label: 'Reforço de Efetivo' },
+      material:    { icon: '🔦', label: 'Material Tático' },
+      comunicacao: { icon: '📻', label: 'Rádios HT / PTT' },
+      epi:         { icon: '🛡️', label: 'EPI & Uniforme' },
+      transporte:  { icon: '🚔', label: 'Ronda / VTR' }
+    };
+
+    let postosLista = [];
+    let solicitacoesLista = [];
+    let filtroAtual = 'todos';
+
+    function abrirModalNovaDemanda() {
+      const modal = document.getElementById('modalNova');
+      if (!modal) return;
+
+      const editId = document.getElementById('fEditId');
+      if (editId) editId.value = '';
+      const tit = document.getElementById('fTitulo');
+      if (tit) tit.value = '';
+      const sol = document.getElementById('fSolicitante');
+      if (sol) sol.value = '';
+      const prz = document.getElementById('fPrazo');
+      if (prz) prz.value = '';
+      const qtd = document.getElementById('fQuantidade');
+      if (qtd) qtd.value = '';
+      const dsc = document.getElementById('fDescricao');
+      if (dsc) dsc.value = '';
+      const tip = document.getElementById('fTipo');
+      if (tip) tip.value = '';
+
+      document.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('selected'));
+
+      modal.style.display = 'flex';
+      modal.classList.add('open');
+    }
+
+    async function abrirModalLinkPostos() {
+      const modalLink = document.getElementById('modalLinkPostos');
+      let baseUrl = window.location.origin;
+
+      if (window.location.protocol === 'file:') {
+        baseUrl = 'http://192.168.100.242:3333';
+      } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        try {
+          const res = await fetch('/api/server-info');
+          if (res.ok) {
+            const info = await res.json();
+            if (info.localIp && info.localIp !== 'localhost') {
+              baseUrl = `http://${info.localIp}:${info.port || 3333}`;
+            }
+          }
+        } catch (e) {
+          baseUrl = 'http://192.168.100.242:3333';
+        }
+      }
+
+      const link = `${baseUrl}/solicitar.html`;
+      document.getElementById('inputLinkPosto').value = link;
+      const testarBtn = document.getElementById('btnAbrirLinkTestar');
+      if (testarBtn) testarBtn.href = link;
+      modalLink.style.display = 'flex';
+      modalLink.classList.add('open');
+    }
+
+    function fecharModalNova() {
+      const modal = document.getElementById('modalNova');
+      if (modal) {
+        modal.classList.remove('open');
+        modal.style.display = 'none';
+      }
+    }
+
+    function fecharModalLinkPostos() {
+      const modalLink = document.getElementById('modalLinkPostos');
+      if (modalLink) {
+        modalLink.classList.remove('open');
+        modalLink.style.display = 'none';
+      }
+    }
+
+    function copiarLinkPostos() {
+      const inp = document.getElementById('inputLinkPosto');
+      inp.select();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(inp.value).then(() => {
+          alert('Link copiado com sucesso! Pode colar no WhatsApp dos postos:\n' + inp.value);
+        }).catch(() => {
+          document.execCommand('copy');
+          alert('Link copiado com sucesso!\n' + inp.value);
+        });
+      } else {
+        document.execCommand('copy');
+        alert('Link copiado com sucesso!\n' + inp.value);
+      }
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+      // Eventos básicos imediatos para não travar cliques
+      configurarEventos();
+      configurarDragAndDrop();
+
+      // Cargas assíncronas em segundo plano com tratamento seguro
+      carregarPostos().catch(e => console.warn(e));
+      carregarSolicitacoes().catch(e => console.warn(e));
+
+      // Atualiza a cada 45 segundos
+      setInterval(() => {
+        carregarSolicitacoes().catch(e => console.warn(e));
+      }, 45000);
+    });
+
+    async function carregarPostos() {
+      try {
+        const res = await fetch('/api/postos');
+        if (res.ok) {
+          postosLista = await res.json();
+          popularSelectPostos();
+          return;
+        }
+      } catch (e) {
+        console.warn('Usando armazenamento local de postos:', e);
+      }
+
+      // Se falhar a API, usa lista padrão de emergência
+      if (!postosLista || postosLista.length === 0) {
+        postosLista = [
+          { id: 'posto-gestao-operacional', short_name: 'GESTÃO E SUPERVISÃO OPERACIONAL' },
+          { id: '00000', short_name: 'SEG - ID DO BRASIL LOGISTICA' },
+          { id: '00527', short_name: 'SEG - TEGMA' },
+          { id: '13862', short_name: 'SEG - MULTILIT' },
+          { id: '16744', short_name: 'POR - ALUBAUEN' },
+          { id: '32060', short_name: 'SEG - RIO SAO FRANCISCO' }
+        ];
+        popularSelectPostos();
+      }
+    }
+
+    function popularSelectPostos() {
+      const select = document.getElementById('fPosto');
+      select.innerHTML = '<option value="">Selecione o posto...</option>';
+      postosLista.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.short_name || p.name;
+        select.appendChild(opt);
+      });
+    }
+
+    async function carregarSolicitacoes() {
+      try {
+        const res = await fetch('/api/solicitacoes');
+        if (res.ok) {
+          solicitacoesLista = await res.json();
+        } else {
+          solicitacoesLista = JSON.parse(localStorage.getItem('solic_gps_local') || '[]');
+        }
+      } catch (e) {
+        solicitacoesLista = JSON.parse(localStorage.getItem('solic_gps_local') || '[]');
+      }
+
+      renderizarQuadro();
+    }
+
+    function diasRestantes(prazo) {
+      if (!prazo) return null;
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      const p = new Date(prazo + 'T00:00:00');
+      return Math.round((p - hoje) / 86400000);
+    }
+
+    function calcularStatus(sol) {
+      if (sol.coluna === 'concluido') return 'cinza';
+      const dias = diasRestantes(sol.prazo);
+      if (dias === null) return 'cinza';
+      if (dias <= 10) return 'vermelho';
+      if (dias <= 20) return 'amarelo';
+      return 'verde';
+    }
+
+    function formatarPrazo(sol) {
+      if (!sol.prazo) return { txt: 'Sem data', cls: 'prazo-cinza' };
+      if (sol.coluna === 'concluido') return { txt: '✓ Atendido no Posto', cls: 'prazo-cinza' };
+      const dias = diasRestantes(sol.prazo);
+      if (dias < 0) return { txt: `🚨 Vencido há ${Math.abs(dias)} dias`, cls: 'prazo-vermelho' };
+      if (dias === 0) return { txt: '🔴 VENCE HOJE', cls: 'prazo-vermelho' };
+      if (dias === 1) return { txt: '🔴 Vence amanhã', cls: 'prazo-vermelho' };
+      if (dias <= 10) return { txt: `🔴 Vence em ${dias} dias`, cls: 'prazo-vermelho' };
+      if (dias <= 20) return { txt: `🟡 Vence em ${dias} dias`, cls: 'prazo-amarelo' };
+      return { txt: `🟢 Em dia (${dias} dias)`, cls: 'prazo-verde' };
+    }
+
+    function renderizarQuadro() {
+      const stats = { total: 0, verde: 0, amarelo: 0, vermelho: 0, atendido: 0 };
+      const colunas = ['pendente', 'analise', 'aprovado', 'concluido'];
+
+      colunas.forEach(col => {
+        const area = document.getElementById(`list-${col}`);
+        area.innerHTML = '';
+        let count = 0;
+
+        solicitacoesLista
+          .filter(s => s.coluna === col)
+          .filter(s => filtroAtual === 'todos' || s.tipo === filtroAtual)
+          .sort((a,b) => {
+            const prio = { urgente: 0, alta: 1, normal: 2, baixa: 3 };
+            if ((prio[a.prioridade]||2) !== (prio[b.prioridade]||2))
+              return (prio[a.prioridade]||2) - (prio[b.prioridade]||2);
+            return (a.prazo || '').localeCompare(b.prazo || '');
+          })
+          .forEach(sol => {
+            const st = calcularStatus(sol);
+            const prazoFmt = formatarPrazo(sol);
+
+            if (col === 'concluido') stats.atendido++;
+            else {
+              stats.total++;
+              if (st === 'verde') stats.verde++;
+              if (st === 'amarelo') stats.amarelo++;
+              if (st === 'vermelho') stats.vermelho++;
+            }
+
+            area.appendChild(criarCardElement(sol, st, prazoFmt));
+            count++;
+          });
+
+        document.getElementById(`cCount-${col}`).textContent = count;
+      });
+
+      // Atualiza Stats
+      document.getElementById('stTotal').textContent = solicitacoesLista.length;
+      document.getElementById('stOk').textContent = stats.verde;
+      document.getElementById('stAviso').textContent = stats.amarelo;
+      document.getElementById('stCritico').textContent = stats.vermelho;
+      document.getElementById('stAtendido').textContent = stats.atendido;
+
+      // Barra de Alerta
+      const alertBar = document.getElementById('alertBarLive');
+      if (stats.vermelho > 0) {
+        alertBar.classList.add('active');
+        document.getElementById('alertBarLiveText').textContent =
+          `ATENÇÃO: Existem ${stats.vermelho} solicitação(ões) em prazo crítico (≤ 10 dias ou vencidas) necessitando de ação!`;
+      } else {
+        alertBar.classList.remove('active');
+      }
+    }
+
+    function criarCardElement(sol, st, prazoFmt) {
+      const card = document.createElement('div');
+      card.className = `card-item st-${st}`;
+      card.draggable = true;
+      card.dataset.id = sol.id;
+
+      const tInfo = TIPOS_MAP[sol.tipo] || { icon: '📦', label: sol.tipo };
+      const prioCls = `prio-${sol.prioridade || 'normal'}`;
+
+      const colMoves = {
+        pendente: { next: 'analise', nextTxt: '▶ Cotação' },
+        analise:  { next: 'aprovado', nextTxt: '▶ Aprovado', prev: 'pendente', prevTxt: '◀ Nova' },
+        aprovado: { next: 'concluido', nextTxt: '▶ Entregue', prev: 'analise', prevTxt: '◀ Cotação' },
+        concluido:{ prev: 'aprovado', prevTxt: '◀ Reabrir' }
+      };
+      const nav = colMoves[sol.coluna] || {};
+
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="card-id-cat">${sol.id} &bull; ${tInfo.icon} ${tInfo.label}</div>
+          <span class="card-prio ${prioCls}">${sol.prioridade || 'normal'}</span>
+        </div>
+        <div class="card-title">${escapeHtml(sol.titulo)}</div>
+        <div class="card-posto-tag">📍 ${escapeHtml(sol.posto_nome || 'Posto não especificado')}</div>
+        <div class="card-info-row">👮 <strong>${escapeHtml(sol.solicitante)}</strong> ${sol.turno ? `(${escapeHtml(sol.turno)})` : ''}</div>
+        ${sol.quantidade ? `<div class="card-info-row">🔢 Quantidade/Efetivo: <strong>${sol.quantidade}</strong></div>` : ''}
+        <div class="card-prazo-tag ${prazoFmt.cls}">📅 ${prazoFmt.txt}</div>
+        <div class="card-btns">
+          ${nav.prev ? `<button class="btn-k-action" onclick="moverColuna('${sol.id}', '${nav.prev}')">${nav.prevTxt}</button>` : ''}
+          ${nav.next ? `<button class="btn-k-action" onclick="moverColuna('${sol.id}', '${nav.next}')">${nav.nextTxt}</button>` : ''}
+          <button class="btn-k-action del" onclick="excluirSolic('${sol.id}')">🗑</button>
+        </div>
+      `;
+
+      card.addEventListener('dragstart', (e) => {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', sol.id);
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+
+      return card;
+    }
+
+    async function moverColuna(id, coluna) {
+      try {
+        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}/coluna`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coluna })
+        });
+        if (res.ok) {
+          await carregarSolicitacoes();
+          return;
+        }
+      } catch (e) {}
+
+      // Fallback local
+      solicitacoesLista = solicitacoesLista.map(s => s.id === id ? { ...s, coluna } : s);
+      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
+      renderizarQuadro();
+    }
+
+    async function excluirSolic(id) {
+      if (!confirm('Deseja realmente remover esta solicitação operacional?')) return;
+      try {
+        const res = await fetch(`/api/solicitacoes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        if (res.ok) {
+          await carregarSolicitacoes();
+          return;
+        }
+      } catch (e) {}
+
+      solicitacoesLista = solicitacoesLista.filter(s => s.id !== id);
+      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
+      renderizarQuadro();
+    }
+
+    function configurarDragAndDrop() {
+      document.querySelectorAll('.k-column').forEach(col => {
+        col.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          col.classList.add('drag-over');
+        });
+        col.addEventListener('dragleave', (e) => {
+          if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+        });
+        col.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          col.classList.remove('drag-over');
+          const id = e.dataTransfer.getData('text/plain');
+          const targetCol = col.dataset.col;
+          if (id && targetCol) {
+            await moverColuna(id, targetCol);
+          }
+        });
+      });
+    }
+
+    function configurarEventos() {
+      // Filtros
+      document.querySelectorAll('.f-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          filtroAtual = btn.dataset.filtro;
+          renderizarQuadro();
+        });
+      });
+
+      // Modal Nova
+      document.getElementById('btnNovaSolic').addEventListener('click', () => {
+        document.getElementById('fEditId').value = '';
+        document.getElementById('fTitulo').value = '';
+        document.getElementById('fSolicitante').value = '';
+        document.getElementById('fPrazo').value = '';
+        document.getElementById('fQuantidade').value = '';
+        document.getElementById('fDescricao').value = '';
+        document.getElementById('fTipo').value = '';
+        document.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('selected'));
+        document.getElementById('modalNova').classList.add('open');
+      });
+
+      document.getElementById('btnModalClose').addEventListener('click', () => {
+        document.getElementById('modalNova').classList.remove('open');
+      });
+      document.getElementById('btnModalCancel').addEventListener('click', () => {
+        document.getElementById('modalNova').classList.remove('open');
+      });
+
+      document.querySelectorAll('.chip-btn').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.chip-btn').forEach(c => c.classList.remove('selected'));
+          chip.classList.add('selected');
+          document.getElementById('fTipo').value = chip.dataset.val;
+        });
+      });
+
+      document.getElementById('btnSalvarSolic').addEventListener('click', salvarNovaSolicitacao);
+
+      // Modal Link
+      const modalLink = document.getElementById('modalLinkPostos');
+      document.getElementById('btnLinkPostos').addEventListener('click', async () => {
+        let baseUrl = window.location.origin;
+
+        // Se estiver no protocolo file:// ou localhost, tenta obter o IP de rede da máquina
+        if (window.location.protocol === 'file:') {
+          baseUrl = 'http://192.168.100.242:3333';
+        } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          try {
+            const res = await fetch('/api/server-info');
+            if (res.ok) {
+              const info = await res.json();
+              if (info.localIp && info.localIp !== 'localhost') {
+                baseUrl = `http://${info.localIp}:${info.port || 3333}`;
+              }
+            }
+          } catch (e) {
+            baseUrl = `http://192.168.100.242:3333`;
+          }
+        }
+
+        const link = `${baseUrl}/solicitar.html`;
+        document.getElementById('inputLinkPosto').value = link;
+        const testarBtn = document.getElementById('btnAbrirLinkTestar');
+        if (testarBtn) testarBtn.href = link;
+        modalLink.classList.add('open');
+      });
+
+      document.getElementById('btnModalLinkClose').addEventListener('click', () => {
+        modalLink.classList.remove('open');
+      });
+
+      modalLink.addEventListener('click', (e) => {
+        if (e.target === modalLink) modalLink.classList.remove('open');
+      });
+
+      document.getElementById('btnCopiarLink').addEventListener('click', () => {
+        const inp = document.getElementById('inputLinkPosto');
+        inp.select();
+        navigator.clipboard.writeText(inp.value).then(() => {
+          alert('Link copiado com sucesso! Pode colar e enviar no WhatsApp ou e-mail dos postos: \n' + inp.value);
+        }).catch(() => {
+          document.execCommand('copy');
+          alert('Link copiado com sucesso! \n' + inp.value);
+        });
+      });
+    }
+
+    async function salvarNovaSolicitacao() {
+      const tipo = document.getElementById('fTipo').value;
+      const titulo = document.getElementById('fTitulo').value.trim();
+      const solicitante = document.getElementById('fSolicitante').value.trim();
+      const postoId = document.getElementById('fPosto').value;
+      const turno = document.getElementById('fTurno').value;
+      const prioridade = document.getElementById('fPrioridade').value;
+      const prazo = document.getElementById('fPrazo').value;
+      const quantidade = document.getElementById('fQuantidade').value;
+      const descricao = document.getElementById('fDescricao').value.trim();
+
+      if (!tipo) return alert('Selecione a categoria da demanda.');
+      if (!titulo) return alert('Preencha o resumo da solicitação.');
+      if (!solicitante) return alert('Informe o nome do solicitante.');
+      if (!prazo) return alert('Informe o prazo limite.');
+
+      const postoObj = postosLista.find(p => p.id === postoId);
+      const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
+
+      const payload = {
+        tipo,
+        titulo,
+        solicitante,
+        posto_id: postoId || null,
+        posto_nome: postoNome,
+        turno,
+        prioridade,
+        prazo,
+        quantidade: quantidade ? parseInt(quantidade, 10) : null,
+        descricao,
+        coluna: 'pendente'
+      };
+
+      try {
+        const res = await fetch('/api/solicitacoes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          document.getElementById('modalNova').classList.remove('open');
+          await carregarSolicitacoes();
+          return;
+        }
+      } catch (e) {}
+
+      // Fallback local
+      const localId = `SEG-${Date.now().toString().slice(-4)}`;
+      solicitacoesLista.unshift({ id: localId, ...payload, created_at: new Date().toISOString() });
+      localStorage.setItem('solic_gps_local', JSON.stringify(solicitacoesLista));
+      document.getElementById('modalNova').classList.remove('open');
+      renderizarQuadro();
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>
+

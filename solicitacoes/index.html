@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Segurança Operacional — Gestão de Demandas & Efetivo</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .badge-posto {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-logo">
+    <span class="icon">🛡️</span>
+    <span>Segurança Patrimonial & Operações</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" id="btnAlertaBar" title="Alertas de Vencimento">
+      🚨 <span id="alertCount">0</span>
+    </button>
+    <button class="btn btn-ghost btn-sm" id="btnLink">🔗 Link Postos / Equipe</button>
+    <button class="btn btn-primary" id="btnNova">+ Nova Demanda</button>
+  </div>
+</header>
+
+<!-- ══ BARRA DE ALERTA ═════════════════════════════════════ -->
+<div class="alert-bar" id="alertBar">
+  🚨 <span id="alertMsg"></span>
+</div>
+
+<!-- ══ CONTEÚDO ════════════════════════════════════════════ -->
+<div class="container">
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card total">
+      <div class="stat-numero" id="statTotal">0</div>
+      <div class="stat-label">Total de Demandas</div>
+    </div>
+    <div class="stat-card ok">
+      <div class="stat-numero" id="statOk">0</div>
+      <div class="stat-label">No Prazo 🟢</div>
+    </div>
+    <div class="stat-card urgente">
+      <div class="stat-numero" id="statUrgente">0</div>
+      <div class="stat-label">Atenção (&le; 20d) 🟡</div>
+    </div>
+    <div class="stat-card vencido">
+      <div class="stat-numero" id="statVencido">0</div>
+      <div class="stat-label">Crítico (&le; 10d) 🔴</div>
+    </div>
+    <div class="stat-card concluido">
+      <div class="stat-numero" id="statConcluido">0</div>
+      <div class="stat-label">Atendidos ✓</div>
+    </div>
+  </div>
+
+  <!-- KANBAN -->
+  <div class="kanban-header">
+    <div class="kanban-title">📋 Quadro de Atendimento da Segurança</div>
+    <div class="filters">
+      <button class="filter-btn active" data-filtro="todos">Todos</button>
+      <button class="filter-btn" data-filtro="alimentacao">🍱 Alimentação</button>
+      <button class="filter-btn" data-filtro="efetivo">👮‍♂️ Efetivo/Reforço</button>
+      <button class="filter-btn" data-filtro="material">🔦 Material Tático</button>
+      <button class="filter-btn" data-filtro="comunicacao">📻 Rádios HT</button>
+      <button class="filter-btn" data-filtro="epi">🛡️ EPI</button>
+      <button class="filter-btn" data-filtro="transporte">🚔 Ronda/VTR</button>
+    </div>
+  </div>
+
+  <div class="kanban-board">
+    <!-- Pendente -->
+    <div class="kanban-col" id="col-pendente" data-col="pendente">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title">
+          <span>⏳</span> Solicitação Nova
+        </div>
+        <span class="kanban-col-count" id="cnt-pendente">0</span>
+      </div>
+      <div class="cards-area" id="cards-pendente"></div>
+    </div>
+
+    <!-- Em Análise -->
+    <div class="kanban-col" id="col-analise" data-col="analise">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title">
+          <span>🔍</span> Em Análise / Cotação
+        </div>
+        <span class="kanban-col-count" id="cnt-analise">0</span>
+      </div>
+      <div class="cards-area" id="cards-analise"></div>
+    </div>
+
+    <!-- Aprovado / Em Separação -->
+    <div class="kanban-col" id="col-aprovado" data-col="aprovado">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title">
+          <span>📦</span> Aprovado / Em Envio
+        </div>
+        <span class="kanban-col-count" id="cnt-aprovado">0</span>
+      </div>
+      <div class="cards-area" id="cards-aprovado"></div>
+    </div>
+
+    <!-- Concluído / Entregue -->
+    <div class="kanban-col" id="col-concluido" data-col="concluido">
+      <div class="kanban-col-header">
+        <div class="kanban-col-title">
+          <span>✅</span> Entregue no Posto
+        </div>
+        <span class="kanban-col-count" id="cnt-concluido">0</span>
+      </div>
+      <div class="cards-area" id="cards-concluido"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL — NOVA / EDITAR SOLICITAÇÃO ══════════════════ -->
+<div class="modal-overlay" id="modalSol">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Nova Demanda de Segurança</h2>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+
+      <div class="form-group">
+        <label>Tipo de Demanda <span class="required">*</span></label>
+        <div class="tipo-grid">
+          <div class="tipo-chip" data-tipo="alimentacao">
+            <span class="chip-icon">🍱</span>Alimentação
+          </div>
+          <div class="tipo-chip" data-tipo="efetivo">
+            <span class="chip-icon">👮‍♂️</span>Reforço / Efetivo
+          </div>
+          <div class="tipo-chip" data-tipo="material">
+            <span class="chip-icon">🔦</span>Material Tático
+          </div>
+          <div class="tipo-chip" data-tipo="comunicacao">
+            <span class="chip-icon">📻</span>Rádios HT
+          </div>
+          <div class="tipo-chip" data-tipo="epi">
+            <span class="chip-icon">🛡️</span>EPI & Proteção
+          </div>
+          <div class="tipo-chip" data-tipo="transporte">
+            <span class="chip-icon">🚔</span>Ronda / VTR
+          </div>
+        </div>
+        <input type="hidden" id="tipoSelected">
+      </div>
+
+      <div class="form-group">
+        <label>Assunto / Título da Solicitação <span class="required">*</span></label>
+        <input type="text" id="titulo" placeholder="Ex: Refeições para plantão noturno ou Baterias para rádio HT">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Solicitante / Vigilante <span class="required">*</span></label>
+          <input type="text" id="solicitante" placeholder="Nome completo / Cargo">
+        </div>
+        <div class="form-group">
+          <label>Posto de Serviço / Local <span class="required">*</span></label>
+          <input type="text" id="posto" placeholder="Ex: Portaria Principal, Ronda, Galpão...">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Turno do Plantão</label>
+          <select id="turno">
+            <option value="Diurno (06h às 18h)">Diurno (06h às 18h)</option>
+            <option value="Noturno (18h às 06h)">Noturno (18h às 06h)</option>
+            <option value="Comercial (08h às 17h)">Comercial (08h às 17h)</option>
+            <option value="Escala 12x36">Escala 12x36</option>
+            <option value="Plantão 24h">Plantão 24h</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Prioridade Operacional <span class="required">*</span></label>
+          <select id="prioridade">
+            <option value="baixa">🔵 Baixa — Rotina / Estoque</option>
+            <option value="normal" selected>🟡 Normal — Padrão</option>
+            <option value="alta">🔴 Alta — Necessário com brevidade</option>
+            <option value="urgente">🚨 Urgente — Risco à Segurança / Plantão</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prazo Limite para Atendimento <span class="required">*</span></label>
+          <input type="date" id="prazo">
+        </div>
+        <div class="form-group">
+          <label>Quantidade / Efetivo</label>
+          <input type="number" id="quantidade" placeholder="Ex: 4" min="1">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Detalhes da Necessidade / Justificativa</label>
+        <textarea id="descricao" placeholder="Descreva o motivo, especificações, necessidade operacional do posto..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="btnCancelar">Cancelar</button>
+        <button class="btn btn-success" id="btnSalvar">💾 Salvar Demanda</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL — VER DETALHES ════════════════════════════════ -->
+<div class="modal-overlay" id="modalVer">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="verTitle">Detalhes da Ocorrência</h2>
+      <button class="modal-close" id="verClose">✕</button>
+    </div>
+    <div class="modal-body" id="verBody"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL — LINK COLABORADOR ═══════════════════════════ -->
+<div class="modal-overlay" id="modalLink">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h2>🔗 Link para os Postos & Vigilantes</h2>
+      <button class="modal-close" id="linkClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.88rem;color:var(--texto2);margin-bottom:16px">
+        Envie este link para os vigilantes, fiscais e supervisores nos postos para abrirem solicitações direto pelo celular ou terminal:
+      </p>
+      <div class="link-box">
+        <input type="text" id="linkInput" readonly>
+        <button class="btn btn-primary btn-sm" id="btnCopyLink">📋 Copiar Link</button>
+      </div>
+      <p style="font-size:.8rem;color:var(--texto2);margin-top:12px">
+        💡 O colaborador preenche em 3 etapas simples pelo smartphone ou computador da guarita.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="data.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  PAINEL DA EQUIPE DE SEGURANÇA
+// ═══════════════════════════════════════════════════════════
+
+let filtroAtivo = 'todos';
+let cfg = getConfig();
+
+document.addEventListener('DOMContentLoaded', () => {
+  seed();
+  cfg = getConfig();
+
+  const linkBase = location.href.replace('index.html','').replace(/\/$/, '');
+  if (!cfg.linkColaborador) {
+    cfg.linkColaborador = `${linkBase}/solicitar.html`;
+    saveConfig(cfg);
+  }
+
+  renderBoard();
+  setupFilters();
+  setupModals();
+  setupAlerts();
+  setupDragAndDrop();
+
+  setInterval(() => { renderBoard(); setupAlerts(); }, 60000);
+});
+
+function renderBoard() {
+  const all = getAll();
+  const stats = { verde:0, amarelo:0, vermelho:0, concluido:0 };
+
+  const colunas = ['pendente','analise','aprovado','concluido'];
+  colunas.forEach(col => {
+    const area = document.getElementById(`cards-${col}`);
+    area.innerHTML = '';
+    let count = 0;
+
+    all
+      .filter(s => s.coluna === col)
+      .filter(s => filtroAtivo === 'todos' || s.tipo === filtroAtivo)
+      .sort((a,b) => {
+        const prio = { urgente:0, alta:1, normal:2, baixa:3 };
+        if ((prio[a.prioridade]||2) !== (prio[b.prioridade]||2))
+          return (prio[a.prioridade]||2) - (prio[b.prioridade]||2);
+        if (a.prazo && b.prazo) return a.prazo.localeCompare(b.prazo);
+        return 0;
+      })
+      .forEach(sol => {
+        const st  = getStatusPrazo(sol, cfg);
+        const lbl = labelPrazo(sol);
+
+        if (col !== 'concluido') stats[st] = (stats[st]||0) + 1;
+        else stats.concluido++;
+
+        area.innerHTML += buildCard(sol, st, lbl);
+        count++;
+      });
+
+    document.getElementById(`cnt-${col}`).textContent = count;
+
+    if (!count) {
+      area.innerHTML = `<div class="empty"><div class="icon">🛡️</div>Sem demandas nesta etapa</div>`;
+    }
+  });
+
+  // Stats
+  document.getElementById('statTotal').textContent    = all.length;
+  document.getElementById('statOk').textContent       = stats.verde  || 0;
+  document.getElementById('statUrgente').textContent  = stats.amarelo || 0;
+  document.getElementById('statVencido').textContent  = stats.vermelho || 0;
+  document.getElementById('statConcluido').textContent= stats.concluido || 0;
+
+  // Interações dos Cards
+  document.querySelectorAll('.card-sol').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.card-actions')) return;
+      abrirDetalhes(el.dataset.id);
+    });
+
+    el.addEventListener('dragstart', (e) => {
+      el.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', el.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+    });
+  });
+
+  document.querySelectorAll('[data-mover]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      mover(btn.dataset.id, btn.dataset.mover);
+    });
+  });
+
+  document.querySelectorAll('[data-editar]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      abrirEditar(btn.dataset.editar);
+    });
+  });
+
+  document.querySelectorAll('[data-excluir]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (confirm('Deseja realmente remover esta solicitação de segurança?')) {
+        remover(btn.dataset.excluir);
+        renderBoard();
+        setupAlerts();
+        toast('Demanda removida!', 'info');
+      }
+    });
+  });
+}
+
+function buildCard(sol, st, lbl) {
+  const tInfo = TIPOS_SEGURANCA[sol.tipo] || { nome: 'Outros', icon: '📦' };
+
+  const prioMap = {
+    baixa:   '<span class="badge badge-azul">🔵 Baixa</span>',
+    normal:  '<span class="badge badge-verde">🟡 Normal</span>',
+    alta:    '<span class="badge badge-amarelo">🔴 Alta</span>',
+    urgente: '<span class="badge badge-vermelho">🚨 Urgente</span>',
+  };
+
+  const colMap = {
+    pendente: { next:'analise',   nextLabel:'▶ Análise' },
+    analise:  { next:'aprovado',  nextLabel:'▶ Enviar', prev:'pendente', prevLabel:'◀ Pendente' },
+    aprovado: { next:'concluido', nextLabel:'▶ Entregue', prev:'analise',  prevLabel:'◀ Cotação' },
+    concluido:{ prev:'aprovado',  prevLabel:'◀ Reabrir' },
+  };
+  const nav = colMap[sol.coluna] || {};
+
+  let prazoStr = '';
+  if (sol.prazo) {
+    prazoStr = new Date(sol.prazo + 'T00:00:00').toLocaleDateString('pt-BR');
+  }
+
+  return `
+  <div class="card-sol status-${st}" data-id="${sol.id}" draggable="true">
+    <div class="card-sol-top">
+      <div>
+        <div class="card-sol-id">${sol.id} · ${tInfo.icon} ${tInfo.nome}</div>
+        <div class="card-sol-title">${esc(sol.titulo)}</div>
+        ${sol.posto ? `<span class="badge-posto">📍 ${esc(sol.posto)}</span>` : ''}
+      </div>
+      ${prioMap[sol.prioridade]||''}
+    </div>
+    <div class="card-sol-info">👮 Solicitante: <span>${esc(sol.solicitante)}</span></div>
+    ${sol.quantidade ? `<div class="card-sol-info">🔢 Quantidade/Efetivo: <span>${sol.quantidade}</span></div>` : ''}
+    ${prazoStr ? `<div class="card-sol-prazo ${lbl.classe}">📅 ${lbl.texto}</div>` : ''}
+    <div class="card-actions">
+      ${nav.prev ? `<button class="btn btn-ghost btn-sm" data-mover="${nav.prev}" data-id="${sol.id}">${nav.prevLabel}</button>` : ''}
+      ${nav.next ? `<button class="btn btn-success btn-sm" data-mover="${nav.next}" data-id="${sol.id}">${nav.nextLabel}</button>` : ''}
+      <button class="btn btn-ghost btn-sm" data-editar="${sol.id}">✏️</button>
+      <button class="btn btn-danger btn-sm" data-excluir="${sol.id}">🗑</button>
+    </div>
+  </div>`;
+}
+
+// ── Drag & Drop ───────────────────────────────────────────
+function setupDragAndDrop() {
+  const cols = document.querySelectorAll('.kanban-col');
+  cols.forEach(col => {
+    col.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      col.classList.add('drag-over');
+    });
+
+    col.addEventListener('dragleave', (e) => {
+      if (!col.contains(e.relatedTarget)) {
+        col.classList.remove('drag-over');
+      }
+    });
+
+    col.addEventListener('drop', (e) => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      const targetCol = col.dataset.col;
+      if (id && targetCol) {
+        mover(id, targetCol);
+      }
+    });
+  });
+}
+
+function mover(id, coluna) {
+  moverColuna(id, coluna);
+  renderBoard();
+  setupAlerts();
+  const labels = {
+    pendente: 'Solicitação Nova',
+    analise:  'Em Análise / Cotação',
+    aprovado: 'Aprovado / Em Envio',
+    concluido:'Entregue no Posto'
+  };
+  toast(`Etapa atualizada: ${labels[coluna]}`, 'success');
+}
+
+// ── Filtros ──────────────────────────────────────────────
+function setupFilters() {
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filtroAtivo = btn.dataset.filtro;
+      renderBoard();
+    });
+  });
+}
+
+// ── Alertas ──────────────────────────────────────────────
+function setupAlerts() {
+  const all = getAll().filter(s => s.coluna !== 'concluido');
+  const criticos = all.filter(s => getStatusPrazo(s, cfg) === 'vermelho');
+  const bar = document.getElementById('alertBar');
+  const countEl = document.getElementById('alertCount');
+
+  countEl.textContent = criticos.length;
+
+  if (criticos.length > 0) {
+    bar.classList.add('active');
+    document.getElementById('alertMsg').textContent =
+      `${criticos.length} demanda(s) de segurança estão com prazo crítico (≤ 10 dias ou vencidas)! Ação imediata requerida.`;
+  } else {
+    bar.classList.remove('active');
+  }
+}
+
+// ── Modais ───────────────────────────────────────────────
+function setupModals() {
+  document.getElementById('btnNova').addEventListener('click', abrirNova);
+  document.getElementById('modalClose').addEventListener('click', fecharModal);
+  document.getElementById('btnCancelar').addEventListener('click', fecharModal);
+  document.getElementById('modalSol').addEventListener('click', e => {
+    if (e.target === e.currentTarget) fecharModal();
+  });
+
+  document.querySelectorAll('.tipo-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.tipo-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      document.getElementById('tipoSelected').value = chip.dataset.tipo;
+    });
+  });
+
+  document.getElementById('btnSalvar').addEventListener('click', salvar);
+
+  document.getElementById('verClose').addEventListener('click', () => {
+    document.getElementById('modalVer').classList.remove('open');
+  });
+  document.getElementById('modalVer').addEventListener('click', e => {
+    if (e.target === e.currentTarget) document.getElementById('modalVer').classList.remove('open');
+  });
+
+  document.getElementById('btnLink').addEventListener('click', () => {
+    document.getElementById('linkInput').value = cfg.linkColaborador ||
+      location.href.replace('index.html','') + 'solicitar.html';
+    document.getElementById('modalLink').classList.add('open');
+  });
+  document.getElementById('linkClose').addEventListener('click', () => {
+    document.getElementById('modalLink').classList.remove('open');
+  });
+  document.getElementById('btnCopyLink').addEventListener('click', () => {
+    const inp = document.getElementById('linkInput');
+    inp.select();
+    navigator.clipboard.writeText(inp.value).then(() => {
+      toast('Link dos postos copiado! 🛡️', 'success');
+    }).catch(() => {
+      document.execCommand('copy');
+      toast('Link dos postos copiado! 🛡️', 'success');
+    });
+  });
+}
+
+function abrirNova() {
+  document.getElementById('editId').value = '';
+  document.getElementById('modalTitle').textContent = '➕ Nova Demanda de Segurança';
+  document.getElementById('titulo').value = '';
+  document.getElementById('solicitante').value = '';
+  document.getElementById('posto').value = '';
+  document.getElementById('turno').value = 'Noturno (18h às 06h)';
+  document.getElementById('prazo').value = '';
+  document.getElementById('quantidade').value = '';
+  document.getElementById('descricao').value = '';
+  document.getElementById('prioridade').value = 'normal';
+  document.getElementById('tipoSelected').value = '';
+  document.querySelectorAll('.tipo-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('modalSol').classList.add('open');
+}
+
+function abrirEditar(id) {
+  const sol = getById(id);
+  if (!sol) return;
+  document.getElementById('editId').value = id;
+  document.getElementById('modalTitle').textContent = '✏️ Editar Demanda';
+  document.getElementById('titulo').value      = sol.titulo || '';
+  document.getElementById('solicitante').value = sol.solicitante || '';
+  document.getElementById('posto').value       = sol.posto || '';
+  document.getElementById('turno').value       = sol.turno || 'Diurno (06h às 18h)';
+  document.getElementById('prazo').value       = sol.prazo || '';
+  document.getElementById('quantidade').value  = sol.quantidade || '';
+  document.getElementById('descricao').value   = sol.descricao || '';
+  document.getElementById('prioridade').value  = sol.prioridade || 'normal';
+  document.getElementById('tipoSelected').value= sol.tipo || '';
+  document.querySelectorAll('.tipo-chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.tipo === sol.tipo);
+  });
+  document.getElementById('modalSol').classList.add('open');
+}
+
+function fecharModal() {
+  document.getElementById('modalSol').classList.remove('open');
+}
+
+function salvar() {
+  const tipo       = document.getElementById('tipoSelected').value;
+  const titulo     = document.getElementById('titulo').value.trim();
+  const solicitante= document.getElementById('solicitante').value.trim();
+  const posto      = document.getElementById('posto').value.trim();
+  const turno      = document.getElementById('turno').value;
+  const prazo      = document.getElementById('prazo').value;
+  const prioridade = document.getElementById('prioridade').value;
+  const quantidade = document.getElementById('quantidade').value;
+  const descricao  = document.getElementById('descricao').value.trim();
+  const editId     = document.getElementById('editId').value;
+
+  if (!tipo)       { toast('Selecione a categoria de segurança', 'error'); return; }
+  if (!titulo)     { toast('Preencha o título da demanda', 'error'); return; }
+  if (!solicitante){ toast('Preencha o nome do vigilante/solicitante', 'error'); return; }
+  if (!prazo)      { toast('Informe o prazo limite', 'error'); return; }
+
+  if (editId) {
+    atualizar(editId, { tipo, titulo, solicitante, posto, turno, prazo, prioridade, quantidade, descricao });
+    toast('Demanda atualizada com sucesso! ✅', 'success');
+  } else {
+    criar({ tipo, titulo, solicitante, posto, turno, prazo, prioridade, quantidade, descricao, coluna:'pendente' });
+    toast('Demanda registrada no quadro! 🛡️', 'success');
+  }
+
+  fecharModal();
+  renderBoard();
+  setupAlerts();
+}
+
+function abrirDetalhes(id) {
+  const sol = getById(id);
+  if (!sol) return;
+  const lbl = labelPrazo(sol);
+  const st  = getStatusPrazo(sol, cfg);
+  const tInfo = TIPOS_SEGURANCA[sol.tipo] || { nome: sol.tipo, icon: '📦' };
+
+  const prioMap = { baixa:'🔵 Baixa', normal:'🟡 Normal', alta:'🔴 Alta', urgente:'🚨 Urgente' };
+  const colMap  = {
+    pendente: '⏳ Solicitação Nova',
+    analise:  '🔍 Em Análise / Cotação',
+    aprovado: '📦 Aprovado / Em Envio',
+    concluido:'✅ Entregue no Posto'
+  };
+
+  document.getElementById('verTitle').textContent = `Registro: ${sol.id}`;
+  document.getElementById('verBody').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <span class="badge badge-${st}">${lbl.texto}</span>
+      <span class="badge badge-azul">${tInfo.icon} ${tInfo.nome}</span>
+      <span class="badge badge-cinza">${colMap[sol.coluna]||sol.coluna}</span>
+    </div>
+    <h3 style="font-size:1.1rem;margin-bottom:12px">${esc(sol.titulo)}</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:.87rem">
+      <tr><td style="padding:7px 0;color:var(--texto2);width:140px">Vigilante/Solicitante</td><td><strong>${esc(sol.solicitante)}</strong></td></tr>
+      <tr><td style="padding:7px 0;color:var(--texto2)">Posto de Serviço</td><td>${sol.posto ? esc(sol.posto) : 'Não informado'}</td></tr>
+      <tr><td style="padding:7px 0;color:var(--texto2)">Turno</td><td>${esc(sol.turno || 'Não informado')}</td></tr>
+      <tr><td style="padding:7px 0;color:var(--texto2)">Prioridade</td><td>${prioMap[sol.prioridade]||sol.prioridade}</td></tr>
+      <tr><td style="padding:7px 0;color:var(--texto2)">Prazo Limite</td><td>${sol.prazo ? new Date(sol.prazo+'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td></tr>
+      ${sol.quantidade ? `<tr><td style="padding:7px 0;color:var(--texto2)">Qtd / Efetivo</td><td>${sol.quantidade}</td></tr>` : ''}
+      <tr><td style="padding:7px 0;color:var(--texto2)">Criado em</td><td>${new Date(sol.criadoEm).toLocaleString('pt-BR')}</td></tr>
+    </table>
+    ${sol.descricao ? `<div style="margin-top:16px;padding:14px;background:var(--cinza-bg);border-radius:var(--radius-sm);font-size:.87rem;line-height:1.6"><strong>📝 Detalhes e Justificativa:</strong><br>${esc(sol.descricao)}</div>` : ''}
+  `;
+  document.getElementById('modalVer').classList.add('open');
+}
+
+function toast(msg, tipo='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${tipo}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+
+</body>
+</html>

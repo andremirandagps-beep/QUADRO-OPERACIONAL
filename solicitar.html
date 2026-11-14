@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRUPO GPS — Solicitação de Apoio Operacional</title>
+<link rel="icon" type="image/png" href="logo-gps.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body {
+    background: linear-gradient(135deg, #090e17 0%, #111c30 50%, #1e293b 100%);
+    color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    padding: 30px 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .wrap-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 620px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+
+  .card-gps-top {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    padding: 28px 24px;
+    text-align: center;
+    border-bottom: 1px solid #334155;
+  }
+  .card-gps-top img { height: 44px; margin-bottom: 12px; }
+  .card-gps-top h1 { font-size: 1.35rem; margin: 0 0 6px; color: #fff; }
+  .card-gps-top p { font-size: 0.88rem; color: #94a3b8; margin: 0; }
+
+  .card-gps-body { padding: 28px 24px; }
+
+  .step-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .s-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #334155;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+  .s-dot.active { background: #3b82f6; color: #fff; }
+  .s-dot.done { background: #10b981; color: #fff; }
+  .s-line { flex: 1; height: 2px; background: #334155; }
+  .s-line.done { background: #10b981; }
+
+  .etapa-area { display: none; }
+  .etapa-area.active { display: block; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block; font-size: 0.84rem; font-weight: 700; color: #cbd5e1; margin-bottom: 6px;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.92rem;
+    box-sizing: border-box;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: #3b82f6;
+  }
+  .form-group textarea { min-height: 90px; resize: vertical; }
+
+  .chips-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .chip-item {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #94a3b8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .chip-item .ico { font-size: 1.8rem; }
+  .chip-item.selected {
+    background: #1e3a8a;
+    border-color: #3b82f6;
+    color: #93c5fd;
+    transform: scale(1.02);
+  }
+
+  .nav-btns {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .btn-step {
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    flex: 1;
+    transition: all 0.15s;
+  }
+  .btn-step.prev { background: #334155; color: #cbd5e1; }
+  .btn-step.next { background: #3b82f6; color: #fff; }
+  .btn-step.submit { background: #10b981; color: #fff; }
+
+  .success-box {
+    text-align: center;
+    padding: 30px 10px;
+    display: none;
+  }
+  .success-box .big-ico { font-size: 4.5rem; margin-bottom: 16px; }
+  .success-box h2 { color: #34d399; margin: 0 0 10px; font-size: 1.4rem; }
+  .proto-tag {
+    background: #064e3b;
+    border: 1px solid #059669;
+    color: #6ee7b7;
+    font-size: 1.15rem;
+    font-weight: 800;
+    padding: 14px;
+    border-radius: 8px;
+    margin: 18px 0;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="wrap-card">
+    <div class="card-gps-top">
+      <img src="logo-gps.png" alt="Logo Grupo GPS">
+      <h1>Solicitação de Efetivo & Apoio Operacional</h1>
+      <p>Canal oficial para envio de necessidades do posto de trabalho</p>
+    </div>
+
+    <div class="card-gps-body" id="formArea">
+      <!-- Indicador Etapas -->
+      <div class="step-bar">
+        <div class="s-dot active" id="dot1">1</div>
+        <div class="s-line" id="line1"></div>
+        <div class="s-dot" id="dot2">2</div>
+        <div class="s-line" id="line2"></div>
+        <div class="s-dot" id="dot3">3</div>
+      </div>
+
+      <!-- Etapa 1 -->
+      <div class="etapa-area active" id="etapa1">
+        <div class="form-group">
+          <label>Qual a categoria da solicitação? *</label>
+          <div class="chips-grid">
+            <div class="chip-item" data-val="alimentacao"><span class="ico">🍱</span>Alimentação / Plantão</div>
+            <div class="chip-item" data-val="efetivo"><span class="ico">👮‍♂️</span>Reforço / Rendição</div>
+            <div class="chip-item" data-val="material"><span class="ico">🔦</span>Material Tático / Pilhas</div>
+            <div class="chip-item" data-val="comunicacao"><span class="ico">📻</span>Rádios HT / PTT</div>
+            <div class="chip-item" data-val="epi"><span class="ico">🛡️</span>EPI / Calçado / Capa</div>
+            <div class="chip-item" data-val="transporte"><span class="ico">🚔</span>Ronda / VTR / Combustível</div>
+          </div>
+          <input type="hidden" id="pTipo">
+        </div>
+
+        <div class="form-group">
+          <label>Posto de Trabalho *</label>
+          <select id="pPosto">
+            <option value="">Carregando postos...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Seu Nome / Cargo *</label>
+          <input type="text" id="pSolicitante" placeholder="Ex: Vig. Carlos Souza ou Fiscal Silva">
+        </div>
+
+        <div class="nav-btns">
+          <div></div>
+          <button class="btn-step next" id="btnNext1">Avançar →</button>
+        </div>
+      </div>
+
+      <!-- Etapa 2 -->
+      <div class="etapa-area" id="etapa2">
+        <div class="form-group">
+          <label>Resumo do que precisa *</label>
+          <input type="text" id="pTitulo" placeholder="Ex: Refeições para plantão noturno ou 2 baterias de rádio">
+        </div>
+
+        <div class="form-group">
+          <label>Prazo Limite para Atendimento *</label>
+          <input type="date" id="pPrazo">
+        </div>
+
+        <div class="form-group">
+          <label>Quantidade / Efetivo</label>
+          <input type="number" id="pQtd" placeholder="Ex: 4" min="1">
+        </div>
+
+        <div class="form-group">
+          <label>Urgência Operacional *</label>
+          <select id="pPrioridade">
+            <option value="baixa">🔵 Baixa — Reposição de rotina</option>
+            <option value="normal" selected>🟡 Normal — Padrão operacional</option>
+            <option value="alta">🔴 Alta — Necessidade rápida</option>
+            <option value="urgente">🚨 Urgente — Risco à operação do posto</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Detalhes da Demanda</label>
+          <textarea id="pDescricao" placeholder="Descreva tamanhos, especificações, horários da entrega no posto..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+          <button class="btn-step prev" id="btnPrev2">← Voltar</button>
+          <button class="btn-step next" id="btnNext2">Revisar →</button>
+        </div>
+      </div>
+
+      <!-- Etapa 3 -->
+      <div class="etapa-area" id="etapa3">
+        <h4 style="margin: 0 0 14px; color: #fff;">Confirmar Envio da Demanda</h4>
+        <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; font-size: 0.88rem; line-height: 1.8;" id="revContent"></div>
+
+        <div class="nav-btns">
+          <button class="btn-step prev" id="btnPrev3">← Corrigir</button>
+          <button class="btn-step submit" id="btnEnviar">✅ Confirmar & Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tela Concluído -->
+    <div class="success-box" id="successBox">
+      <div class="big-ico">🛡️</div>
+      <h2>Solicitação Enviada!</h2>
+      <p style="color: #94a3b8; font-size: 0.92rem;">
+        Sua demanda já caiu no Quadro Operacional da Supervisão.
+      </p>
+      <div class="proto-tag" id="protoTag">PROTOCOLO: SEG-0000</div>
+      <p style="font-size: 0.8rem; color: #64748b;">Guarde este número para acompanhamento no posto.</p>
+      <button class="btn-step next" style="max-width: 200px; margin: 18px auto 0;" onclick="location.reload()">+ Nova Solicitação</button>
+    </div>
+  </div>
+
+  <script>
+    let postos = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Carregar postos reais do banco SQLite
+      try {
+        const res = await fetch('/api/postos');
+        if (res.ok) {
+          postos = await res.json();
+          const sel = document.getElementById('pPosto');
+          sel.innerHTML = '<option value="">Selecione seu posto...</option>';
+          postos.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.short_name || p.name;
+            sel.appendChild(opt);
+          });
+        }
+      } catch (e) {
+        document.getElementById('pPosto').innerHTML = '<option value="">Posto Operacional</option>';
+      }
+
+      // Configurar Seleção de Tipo
+      document.querySelectorAll('.chip-item').forEach(c => {
+        c.addEventListener('click', () => {
+          document.querySelectorAll('.chip-item').forEach(x => x.classList.remove('selected'));
+          c.classList.add('selected');
+          document.getElementById('pTipo').value = c.dataset.val;
+        });
+      });
+
+      // Wizard Nav
+      document.getElementById('btnNext1').onclick = () => {
+        if (!document.getElementById('pTipo').value) return alert('Selecione a categoria');
+        if (!document.getElementById('pPosto').value) return alert('Selecione o posto de trabalho');
+        if (!document.getElementById('pSolicitante').value.trim()) return alert('Informe seu nome ou cargo');
+        irPara(2);
+      };
+
+      document.getElementById('btnPrev2').onclick = () => irPara(1);
+      document.getElementById('btnNext2').onclick = () => {
+        if (!document.getElementById('pTitulo').value.trim()) return alert('Informe o resumo da solicitação');
+        if (!document.getElementById('pPrazo').value) return alert('Informe o prazo limite');
+        gerarRevisao();
+        irPara(3);
+      };
+
+      document.getElementById('btnPrev3').onclick = () => irPara(2);
+      document.getElementById('btnEnviar').onclick = enviarDemanda;
+    });
+
+    function irPara(n) {
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`etapa${i}`).classList.toggle('active', i === n);
+        const dot = document.getElementById(`dot${i}`);
+        if (i < n) { dot.className = 's-dot done'; dot.textContent = '✓'; }
+        else if (i === n) { dot.className = 's-dot active'; dot.textContent = i; }
+        else { dot.className = 's-dot'; dot.textContent = i; }
+      }
+      for (let i = 1; i <= 2; i++) {
+        document.getElementById(`line${i}`).className = `s-line${i < n ? ' done' : ''}`;
+      }
+    }
+
+    function gerarRevisao() {
+      const tipo = document.getElementById('pTipo').value;
+      const postoId = document.getElementById('pPosto').value;
+      const postoObj = postos.find(p => p.id === postoId);
+      const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
+      const solicitante = document.getElementById('pSolicitante').value;
+      const titulo = document.getElementById('pTitulo').value;
+      const prazo = document.getElementById('pPrazo').value;
+      const qtd = document.getElementById('pQtd').value;
+      const prio = document.getElementById('pPrioridade').value;
+      const desc = document.getElementById('pDescricao').value;
+
+      document.getElementById('revContent').innerHTML = `
+        <div><strong>Categoria:</strong> ${tipo.toUpperCase()}</div>
+        <div><strong>Posto:</strong> ${postoNome}</div>
+        <div><strong>Solicitante:</strong> ${solicitante}</div>
+        <div><strong>Resumo:</strong> ${titulo}</div>
+        <div><strong>Prazo Necessário:</strong> ${prazo ? new Date(prazo+'T00:00:00').toLocaleDateString('pt-BR') : '—'}</div>
+        ${qtd ? `<div><strong>Quantidade/Efetivo:</strong> ${qtd}</div>` : ''}
+        <div><strong>Prioridade:</strong> ${prio.toUpperCase()}</div>
+        ${desc ? `<div><strong>Detalhes:</strong> ${desc}</div>` : ''}
+      `;
+    }
+
+    async function enviarDemanda() {
+      const postoId = document.getElementById('pPosto').value;
+      const postoObj = postos.find(p => p.id === postoId);
+      const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
+
+      const payload = {
+        tipo: document.getElementById('pTipo').value,
+        posto_id: postoId,
+        posto_nome: postoNome,
+        solicitante: document.getElementById('pSolicitante').value.trim(),
+        titulo: document.getElementById('pTitulo').value.trim(),
+        prazo: document.getElementById('pPrazo').value,
+        quantidade: document.getElementById('pQtd').value ? parseInt(document.getElementById('pQtd').value, 10) : null,
+        prioridade: document.getElementById('pPrioridade').value,
+        descricao: document.getElementById('pDescricao').value.trim(),
+        coluna: 'pendente'
+      };
+
+      let protocolo = `SEG-${Date.now().toString().slice(-4)}`;
+
+      try {
+        const res = await fetch('/api/solicitacoes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          protocolo = data.id;
+        }
+      } catch (e) {
+        // Fallback local
+        const lista = JSON.parse(localStorage.getItem('solic_gps_local') || '[]');
+        lista.unshift({ id: protocolo, ...payload, created_at: new Date().toISOString() });
+        localStorage.setItem('solic_gps_local', JSON.stringify(lista));
+      }
+
+      document.getElementById('protoTag').textContent = `PROTOCOLO: ${protocolo}`;
+      document.getElementById('formArea').style.display = 'none';
+      document.getElementById('successBox').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
+

@@ -98,6 +98,28 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_hist_data ON historico_movimentacoes(data_hora);
     CREATE INDEX IF NOT EXISTS idx_visitas_posto ON visitas(posto_id);
     CREATE INDEX IF NOT EXISTS idx_visitas_data ON visitas(data_visita);
+
+    -- Tabela de Solicitações da Operação / Segurança
+    CREATE TABLE IF NOT EXISTS solicitacoes (
+      id              TEXT PRIMARY KEY,
+      tipo            TEXT NOT NULL,
+      titulo          TEXT NOT NULL,
+      solicitante     TEXT NOT NULL,
+      posto_id        TEXT,
+      posto_nome      TEXT,
+      turno           TEXT,
+      quantidade      INTEGER,
+      prazo           TEXT NOT NULL,
+      prioridade      TEXT DEFAULT 'normal',
+      coluna          TEXT DEFAULT 'pendente',
+      descricao       TEXT,
+      created_at      TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at      TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_solic_coluna ON solicitacoes(coluna);
+    CREATE INDEX IF NOT EXISTS idx_solic_prazo ON solicitacoes(prazo);
+    CREATE INDEX IF NOT EXISTS idx_solic_posto ON solicitacoes(posto_id);
   `);
 
   // Migrações dinâmicas de colunas para postos (cidade, latitude, longitude)
@@ -243,6 +265,38 @@ function prepareStatements() {
       UPDATE postos
       SET cidade = @cidade, latitude = @latitude, longitude = @longitude, updated_at = datetime('now', 'localtime')
       WHERE id = @id
+    `),
+
+    // Solicitações
+    getAllSolicitacoes: db.prepare(`
+      SELECT s.*, p.name as posto_full_name, p.short_name as posto_short_name
+      FROM solicitacoes s
+      LEFT JOIN postos p ON p.id = s.posto_id
+      ORDER BY s.created_at DESC
+    `),
+    getSolicitacaoById: db.prepare(`
+      SELECT * FROM solicitacoes WHERE id = ?
+    `),
+    insertSolicitacao: db.prepare(`
+      INSERT INTO solicitacoes (id, tipo, titulo, solicitante, posto_id, posto_nome, turno, quantidade, prazo, prioridade, coluna, descricao)
+      VALUES (@id, @tipo, @titulo, @solicitante, @posto_id, @posto_nome, @turno, @quantidade, @prazo, @prioridade, @coluna, @descricao)
+    `),
+    updateSolicitacao: db.prepare(`
+      UPDATE solicitacoes
+      SET tipo = @tipo, titulo = @titulo, solicitante = @solicitante,
+          posto_id = @posto_id, posto_nome = @posto_nome, turno = @turno,
+          quantidade = @quantidade, prazo = @prazo, prioridade = @prioridade,
+          coluna = @coluna, descricao = @descricao,
+          updated_at = datetime('now', 'localtime')
+      WHERE id = @id
+    `),
+    updateSolicitacaoColuna: db.prepare(`
+      UPDATE solicitacoes
+      SET coluna = ?, updated_at = datetime('now', 'localtime')
+      WHERE id = ?
+    `),
+    deleteSolicitacao: db.prepare(`
+      DELETE FROM solicitacoes WHERE id = ?
     `),
   };
 }
@@ -682,6 +736,52 @@ module.exports = {
     return stmts.getVisitaById.get(info.lastInsertRowid);
   },
   excluirVisita: (id) => stmts.deleteVisita.run(id),
-  updatePostoGeo: (id, cidade, lat, lng) => stmts.updatePostoGeo.run({ id, cidade, latitude: lat, longitude: lng })
+  updatePostoGeo: (id, cidade, lat, lng) => stmts.updatePostoGeo.run({ id, cidade, latitude: lat, longitude: lng }),
+
+  // Solicitações
+  getAllSolicitacoes: () => stmts.getAllSolicitacoes.all(),
+  getSolicitacaoById: (id) => stmts.getSolicitacaoById.get(id),
+  criarSolicitacao: (data) => {
+    const id = data.id || `SEG-${Date.now().toString().slice(-4)}${Math.floor(Math.random()*90 + 10)}`;
+    stmts.insertSolicitacao.run({
+      id,
+      tipo: data.tipo,
+      titulo: data.titulo,
+      solicitante: data.solicitante,
+      posto_id: data.posto_id || null,
+      posto_nome: data.posto_nome || null,
+      turno: data.turno || 'Diurno',
+      quantidade: data.quantidade ? parseInt(data.quantidade, 10) : null,
+      prazo: data.prazo,
+      prioridade: data.prioridade || 'normal',
+      coluna: data.coluna || 'pendente',
+      descricao: data.descricao || ''
+    });
+    return stmts.getSolicitacaoById.get(id);
+  },
+  atualizarSolicitacao: (id, data) => {
+    const cur = stmts.getSolicitacaoById.get(id);
+    if (!cur) return null;
+    stmts.updateSolicitacao.run({
+      id,
+      tipo: data.tipo !== undefined ? data.tipo : cur.tipo,
+      titulo: data.titulo !== undefined ? data.titulo : cur.titulo,
+      solicitante: data.solicitante !== undefined ? data.solicitante : cur.solicitante,
+      posto_id: data.posto_id !== undefined ? data.posto_id : cur.posto_id,
+      posto_nome: data.posto_nome !== undefined ? data.posto_nome : cur.posto_nome,
+      turno: data.turno !== undefined ? data.turno : cur.turno,
+      quantidade: data.quantidade !== undefined ? (data.quantidade ? parseInt(data.quantidade, 10) : null) : cur.quantidade,
+      prazo: data.prazo !== undefined ? data.prazo : cur.prazo,
+      prioridade: data.prioridade !== undefined ? data.prioridade : cur.prioridade,
+      coluna: data.coluna !== undefined ? data.coluna : cur.coluna,
+      descricao: data.descricao !== undefined ? data.descricao : cur.descricao
+    });
+    return stmts.getSolicitacaoById.get(id);
+  },
+  moverSolicitacaoColuna: (id, coluna) => {
+    stmts.updateSolicitacaoColuna.run(coluna, id);
+    return stmts.getSolicitacaoById.get(id);
+  },
+  excluirSolicitacao: (id) => stmts.deleteSolicitacao.run(id)
 };
 

@@ -156,6 +156,67 @@ async function handleApi(req, res, pathname, method) {
     }
 
     // -------------------------------------------------------
+    // SOLICITAÇÕES OPERACIONAIS (INTEGRAÇÃO QUADRO + EFETIVO)
+    // -------------------------------------------------------
+    if (pathname === '/api/solicitacoes' && method === 'GET') {
+      sendJson(res, 200, database.getAllSolicitacoes());
+      return;
+    }
+
+    if (pathname === '/api/server-info' && method === 'GET') {
+      const os = require('os');
+      const nets = os.networkInterfaces();
+      let localIp = 'localhost';
+      for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+          if (net.family === 'IPv4' && !net.internal && !net.address.startsWith('169.254')) {
+            localIp = net.address;
+            break;
+          }
+        }
+        if (localIp !== 'localhost') break;
+      }
+      sendJson(res, 200, { localIp, port: PORT });
+      return;
+    }
+
+    if (pathname === '/api/solicitacoes' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.tipo || !body.titulo || !body.solicitante || !body.prazo) {
+        return sendError(res, 400, 'Campos obrigatórios: tipo, titulo, solicitante, prazo');
+      }
+      const nova = database.criarSolicitacao(body);
+      sendJson(res, 201, nova);
+      return;
+    }
+
+    const solicColMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)\/coluna$/);
+    if (solicColMatch && method === 'PUT') {
+      const id = decodeURIComponent(solicColMatch[1]);
+      const body = await parseBody(req);
+      if (!body.coluna) return sendError(res, 400, 'Campo "coluna" obrigatório');
+      const updated = database.moverSolicitacaoColuna(id, body.coluna);
+      sendJson(res, 200, updated);
+      return;
+    }
+
+    const solicMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)$/);
+    if (solicMatch && method === 'PUT') {
+      const id = decodeURIComponent(solicMatch[1]);
+      const body = await parseBody(req);
+      const updated = database.atualizarSolicitacao(id, body);
+      sendJson(res, 200, updated);
+      return;
+    }
+
+    if (solicMatch && method === 'DELETE') {
+      const id = decodeURIComponent(solicMatch[1]);
+      database.excluirSolicitacao(id);
+      sendJson(res, 200, { success: true });
+      return;
+    }
+
+    // -------------------------------------------------------
     // POSTOS
     // -------------------------------------------------------
     if (pathname === '/api/postos' && method === 'GET') {
