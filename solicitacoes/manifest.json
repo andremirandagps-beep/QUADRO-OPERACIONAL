@@ -1,0 +1,43 @@
+{
+  "name": "Grupo GPS - Operações & Solicitações",
+  "short_name": "GPS Operações",
+  "description": "Sistema de Solicitações de Apoio e Quadro Operacional do Grupo GPS",
+  "start_url": "/solicitar.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo-gps.png",
+      "sizes": "192x192 250x225 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Fazer Solicitação",
+      "short_name": "Solicitar",
+      "description": "Criar nova solicitação de apoio operacional",
+      "url": "/solicitar.html",
+      "icons": [{ "src": "/logo-gps.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Painel de Solicitações",
+      "short_name": "Painel",
+      "description": "Acompanhamento e aprovação de solicitações",
+      "url": "/solicitacoes.html",
+      "icons": [{ "src": "/logo-gps.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Quadro de Postos",
+      "short_name": "Quadro",
+      "description": "Quadro Operacional de Postos e Crachás",
+      "url": "/index.html",
+      "icons": [{ "src": "/logo-gps.png", "sizes": "192x192" }]
+    }
+  ]
+}
+

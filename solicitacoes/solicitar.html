@@ -2,8 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>GRUPO GPS — Solicitação de Apoio Operacional</title>
+<meta name="theme-color" content="#1e3a8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GPS Operações">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="logo-gps.png">
 <link rel="icon" type="image/png" href="logo-gps.png">
 <link rel="stylesheet" href="styles.css">
 <style>
@@ -233,6 +240,11 @@
       <img src="logo-gps.png" alt="Logo Grupo GPS">
       <h1>Solicitação de Efetivo & Apoio Operacional</h1>
       <p>Canal oficial para envio de necessidades do posto de trabalho</p>
+      <div id="boxPwaInstall" style="margin-top: 14px;">
+        <button id="btnPwaInstall" type="button" onclick="clicarInstalarApp()" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #fff; border: 1px solid #60a5fa; border-radius: 999px; padding: 7px 18px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.4);">
+          <span>📲</span> Instalar Aplicativo no Celular
+        </button>
+      </div>
     </div>
 
     <div class="card-gps-body" id="formArea">
@@ -754,7 +766,104 @@
       document.getElementById('formArea').style.display = 'none';
       document.getElementById('successBox').style.display = 'block';
     }
+
+    // ==========================================
+    // SUPORTE PWA / APLICATIVO NO CELULAR
+    // ==========================================
+    let deferredInstallPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const btn = document.getElementById('btnPwaInstall');
+      if (btn) {
+        btn.innerHTML = '<span>⚡</span> <strong>Instalar App no Celular</strong>';
+        btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        btn.style.borderColor = '#34d399';
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      const box = document.getElementById('boxPwaInstall');
+      if (box) box.innerHTML = '<span style="font-size:0.8rem; color:#34d399; font-weight:700;">✅ Aplicativo Instalado no Celular!</span>';
+    });
+
+    function clicarInstalarApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Usuário aceitou instalar o App Grupo GPS');
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        abrirModalComoInstalar();
+      }
+    }
+
+    function abrirModalComoInstalar() {
+      const m = document.getElementById('modalComoInstalar');
+      if (m) m.style.display = 'flex';
+    }
+
+    function fecharModalComoInstalar() {
+      const m = document.getElementById('modalComoInstalar');
+      if (m) m.style.display = 'none';
+    }
+
+    // Registra Service Worker se suportado
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
+      });
+    }
   </script>
+
+  <!-- MODAL DE INSTRUÇÃO DE INSTALAÇÃO NO CELULAR -->
+  <div id="modalComoInstalar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:99999; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(4px);" onclick="if(event.target===this) fecharModalComoInstalar()">
+    <div style="background:#1e293b; border:1px solid #334155; border-radius:16px; width:100%; max-width:480px; padding:22px; color:#f1f5f9; box-shadow:0 25px 50px rgba(0,0,0,0.7); max-height:90vh; overflow-y:auto;" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:12px; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:1.15rem; color:#fff; display:flex; align-items:center; gap:8px;">
+          <span>📲</span> Instalar Aplicativo no Celular
+        </h3>
+        <button onclick="fecharModalComoInstalar()" style="background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <p style="font-size:0.86rem; color:#cbd5e1; margin-top:0; line-height:1.5;">
+        Você pode instalar este sistema diretamente no seu celular para abrir como um aplicativo de verdade, em tela cheia e com o ícone do <strong>Grupo GPS</strong> na sua tela de início!
+      </p>
+
+      <!-- Instruções Android -->
+      <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:14px; margin-bottom:14px;">
+        <div style="font-weight:800; color:#60a5fa; font-size:0.92rem; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+          <span>🤖</span> No Celular Android (Google Chrome):
+        </div>
+        <ol style="margin:0; padding-left:20px; font-size:0.84rem; line-height:1.7; color:#e2e8f0;">
+          <li>Toque no menu de <strong>3 pontinhos (⋮)</strong> no canto superior direito do navegador.</li>
+          <li>Procure e toque em <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.</li>
+          <li>Confirme em <strong>"Instalar"</strong>. Pronto! O app fica salvo junto aos seus aplicativos.</li>
+        </ol>
+      </div>
+
+      <!-- Instruções iPhone -->
+      <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:14px; margin-bottom:16px;">
+        <div style="font-weight:800; color:#a78bfa; font-size:0.92rem; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+          <span>🍎</span> No iPhone (Safari):
+        </div>
+        <ol style="margin:0; padding-left:20px; font-size:0.84rem; line-height:1.7; color:#e2e8f0;">
+          <li>Toque no botão de <strong>Compartilhar</strong> (o quadrado com uma seta para cima <strong>⬆️</strong> no rodapé).</li>
+          <li>Role as opções e toque em <strong>"Adicionar à Tela de Início"</strong>.</li>
+          <li>Toque em <strong>"Adicionar"</strong> no topo direito. Pronto! O app do GPS estará na sua tela de apps.</li>
+        </ol>
+      </div>
+
+      <button onclick="fecharModalComoInstalar()" style="width:100%; padding:10px; background:#3b82f6; color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer;">
+        Entendi
+      </button>
+    </div>
+  </div>
 </body>
 </html>
 

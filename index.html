@@ -2,8 +2,15 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GRUPO GPS - Quadro Operacional de Postos de Trabalho</title>
+  <meta name="theme-color" content="#1e3a8a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GPS Operações">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="logo-gps.png">
   <link rel="icon" type="image/png" href="logo-gps.png">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -636,6 +643,13 @@
   <!-- Embedded Initial Data and Main Script -->
   <script src="data.js"></script>
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
+      });
+    }
+  </script>
 </body>
 </html>
 

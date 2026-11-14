@@ -2,8 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>GRUPO GPS — Solicitações de Efetivo & Apoio Operacional</title>
+<meta name="theme-color" content="#1e3a8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GPS Operações">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="logo-gps.png">
 <link rel="icon" type="image/png" href="logo-gps.png">
 <link rel="stylesheet" href="styles.css">
 <style>
@@ -897,6 +904,18 @@
         <div id="avisoFirewall" style="display:none; margin-top:14px; padding:10px 14px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; font-size:0.78rem; color:#fca5a5; line-height:1.5;">
           ⚠️ <strong>Celular não consegue abrir o link?</strong><br>
           Execute o arquivo <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:3px;">LIBERAR_CELULAR_ADMIN.bat</code> como <strong>Administrador</strong> na pasta do projeto para liberar o firewall.
+        </div>
+
+        <!-- Card de Instalação como App no Celular -->
+        <div style="background: linear-gradient(135deg, rgba(30,58,138,0.25) 0%, rgba(15,23,42,0.6) 100%); border: 1px solid #3b82f6; border-radius: 10px; padding: 12px 14px; margin-top: 14px;">
+          <div style="font-size: 0.82rem; font-weight: 800; color: #60a5fa; display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <span>📲</span> Como Baixar / Instalar como Aplicativo no Celular:
+          </div>
+          <div style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.5;">
+            • <strong>Android (Chrome)</strong>: Abra o link, toque nos <strong>3 pontinhos (⋮)</strong> e escolha <strong>"Instalar aplicativo"</strong>.<br>
+            • <strong>iPhone (Safari)</strong>: Abra o link, toque no botão de <strong>Compartilhar (⬆️)</strong> e selecione <strong>"Adicionar à Tela de Início"</strong>.<br>
+            <em>O app fica salvo na tela inicial com o ícone do Grupo GPS e abre em tela cheia como um aplicativo oficial!</em>
+          </div>
         </div>
 
         <p style="font-size: 0.75rem; color: #475569; margin-top: 14px; margin-bottom: 0;">
@@ -2254,6 +2273,12 @@
 
     function escapeHtml(str) {
       return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW fail:', err));
+      });
     }
   </script>
 </body>
