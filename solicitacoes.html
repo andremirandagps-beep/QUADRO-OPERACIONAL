@@ -647,9 +647,16 @@
 
         <div class="f-row">
           <div class="f-group">
-            <label>Data Limite / Prazo *</label>
+            <label>Data da Solicitação *</label>
+            <input type="date" id="fDataSolicitacao">
+          </div>
+          <div class="f-group">
+            <label>Data Prevista de Entrega (Prazo Automático: 8 dias) *</label>
             <input type="date" id="fPrazo">
           </div>
+        </div>
+
+        <div class="f-row">
           <div class="f-group">
             <label>Quantidade / Efetivo</label>
             <input type="number" id="fQuantidade" placeholder="Ex: 4" min="1">
@@ -754,8 +761,22 @@
       if (sol) sol.value = '';
       const cargo = document.getElementById('fCargo');
       if (cargo) cargo.value = '';
+
+      // Regra de 8 dias corridos
+      const hoje = new Date();
+      const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+      const fDataSol = document.getElementById('fDataSolicitacao');
+      if (fDataSol) {
+        fDataSol.value = hojeISO;
+      }
+
       const prz = document.getElementById('fPrazo');
-      if (prz) prz.value = '';
+      if (prz) {
+        const d8 = new Date(hoje);
+        d8.setDate(d8.getDate() + 8);
+        prz.value = `${d8.getFullYear()}-${String(d8.getMonth() + 1).padStart(2, '0')}-${String(d8.getDate()).padStart(2, '0')}`;
+      }
+
       const qtd = document.getElementById('fQuantidade');
       if (qtd) qtd.value = '';
       const dsc = document.getElementById('fDescricao');
@@ -1116,8 +1137,8 @@
       if (sol.coluna === 'concluido') return 'cinza';
       const dias = diasRestantes(sol.prazo);
       if (dias === null) return 'cinza';
-      if (dias <= 10) return 'vermelho';
-      if (dias <= 20) return 'amarelo';
+      if (dias <= 2) return 'vermelho';
+      if (dias <= 4) return 'amarelo';
       return 'verde';
     }
 
@@ -1128,8 +1149,8 @@
       if (dias < 0) return { txt: `🚨 Vencido há ${Math.abs(dias)} dias`, cls: 'prazo-vermelho' };
       if (dias === 0) return { txt: '🔴 VENCE HOJE', cls: 'prazo-vermelho' };
       if (dias === 1) return { txt: '🔴 Vence amanhã', cls: 'prazo-vermelho' };
-      if (dias <= 10) return { txt: `🔴 Vence em ${dias} dias`, cls: 'prazo-vermelho' };
-      if (dias <= 20) return { txt: `🟡 Vence em ${dias} dias`, cls: 'prazo-amarelo' };
+      if (dias <= 2) return { txt: `🔴 Crítico (${dias} dias)`, cls: 'prazo-vermelho' };
+      if (dias <= 4) return { txt: `🟡 Atenção (${dias} dias)`, cls: 'prazo-amarelo' };
       return { txt: `🟢 Em dia (${dias} dias)`, cls: 'prazo-verde' };
     }
 
@@ -1182,7 +1203,7 @@
       if (stats.vermelho > 0) {
         alertBar.classList.add('active');
         document.getElementById('alertBarLiveText').textContent =
-          `ATENÇÃO: Existem ${stats.vermelho} solicitação(ões) em prazo crítico (≤ 10 dias ou vencidas) necessitando de ação!`;
+          `ATENÇÃO: Existem ${stats.vermelho} solicitação(ões) em prazo crítico (≤ 2 dias ou vencidas) necessitando de ação!`;
       } else {
         alertBar.classList.remove('active');
       }
@@ -1205,6 +1226,14 @@
       };
       const nav = colMoves[sol.coluna] || {};
 
+      let dataSolHtml = '';
+      if (sol.data_solicitacao) {
+        const dtFormatada = new Date(sol.data_solicitacao + 'T00:00:00').toLocaleDateString('pt-BR');
+        dataSolHtml = `<div class="card-info-row" style="font-size:0.77rem;color:#94a3b8;">📅 Solicitado: <strong>${dtFormatada}</strong> &bull; Prazo: 8 dias</div>`;
+      }
+
+      const dataPrevistaEntregaStr = sol.prazo ? new Date(sol.prazo + 'T00:00:00').toLocaleDateString('pt-BR') : '';
+
       card.innerHTML = `
         <div class="card-top">
           <div class="card-id-cat">${sol.id} &bull; ${tInfo.icon} ${tInfo.label}</div>
@@ -1214,7 +1243,8 @@
         <div class="card-posto-tag">📍 ${escapeHtml(sol.posto_nome || 'Posto não especificado')}</div>
         <div class="card-info-row">👮 <strong>${escapeHtml(sol.solicitante)}</strong> ${sol.turno ? `(${escapeHtml(sol.turno)})` : ''}</div>
         ${sol.quantidade ? `<div class="card-info-row">🔢 Quantidade/Efetivo: <strong>${sol.quantidade}</strong></div>` : ''}
-        <div class="card-prazo-tag ${prazoFmt.cls}">📅 ${prazoFmt.txt}</div>
+        ${dataSolHtml}
+        <div class="card-prazo-tag ${prazoFmt.cls}">📦 Entrega: <strong>${dataPrevistaEntregaStr}</strong> (${prazoFmt.txt})</div>
         <div class="card-btns">
           ${nav.prev ? `<button class="btn-k-action" onclick="moverColuna('${sol.id}', '${nav.prev}')">${nav.prevTxt}</button>` : ''}
           ${nav.next ? `<button class="btn-k-action" onclick="moverColuna('${sol.id}', '${nav.next}')">${nav.nextTxt}</button>` : ''}
@@ -1352,6 +1382,22 @@
 
       const btnCopiar = document.getElementById('btnCopiarLink');
       if (btnCopiar) btnCopiar.onclick = copiarLinkPostos;
+
+      // Evento de alteração da Data da Solicitação para calcular prazo automático de 8 dias
+      const fDataSol = document.getElementById('fDataSolicitacao');
+      const fPrazoInput = document.getElementById('fPrazo');
+      if (fDataSol && fPrazoInput) {
+        fDataSol.addEventListener('change', () => {
+          if (!fDataSol.value) return;
+          const [a, m, d] = fDataSol.value.split('-').map(Number);
+          const dt = new Date(a, m - 1, d);
+          dt.setDate(dt.getDate() + 8);
+          const y = dt.getFullYear();
+          const mon = String(dt.getMonth() + 1).padStart(2, '0');
+          const dia = String(dt.getDate()).padStart(2, '0');
+          fPrazoInput.value = `${y}-${mon}-${dia}`;
+        });
+      }
     }
 
     async function salvarNovaSolicitacao() {
@@ -1362,6 +1408,7 @@
       const postoId = document.getElementById('fPosto').value;
       const turno = document.getElementById('fTurno').value;
       const prioridade = document.getElementById('fPrioridade').value;
+      const dataSolicitacao = document.getElementById('fDataSolicitacao') ? document.getElementById('fDataSolicitacao').value : '';
       const prazo = document.getElementById('fPrazo').value;
       const quantidade = document.getElementById('fQuantidade').value;
       const descricao = document.getElementById('fDescricao').value.trim();
@@ -1385,6 +1432,7 @@
         posto_nome: postoNome,
         turno,
         prioridade,
+        data_solicitacao: dataSolicitacao || null,
         prazo,
         quantidade: quantidade ? parseInt(quantidade, 10) : null,
         descricao,

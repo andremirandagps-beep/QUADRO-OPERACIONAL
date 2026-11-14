@@ -169,6 +169,29 @@
 
       <!-- ETAPA 1: O que você precisa? -->
       <div class="form-section active" id="sec1">
+        <!-- BLOCO DA NOVA REGRA: DATA DA SOLICITAÇÃO + PRAZO AUTOMÁTICO 8 DIAS -->
+        <div style="background: #f8fafc; border: 2px solid #2563eb; border-radius: var(--radius); padding: 16px; margin-bottom: 20px;">
+          <div style="font-size: 0.78rem; font-weight: 800; color: #1d4ed8; text-transform: uppercase; margin-bottom: 10px;">
+            📅 Requisito Operacional de Atendimento
+          </div>
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label style="color: #1e3a8a; font-weight: 800;">DATA DA SOLICITAÇÃO <span class="required">*</span></label>
+            <input type="date" id="colDataSolicitacao" style="font-size: 1rem; font-weight: 700;">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <div style="background: #fff; border: 1px solid var(--borda); border-radius: var(--radius-sm); padding: 10px;">
+              <div style="font-size: 0.72rem; font-weight: 800; color: var(--texto2); text-transform: uppercase;">PRAZO AUTOMÁTICO</div>
+              <div style="font-size: 1.15rem; font-weight: 800; color: #1e293b;">8 dias corridos</div>
+              <div style="font-size: 0.7rem; color: #64748b;">Inclui sábados, domingos e feriados</div>
+            </div>
+            <div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: var(--radius-sm); padding: 10px;">
+              <div style="font-size: 0.72rem; font-weight: 800; color: #047857; text-transform: uppercase;">DATA PREVISTA DE ENTREGA</div>
+              <div style="font-size: 1.25rem; font-weight: 900; color: #059669;" id="colDataEntregaTexto">--/--/----</div>
+              <div style="font-size: 0.7rem; color: #065f46;">Calculado automaticamente</div>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Qual o tipo de necessidade? <span class="required">*</span></label>
           <div class="tipo-grid-collab" id="tipoGridCollab">
@@ -228,15 +251,17 @@
           <input type="text" id="colTitulo" placeholder="Ex: Marmitas do plantão ou Baterias para rádio">
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label>Prazo Limite Necessário <span class="required">*</span></label>
-            <input type="date" id="colPrazo">
+        <div style="background: #ecfdf5; border: 1px solid #10b981; border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 0.72rem; font-weight: 800; color: #047857; text-transform: uppercase;">Prazo Automático de 8 Dias Corridos</div>
+            <div style="font-size: 1rem; font-weight: 800; color: #065f46;">Entrega prevista: <span id="colResumoEntrega">--/--/----</span></div>
           </div>
-          <div class="form-group">
-            <label>Quantidade / Efetivo</label>
-            <input type="number" id="colQtd" placeholder="Ex: 4" min="1">
-          </div>
+          <span style="font-size: 1.6rem;">⏱️</span>
+        </div>
+
+        <div class="form-group">
+          <label>Quantidade / Efetivo</label>
+          <input type="number" id="colQtd" placeholder="Ex: 4" min="1">
         </div>
 
         <div class="form-group">
@@ -294,6 +319,66 @@
 let etapaAtual = 1;
 const totalEtapas = 3;
 
+function formatarDataBR(isoStr) {
+  if (!isoStr) return '--/--/----';
+  const partes = isoStr.split('-');
+  if (partes.length !== 3) return isoStr;
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function somarDiasCorridos(dataIsoStr, diasParaSomar = 8) {
+  if (!dataIsoStr) return { iso: '', formatada: '--/--/----' };
+  const [anoStr, mesStr, diaStr] = dataIsoStr.split('-');
+  const ano = parseInt(anoStr, 10);
+  const mes = parseInt(mesStr, 10) - 1;
+  const dia = parseInt(diaStr, 10);
+
+  const d = new Date(ano, mes, dia);
+  d.setDate(d.getDate() + diasParaSomar);
+
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dt = String(d.getDate()).padStart(2, '0');
+
+  return {
+    iso: `${y}-${m}-${dt}`,
+    formatada: `${dt}/${m}/${y}`
+  };
+}
+
+let dataEntregaPrevistaISO = '';
+let dataEntregaPrevistaFormatada = '';
+
+function atualizarCalculoPrazo() {
+  const campo = document.getElementById('colDataSolicitacao');
+  const dataSol = campo ? campo.value : '';
+  if (!dataSol) {
+    document.getElementById('colDataEntregaTexto').textContent = '--/--/----';
+    const res = document.getElementById('colResumoEntrega');
+    if (res) res.textContent = '--/--/----';
+    dataEntregaPrevistaISO = '';
+    dataEntregaPrevistaFormatada = '';
+    return;
+  }
+  const r = somarDiasCorridos(dataSol, 8);
+  dataEntregaPrevistaISO = r.iso;
+  dataEntregaPrevistaFormatada = r.formatada;
+
+  document.getElementById('colDataEntregaTexto').textContent = r.formatada;
+  const res = document.getElementById('colResumoEntrega');
+  if (res) res.textContent = r.formatada;
+}
+
+const inputDataSol = document.getElementById('colDataSolicitacao');
+if (inputDataSol) {
+  const hoje = new Date();
+  const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+  inputDataSol.value = hojeISO;
+  inputDataSol.addEventListener('input', atualizarCalculoPrazo);
+  inputDataSol.addEventListener('change', atualizarCalculoPrazo);
+  atualizarCalculoPrazo();
+}
+
 document.querySelectorAll('.tipo-chip-collab').forEach(chip => {
   chip.addEventListener('click', () => {
     document.querySelectorAll('.tipo-chip-collab').forEach(c => c.classList.remove('selected'));
@@ -303,6 +388,9 @@ document.querySelectorAll('.tipo-chip-collab').forEach(chip => {
 });
 
 document.getElementById('btnNext1').addEventListener('click', () => {
+  if (!document.getElementById('colDataSolicitacao').value) {
+    toast('Informe a data da solicitação', 'error'); return;
+  }
   if (!document.getElementById('tipoCol').value) {
     toast('Selecione a necessidade', 'error'); return;
   }
@@ -319,9 +407,6 @@ document.getElementById('btnPrev2').addEventListener('click', () => irPara(1));
 document.getElementById('btnNext2').addEventListener('click', () => {
   if (!document.getElementById('colTitulo').value.trim()) {
     toast('Preencha o resumo da demanda', 'error'); return;
-  }
-  if (!document.getElementById('colPrazo').value) {
-    toast('Informe a data limite', 'error'); return;
   }
   renderReview();
   irPara(3);
@@ -357,24 +442,27 @@ function renderReview() {
   const tInfo = TIPOS_SEGURANCA[document.getElementById('tipoCol').value] || { nome: 'Outro', icon: '📦' };
   const prioMap = { baixa:'🔵 Baixa', normal:'🟡 Normal', alta:'🔴 Alta', urgente:'🚨 Urgente' };
 
+  const dataSol = document.getElementById('colDataSolicitacao').value;
+  const dataSolFmt = formatarDataBR(dataSol);
+  const dataEntregaFmt = dataEntregaPrevistaFormatada || formatarDataBR(somarDiasCorridos(dataSol, 8).iso);
+
   const nome   = document.getElementById('colNome').value;
   const posto  = document.getElementById('colPosto').value;
   const turno  = document.getElementById('colTurno').value;
   const titulo = document.getElementById('colTitulo').value;
-  const prazo  = document.getElementById('colPrazo').value;
   const qtd    = document.getElementById('colQtd').value;
   const prio   = document.getElementById('colPrioridade').value;
   const desc   = document.getElementById('colDescricao').value;
 
-  let prazoStr = prazo ? new Date(prazo+'T00:00:00').toLocaleDateString('pt-BR') : '—';
-
   document.getElementById('reviewContent').innerHTML = `
     <div style="border:2px solid var(--borda);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px">
+      <div class="review-row"><span class="review-label">Data da Solicitação</span><span class="review-val">📅 ${dataSolFmt}</span></div>
+      <div class="review-row"><span class="review-label">Prazo Automático</span><span class="review-val">8 dias corridos</span></div>
+      <div class="review-row"><span class="review-label">Data Prevista de Entrega</span><span class="review-val" style="color:#16a34a;font-weight:800">📦 ${dataEntregaFmt}</span></div>
       <div class="review-row"><span class="review-label">Categoria</span><span class="review-val">${tInfo.icon} ${tInfo.nome}</span></div>
       <div class="review-row"><span class="review-label">Solicitante</span><span class="review-val">${esc(nome)}</span></div>
       <div class="review-row"><span class="review-label">Posto / Turno</span><span class="review-val">${esc(posto)} (${esc(turno)})</span></div>
       <div class="review-row"><span class="review-label">Resumo</span><span class="review-val">${esc(titulo)}</span></div>
-      <div class="review-row"><span class="review-label">Prazo</span><span class="review-val">${prazoStr}</span></div>
       ${qtd ? `<div class="review-row"><span class="review-label">Quantidade / Efetivo</span><span class="review-val">${qtd}</span></div>` : ''}
       <div class="review-row"><span class="review-label">Urgência</span><span class="review-val">${prioMap[prio]||prio}</span></div>
       ${desc ? `<div class="review-row"><span class="review-label">Justificativa</span><span class="review-val" style="white-space:pre-line">${esc(desc)}</span></div>` : ''}
@@ -383,17 +471,21 @@ function renderReview() {
 }
 
 function enviar() {
+  const dataSol = document.getElementById('colDataSolicitacao').value;
+  const dataEntrega = dataEntregaPrevistaISO || somarDiasCorridos(dataSol, 8).iso;
+
   const sol = criar({
-    tipo:        document.getElementById('tipoCol').value,
-    solicitante: document.getElementById('colNome').value.trim(),
-    posto:       document.getElementById('colPosto').value.trim(),
-    turno:       document.getElementById('colTurno').value,
-    titulo:      document.getElementById('colTitulo').value.trim(),
-    prazo:       document.getElementById('colPrazo').value,
-    quantidade:  document.getElementById('colQtd').value,
-    prioridade:  document.getElementById('colPrioridade').value,
-    descricao:   document.getElementById('colDescricao').value.trim(),
-    coluna:      'pendente',
+    tipo:             document.getElementById('tipoCol').value,
+    solicitante:      document.getElementById('colNome').value.trim(),
+    posto:            document.getElementById('colPosto').value.trim(),
+    turno:            document.getElementById('colTurno').value,
+    titulo:           document.getElementById('colTitulo').value.trim(),
+    data_solicitacao: dataSol,
+    prazo:            dataEntrega,
+    quantidade:       document.getElementById('colQtd').value,
+    prioridade:       document.getElementById('colPrioridade').value,
+    descricao:        document.getElementById('colDescricao').value.trim(),
+    coluna:           'pendente',
   });
 
   document.getElementById('protocolBox').textContent = `PROTOCOLO: ${sol.id}`;
@@ -406,10 +498,15 @@ function resetar() {
   document.getElementById('successScreen').style.display = 'none';
   document.getElementById('tipoCol').value = '';
   document.querySelectorAll('.tipo-chip-collab').forEach(c => c.classList.remove('selected'));
-  ['colNome','colPosto','colTitulo','colPrazo','colQtd','colDescricao'].forEach(id => {
+  ['colNome','colPosto','colTitulo','colQtd','colDescricao'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('colPrioridade').value = 'normal';
+  if (inputDataSol) {
+    const hoje = new Date();
+    inputDataSol.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+    atualizarCalculoPrazo();
+  }
   irPara(1);
 }
 

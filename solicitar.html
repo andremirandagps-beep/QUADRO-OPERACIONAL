@@ -152,6 +152,78 @@
     margin: 18px 0;
     letter-spacing: 1px;
   }
+
+  /* Bloco de Data da Solicitação & Prazo Automático (Regra dos 8 dias corridos) */
+  .box-regra-prazo {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 2px solid #3b82f6;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+  .box-regra-prazo .titulo-regra {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #93c5fd;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.25);
+  }
+  .grid-prazo-auto {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  @media (max-width: 500px) {
+    .grid-prazo-auto { grid-template-columns: 1fr; }
+  }
+  .card-prazo-info {
+    background: #0b1329;
+    border: 1px solid #1e3a8a;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .card-prazo-info.destaque-entrega {
+    background: linear-gradient(135deg, rgba(6, 78, 59, 0.6) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border: 2px solid #10b981;
+    box-shadow: 0 0 18px rgba(16, 185, 129, 0.2);
+  }
+  .lbl-prazo-info {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .card-prazo-info.destaque-entrega .lbl-prazo-info {
+    color: #6ee7b7;
+  }
+  .val-prazo-info {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #f1f5f9;
+  }
+  .card-prazo-info.destaque-entrega .val-prazo-info {
+    color: #34d399;
+    font-size: 1.45rem;
+  }
+  .sub-prazo-info {
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+  .card-prazo-info.destaque-entrega .sub-prazo-info {
+    color: #a7f3d0;
+  }
 </style>
 </head>
 <body>
@@ -175,6 +247,32 @@
 
       <!-- Etapa 1 -->
       <div class="etapa-area active" id="etapa1">
+        <!-- BLOCO DA NOVA REGRA: DATA DA SOLICITAÇÃO + PRAZO AUTOMÁTICO 8 DIAS -->
+        <div class="box-regra-prazo">
+          <div class="titulo-regra">
+            <span>📅</span> REQUISITO OPERACIONAL DE ATENDIMENTO
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="color: #93c5fd; font-size: 0.88rem; font-weight: 800; letter-spacing: 0.5px;">DATA DA SOLICITAÇÃO *</label>
+            <input type="date" id="pDataSolicitacao" required style="font-size: 1.05rem; font-weight: 700; color: #fff; background: #0b1329; border: 2px solid #3b82f6;">
+          </div>
+
+          <div class="grid-prazo-auto">
+            <div class="card-prazo-info">
+              <span class="lbl-prazo-info">PRAZO AUTOMÁTICO</span>
+              <span class="val-prazo-info">8 dias corridos</span>
+              <span class="sub-prazo-info">Contabiliza sábados, domingos e feriados</span>
+            </div>
+
+            <div class="card-prazo-info destaque-entrega">
+              <span class="lbl-prazo-info">DATA PREVISTA DE ENTREGA</span>
+              <span class="val-prazo-info" id="pDataEntregaTexto">--/--/----</span>
+              <span class="sub-prazo-info" id="pDataEntregaSub">Calculado automaticamente pelo sistema</span>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Qual a categoria da solicitação? *</label>
           <div class="chips-grid">
@@ -233,9 +331,14 @@
           <input type="text" id="pTitulo" placeholder="Ex: Refeições para plantão noturno ou 2 baterias de rádio">
         </div>
 
-        <div class="form-group">
-          <label>Prazo Limite para Atendimento *</label>
-          <input type="date" id="pPrazo">
+        <!-- Alerta informativo do prazo calculado de 8 dias corridos -->
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 0.72rem; font-weight: 800; color: #6ee7b7; text-transform: uppercase; letter-spacing: 0.5px;">Prazo Automático: 8 Dias Corridos</div>
+            <div style="font-size: 1.05rem; font-weight: 800; color: #34d399; margin-top: 2px;">Data Prevista de Entrega: <span id="pResumoEntrega">--/--/----</span></div>
+            <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Calculada a partir da Data da Solicitação (inclui sábados, domingos e feriados)</div>
+          </div>
+          <span style="font-size: 2rem;">⏱️</span>
         </div>
 
         <div class="form-group">
@@ -284,6 +387,13 @@
         Sua demanda já caiu no Quadro Operacional da Supervisão.
       </p>
       <div class="proto-tag" id="protoTag">PROTOCOLO: SEG-0000</div>
+      
+      <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 10px; padding: 14px 18px; margin: 16px 0 20px; text-align: center;">
+        <div style="font-size: 0.76rem; font-weight: 800; color: #6ee7b7; text-transform: uppercase; letter-spacing: 0.6px;">Previsão de Atendimento</div>
+        <div style="font-size: 1.35rem; font-weight: 900; color: #34d399; margin: 4px 0;" id="protoDataTxt">--/--/----</div>
+        <div style="font-size: 0.78rem; color: #cbd5e1;">Prazo calculado de <strong>8 dias corridos</strong> (inclui sábados, domingos e feriados)</div>
+      </div>
+
       <p style="font-size: 0.8rem; color: #64748b;">Guarde este número para acompanhamento no posto.</p>
       <button class="btn-step next" style="max-width: 200px; margin: 18px auto 0;" onclick="location.reload()">+ Nova Solicitação</button>
     </div>
@@ -380,11 +490,82 @@
       if (valAtual) sel.value = valAtual;
     }
 
-    document.addEventListener('DOMContentLoaded', async () => {
+    // ========================================================
+    // REGRA DO SISTEMA: PRAZO AUTOMÁTICO DE 8 DIAS CORRIDOS
+    // ========================================================
+    function formatarDataBR(isoStr) {
+      if (!isoStr) return '--/--/----';
+      const partes = isoStr.split('-');
+      if (partes.length !== 3) return isoStr;
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    function somarDiasCorridos(dataIsoStr, diasParaSomar = 8) {
+      if (!dataIsoStr) return { iso: '', formatada: '--/--/----' };
+      const [anoStr, mesStr, diaStr] = dataIsoStr.split('-');
+      const ano = parseInt(anoStr, 10);
+      const mes = parseInt(mesStr, 10) - 1;
+      const dia = parseInt(diaStr, 10);
+
+      // Instanciação local para preservação do dia do calendário
+      const d = new Date(ano, mes, dia);
+      d.setDate(d.getDate() + diasParaSomar);
+
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dt = String(d.getDate()).padStart(2, '0');
+
+      return {
+        iso: `${y}-${m}-${dt}`,
+        formatada: `${dt}/${m}/${y}`
+      };
+    }
+
+    let dataEntregaPrevistaISO = '';
+    let dataEntregaPrevistaFormatada = '';
+
+    function atualizarCalculoPrazo() {
+      const campo = document.getElementById('pDataSolicitacao');
+      const dataSol = campo ? campo.value : '';
+      if (!dataSol) {
+        const txtEl = document.getElementById('pDataEntregaTexto');
+        if (txtEl) txtEl.textContent = '--/--/----';
+        const resumo = document.getElementById('pResumoEntrega');
+        if (resumo) resumo.textContent = '--/--/----';
+        dataEntregaPrevistaISO = '';
+        dataEntregaPrevistaFormatada = '';
+        return;
+      }
+
+      const res = somarDiasCorridos(dataSol, 8);
+      dataEntregaPrevistaISO = res.iso;
+      dataEntregaPrevistaFormatada = res.formatada;
+
+      const txtEl = document.getElementById('pDataEntregaTexto');
+      if (txtEl) txtEl.textContent = res.formatada;
+
+      const resumo = document.getElementById('pResumoEntrega');
+      if (resumo) resumo.textContent = res.formatada;
+    }
+
+    async function inicializarApp() {
       // 1. Popula os postos imediatamente (sem depender de servidor)
       renderizarSelectPostos(postos);
 
-      // 2. Se a API estiver ativa, atualiza com postos do banco
+      // 2. Inicializar Data da Solicitação com a data atual (padrão) e calcular os 8 dias
+      const inputDataSol = document.getElementById('pDataSolicitacao');
+      if (inputDataSol) {
+        if (!inputDataSol.value) {
+          const hoje = new Date();
+          const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+          inputDataSol.value = hojeISO;
+        }
+        inputDataSol.addEventListener('input', atualizarCalculoPrazo);
+        inputDataSol.addEventListener('change', atualizarCalculoPrazo);
+        atualizarCalculoPrazo();
+      }
+
+      // 3. Se a API estiver ativa, atualiza com postos do banco
       try {
         const res = await fetch('/api/postos');
         if (res.ok) {
@@ -398,36 +579,54 @@
         // Modo offline / servidor estático: já está com os 71 postos carregados
       }
 
-      // Configurar Seleção de Categoria
+      // 4. Configurar Seleção de Categoria (.chip-item)
       document.querySelectorAll('.chip-item').forEach(c => {
         c.addEventListener('click', () => {
           document.querySelectorAll('.chip-item').forEach(x => x.classList.remove('selected'));
           c.classList.add('selected');
-          document.getElementById('pTipo').value = c.dataset.val;
+          const inputTipo = document.getElementById('pTipo');
+          if (inputTipo) inputTipo.value = c.dataset.val;
         });
       });
 
-      // Wizard Nav
-      document.getElementById('btnNext1').onclick = () => {
-        if (!document.getElementById('pTipo').value) return alert('Selecione a categoria da solicitação');
-        if (!document.getElementById('pPosto').value) return alert('Selecione o posto de trabalho no seletor');
-        if (!document.getElementById('pCargo').value) return alert('Selecione o seu cargo no seletor');
-        const nome = document.getElementById('pNome').value.trim();
-        if (!nome) return alert('Digite o seu nome completo');
-        irPara(2);
-      };
+      // 5. Wizard Nav
+      const btnNext1 = document.getElementById('btnNext1');
+      if (btnNext1) {
+        btnNext1.onclick = () => {
+          if (!document.getElementById('pDataSolicitacao').value) return alert('Informe a data da solicitação');
+          if (!document.getElementById('pTipo').value) return alert('Selecione a categoria da solicitação');
+          if (!document.getElementById('pPosto').value) return alert('Selecione o posto de trabalho no seletor');
+          if (!document.getElementById('pCargo').value) return alert('Selecione o seu cargo no seletor');
+          const nome = document.getElementById('pNome').value.trim();
+          if (!nome) return alert('Digite o seu nome completo');
+          irPara(2);
+        };
+      }
 
-      document.getElementById('btnPrev2').onclick = () => irPara(1);
-      document.getElementById('btnNext2').onclick = () => {
-        if (!document.getElementById('pTitulo').value.trim()) return alert('Informe o resumo da solicitação');
-        if (!document.getElementById('pPrazo').value) return alert('Informe o prazo limite');
-        gerarRevisao();
-        irPara(3);
-      };
+      const btnPrev2 = document.getElementById('btnPrev2');
+      if (btnPrev2) btnPrev2.onclick = () => irPara(1);
 
-      document.getElementById('btnPrev3').onclick = () => irPara(2);
-      document.getElementById('btnEnviar').onclick = enviarDemanda;
-    });
+      const btnNext2 = document.getElementById('btnNext2');
+      if (btnNext2) {
+        btnNext2.onclick = () => {
+          if (!document.getElementById('pTitulo').value.trim()) return alert('Informe o resumo da solicitação');
+          gerarRevisao();
+          irPara(3);
+        };
+      }
+
+      const btnPrev3 = document.getElementById('btnPrev3');
+      if (btnPrev3) btnPrev3.onclick = () => irPara(2);
+
+      const btnEnviar = document.getElementById('btnEnviar');
+      if (btnEnviar) btnEnviar.onclick = enviarDemanda;
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', inicializarApp);
+    } else {
+      inicializarApp();
+    }
 
     function irPara(n) {
       for (let i = 1; i <= 3; i++) {
@@ -443,6 +642,10 @@
     }
 
     function gerarRevisao() {
+      const dataSol = document.getElementById('pDataSolicitacao').value;
+      const dataSolFmt = formatarDataBR(dataSol);
+      const dataEntregaFmt = dataEntregaPrevistaFormatada || formatarDataBR(somarDiasCorridos(dataSol, 8).iso);
+
       const tipo = document.getElementById('pTipo').value;
       const postoId = document.getElementById('pPosto').value;
       const postoObj = postos.find(p => p.id === postoId);
@@ -451,18 +654,23 @@
       const nome = document.getElementById('pNome').value.trim();
       const solicitante = cargo ? `${nome} (${cargo})` : nome;
       const titulo = document.getElementById('pTitulo').value;
-      const prazo = document.getElementById('pPrazo').value;
       const qtd = document.getElementById('pQtd').value;
       const prio = document.getElementById('pPrioridade').value;
       const desc = document.getElementById('pDescricao').value;
 
       document.getElementById('revContent').innerHTML = `
+        <div style="background: rgba(30, 58, 138, 0.4); border: 2px solid #3b82f6; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+          <div style="font-size: 0.92rem;"><strong>📅 Data da Solicitação:</strong> ${dataSolFmt}</div>
+          <div style="font-size: 0.92rem; margin: 3px 0;"><strong>⏱️ Prazo Automático:</strong> 8 dias corridos (contabiliza sábados, domingos e feriados)</div>
+          <div style="color: #34d399; font-weight: 900; font-size: 1.15rem; margin-top: 6px;">
+            <strong>📦 Data Prevista de Entrega:</strong> ${dataEntregaFmt}
+          </div>
+        </div>
         <div><strong>Categoria:</strong> ${tipo.toUpperCase()}</div>
         <div><strong>Posto:</strong> ${postoNome}</div>
         <div><strong>Cargo:</strong> ${cargo}</div>
         <div><strong>Solicitante:</strong> ${nome}</div>
         <div><strong>Resumo:</strong> ${titulo}</div>
-        <div><strong>Prazo Necessário:</strong> ${prazo ? new Date(prazo+'T00:00:00').toLocaleDateString('pt-BR') : '—'}</div>
         ${qtd ? `<div><strong>Quantidade/Efetivo:</strong> ${qtd}</div>` : ''}
         <div><strong>Prioridade:</strong> ${prio.toUpperCase()}</div>
         ${desc ? `<div><strong>Detalhes:</strong> ${desc}</div>` : ''}
@@ -470,6 +678,10 @@
     }
 
     async function enviarDemanda() {
+      const dataSol = document.getElementById('pDataSolicitacao').value;
+      const dataEntrega = dataEntregaPrevistaISO || somarDiasCorridos(dataSol, 8).iso;
+      const dataEntregaFmt = dataEntregaPrevistaFormatada || somarDiasCorridos(dataSol, 8).formatada;
+
       const postoId = document.getElementById('pPosto').value;
       const postoObj = postos.find(p => p.id === postoId);
       const postoNome = postoObj ? (postoObj.short_name || postoObj.name) : 'Posto Operacional';
@@ -484,7 +696,8 @@
         cargo: cargo,
         solicitante: solicitante,
         titulo: document.getElementById('pTitulo').value.trim(),
-        prazo: document.getElementById('pPrazo').value,
+        data_solicitacao: dataSol,
+        prazo: dataEntrega,
         quantidade: document.getElementById('pQtd').value ? parseInt(document.getElementById('pQtd').value, 10) : null,
         prioridade: document.getElementById('pPrioridade').value,
         descricao: document.getElementById('pDescricao').value.trim(),
@@ -511,6 +724,9 @@
       }
 
       document.getElementById('protoTag').textContent = `PROTOCOLO: ${protocolo}`;
+      const protoDataTxt = document.getElementById('protoDataTxt');
+      if (protoDataTxt) protoDataTxt.textContent = dataEntregaFmt;
+
       document.getElementById('formArea').style.display = 'none';
       document.getElementById('successBox').style.display = 'block';
     }

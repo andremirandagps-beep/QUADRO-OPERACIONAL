@@ -139,6 +139,9 @@ function initSchema() {
   if (!solicCols.includes('cargo')) {
     db.exec(`ALTER TABLE solicitacoes ADD COLUMN cargo TEXT`);
   }
+  if (!solicCols.includes('data_solicitacao')) {
+    db.exec(`ALTER TABLE solicitacoes ADD COLUMN data_solicitacao TEXT`);
+  }
 
   console.log('✅ Schema do banco de dados criado/verificado com sucesso.');
 }
@@ -284,14 +287,15 @@ function prepareStatements() {
       SELECT * FROM solicitacoes WHERE id = ?
     `),
     insertSolicitacao: db.prepare(`
-      INSERT INTO solicitacoes (id, tipo, titulo, solicitante, cargo, posto_id, posto_nome, turno, quantidade, prazo, prioridade, coluna, descricao)
-      VALUES (@id, @tipo, @titulo, @solicitante, @cargo, @posto_id, @posto_nome, @turno, @quantidade, @prazo, @prioridade, @coluna, @descricao)
+      INSERT INTO solicitacoes (id, tipo, titulo, solicitante, cargo, posto_id, posto_nome, turno, quantidade, prazo, data_solicitacao, prioridade, coluna, descricao)
+      VALUES (@id, @tipo, @titulo, @solicitante, @cargo, @posto_id, @posto_nome, @turno, @quantidade, @prazo, @data_solicitacao, @prioridade, @coluna, @descricao)
     `),
     updateSolicitacao: db.prepare(`
       UPDATE solicitacoes
       SET tipo = @tipo, titulo = @titulo, solicitante = @solicitante,
-          posto_id = @posto_id, posto_nome = @posto_nome, turno = @turno,
-          quantidade = @quantidade, prazo = @prazo, prioridade = @prioridade,
+          cargo = @cargo, posto_id = @posto_id, posto_nome = @posto_nome, turno = @turno,
+          quantidade = @quantidade, prazo = @prazo, data_solicitacao = @data_solicitacao,
+          prioridade = @prioridade,
           coluna = @coluna, descricao = @descricao,
           updated_at = datetime('now', 'localtime')
       WHERE id = @id
@@ -748,7 +752,7 @@ module.exports = {
   getAllSolicitacoes: () => stmts.getAllSolicitacoes.all(),
   getSolicitacaoById: (id) => stmts.getSolicitacaoById.get(id),
   criarSolicitacao: (data) => {
-    const id = data.id || `SEG-${Date.now().toString().slice(-4)}${Math.floor(Math.random()*90 + 10)}`;
+    const id = data.id || `SEG-${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 90 + 10)}`;
     stmts.insertSolicitacao.run({
       id,
       tipo: data.tipo,
@@ -760,6 +764,7 @@ module.exports = {
       turno: data.turno || 'Diurno',
       quantidade: data.quantidade ? parseInt(data.quantidade, 10) : null,
       prazo: data.prazo,
+      data_solicitacao: data.data_solicitacao || null,
       prioridade: data.prioridade || 'normal',
       coluna: data.coluna || 'pendente',
       descricao: data.descricao || ''
@@ -774,11 +779,13 @@ module.exports = {
       tipo: data.tipo !== undefined ? data.tipo : cur.tipo,
       titulo: data.titulo !== undefined ? data.titulo : cur.titulo,
       solicitante: data.solicitante !== undefined ? data.solicitante : cur.solicitante,
+      cargo: data.cargo !== undefined ? data.cargo : cur.cargo,
       posto_id: data.posto_id !== undefined ? data.posto_id : cur.posto_id,
       posto_nome: data.posto_nome !== undefined ? data.posto_nome : cur.posto_nome,
       turno: data.turno !== undefined ? data.turno : cur.turno,
       quantidade: data.quantidade !== undefined ? (data.quantidade ? parseInt(data.quantidade, 10) : null) : cur.quantidade,
       prazo: data.prazo !== undefined ? data.prazo : cur.prazo,
+      data_solicitacao: data.data_solicitacao !== undefined ? data.data_solicitacao : cur.data_solicitacao,
       prioridade: data.prioridade !== undefined ? data.prioridade : cur.prioridade,
       coluna: data.coluna !== undefined ? data.coluna : cur.coluna,
       descricao: data.descricao !== undefined ? data.descricao : cur.descricao
