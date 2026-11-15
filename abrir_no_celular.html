@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acesso Mobile - Demanda Operacional</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 20px; padding: 30px; max-width: 480px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    h1 { margin-top: 0; color: #38bdf8; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    p { color: #94a3b8; font-size: 14px; margin: 10px 0 20px; }
+    .qr-box { background: white; padding: 15px; border-radius: 16px; display: inline-block; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .qr-box img { display: block; width: 260px; height: 260px; }
+    .btn-wa { display: flex; align-items: center; justify-content: center; gap: 10px; background: #22c55e; color: white; text-decoration: none; font-weight: 700; padding: 14px 20px; border-radius: 12px; margin-bottom: 12px; font-size: 15px; transition: 0.2s; }
+    .btn-wa:hover { background: #16a34a; transform: translateY(-1px); }
+    .link-box { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; margin-bottom: 15px; word-break: break-all; font-family: monospace; font-size: 15px; color: #38bdf8; font-weight: bold; }
+    .instrucao { background: rgba(56, 189, 248, 0.1); border-left: 4px solid #38bdf8; text-align: left; padding: 12px 14px; border-radius: 8px; font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+    .btn-copy { background: #334155; color: #f8fafc; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; margin-bottom: 15px; }
+    .btn-copy:hover { background: #475569; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📱 Acesso no Celular</h1>
+    <p>Aponte a câmera do seu celular para este QR Code:</p>
+    <div class="qr-box">
+      <img src="data:image/png;base64,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" alt="QR Code">
+    </div>
+    <div class="link-box" id="linkText">https://tinyurl.com/gps-apoio</div>
+    <button class="btn-copy" onclick="navigator.clipboard.writeText('https://tinyurl.com/gps-apoio').then(()=>alert('Link copiado!'));">📋 Copiar Link</button>
+    
+    <a class="btn-wa" href="https://api.whatsapp.com/send?text=Ol%C3%A1!%20Acesse%20o%20app%20de%20Solicita%C3%A7%C3%A3o%20de%20Apoio%20Operacional%20por%20aqui%3A%20https%3A%2F%2Ftinyurl.com%2Fgps-apoio" target="_blank">
+      💬 Enviar Link para meu WhatsApp
+    </a>
+
+    <div class="instrucao">
+      <strong>Como instalar no celular:</strong><br>
+      1. Abra o link no celular.<br>
+      2. Toque nos <strong>3 pontinhos (⋮)</strong> no topo do navegador.<br>
+      3. Escolha <strong>"Instalar aplicativo"</strong> (ou "Adicionar à tela inicial").
+    </div>
+  </div>
+</body>
+</html>
