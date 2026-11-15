@@ -231,6 +231,156 @@
   .card-prazo-info.destaque-entrega .sub-prazo-info {
     color: #a7f3d0;
   }
+
+  /* ABAS PRINCIPAIS: NOVO vs ACOMPANHAR */
+  .main-tabs-bar {
+    display: flex;
+    background: #0f172a;
+    border-bottom: 2px solid #223049;
+  }
+  .main-tab-btn {
+    flex: 1;
+    padding: 15px 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #94a3b8;
+    font-size: 0.94rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .main-tab-btn:hover {
+    color: #e2e8f0;
+    background: rgba(30, 41, 59, 0.5);
+  }
+  .main-tab-btn.active {
+    color: #60a5fa;
+    border-bottom-color: #3b82f6;
+    background: rgba(30, 58, 138, 0.25);
+  }
+  .chip-proto-recente {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #93c5fd;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+  .chip-proto-recente:hover {
+    background: #2563eb;
+    color: #fff;
+    border-color: #60a5fa;
+    transform: translateY(-1px);
+  }
+  .card-consulta-item {
+    background: #0f172a;
+    border: 1px solid #223049;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .badge-status-pill {
+    padding: 5px 13px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .badge-status-pill.pendente {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid #f59e0b;
+  }
+  .badge-status-pill.aprovado {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid #10b981;
+  }
+  .badge-status-pill.reprovado {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid #ef4444;
+  }
+  .badge-status-pill.concluido {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid #3b82f6;
+  }
+  .timeline-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 18px 0 14px;
+    position: relative;
+  }
+  .step-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+    flex: 1;
+    text-align: center;
+  }
+  .step-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 2px solid #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #94a3b8;
+  }
+  .step-circle.done {
+    background: #10b981;
+    border-color: #34d399;
+    color: #fff;
+  }
+  .step-circle.current {
+    background: #2563eb;
+    border-color: #60a5fa;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(37,99,235,0.6);
+  }
+  .step-circle.rejected {
+    background: #ef4444;
+    border-color: #f87171;
+    color: #fff;
+  }
+  .step-label {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    font-weight: 700;
+  }
+  .step-line-bar {
+    position: absolute;
+    top: 14px;
+    left: 12%;
+    right: 12%;
+    height: 3px;
+    background: #334155;
+    z-index: 1;
+  }
 </style>
 </head>
 <body>
@@ -245,6 +395,16 @@
           <span>📲</span> Instalar Aplicativo no Celular
         </button>
       </div>
+    </div>
+
+    <!-- ABAS PRINCIPAIS: NOVO vs ACOMPANHAR -->
+    <div class="main-tabs-bar">
+      <button class="main-tab-btn active" id="btnTabNovo" onclick="mudarModoPrincipal('novo')">
+        ✍️ Fazer Pedido
+      </button>
+      <button class="main-tab-btn" id="btnTabConsultar" onclick="mudarModoPrincipal('consultar')">
+        🔍 Acompanhar Meus Pedidos
+      </button>
     </div>
 
     <div class="card-gps-body" id="formArea">
@@ -397,6 +557,41 @@
       </div>
     </div>
 
+    <!-- ÁREA DE CONSULTA / ACOMPANHAMENTO PELO EFETIVO -->
+    <div class="card-gps-body" id="consultaArea" style="display: none;">
+      <div style="background: rgba(30, 58, 138, 0.35); border: 1px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <h3 style="margin: 0 0 6px; font-size: 1.05rem; color: #93c5fd; display: flex; align-items: center; gap: 8px;">
+          <span>🔍</span> Acompanhar Status da Solicitação
+        </h3>
+        <p style="font-size: 0.85rem; color: #cbd5e1; margin: 0 0 14px; line-height: 1.4;">
+          Informe o <strong>Número do Protocolo</strong> (ex: SEG-611066) ou o <strong>seu CPF</strong> para verificar se sua solicitação foi aprovada, o prazo e a entrega:
+        </p>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <input type="text" id="campoBuscaStatus" placeholder="Digite Protocolo ou CPF..." style="flex: 1; min-width: 200px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px 14px; color: #fff; font-size: 0.95rem; font-weight: 600;" onkeydown="if(event.key==='Enter') consultarStatusEfetivo()">
+          <button type="button" onclick="consultarStatusEfetivo()" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #fff; border: 1px solid #60a5fa; border-radius: 8px; padding: 12px 20px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
+            <span>🔎</span> Consultar
+          </button>
+        </div>
+
+        <!-- Atalhos dos pedidos recentes feitos neste celular -->
+        <div id="boxPedidosRecentes" style="margin-top: 14px; display: none;">
+          <div style="font-size: 0.74rem; color: #94a3b8; margin-bottom: 7px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+            📌 Seus pedidos recentes neste aparelho:
+          </div>
+          <div id="listaChipsRecentes" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+        </div>
+      </div>
+
+      <!-- Área de Resultados -->
+      <div id="resultadoConsultaArea">
+        <div style="text-align: center; padding: 30px 10px; color: #64748b;">
+          <div style="font-size: 2.5rem; margin-bottom: 8px;">📋</div>
+          <p style="font-size: 0.9rem; margin: 0;">Digite seu protocolo ou CPF acima para ver o andamento em tempo real.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Tela Concluído -->
     <div class="success-box" id="successBox">
       <div class="big-ico">🛡️</div>
@@ -413,7 +608,15 @@
       </div>
 
       <p style="font-size: 0.8rem; color: #64748b;">Guarde este número para acompanhamento no posto.</p>
-      <button class="btn-step next" style="max-width: 200px; margin: 18px auto 0;" onclick="location.reload()">+ Nova Solicitação</button>
+      
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px;">
+        <button class="btn-step" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #fff; border: 1px solid #60a5fa; padding: 12px 18px; font-size: 0.88rem; font-weight: 800; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;" onclick="irParaAcompanhamentoCriado()">
+          <span>🔍</span> Acompanhar Status Deste Pedido
+        </button>
+        <button class="btn-step next" style="max-width: 200px; margin: 0;" onclick="location.reload()">
+          + Nova Solicitação
+        </button>
+      </div>
     </div>
   </div>
 
@@ -878,8 +1081,299 @@
       const protoDataTxt = document.getElementById('protoDataTxt');
       if (protoDataTxt) protoDataTxt.textContent = dataEntregaFmt;
 
+      ultimoProtocoloCriado = protocolo;
+      salvarProtocoloLocal(protocolo, payload.titulo, postoNome);
+
       document.getElementById('formArea').style.display = 'none';
       document.getElementById('successBox').style.display = 'block';
+    }
+
+    // ==========================================
+    // SISTEMA DE ACOMPANHAMENTO PELO EFETIVO
+    // ==========================================
+    let ultimoProtocoloCriado = '';
+
+    function salvarProtocoloLocal(proto, titulo, posto) {
+      if (!proto) return;
+      try {
+        let list = JSON.parse(localStorage.getItem('meus_protocolos_gps') || '[]');
+        list = list.filter(item => (typeof item === 'string' ? item !== proto : item.id !== proto));
+        list.unshift({
+          id: proto,
+          titulo: titulo || 'Solicitação Operacional',
+          posto: posto || '',
+          data: new Date().toLocaleDateString('pt-BR')
+        });
+        if (list.length > 8) list = list.slice(0, 8);
+        localStorage.setItem('meus_protocolos_gps', JSON.stringify(list));
+      } catch (e) {}
+    }
+
+    function carregarPedidosRecentes() {
+      const box = document.getElementById('boxPedidosRecentes');
+      const container = document.getElementById('listaChipsRecentes');
+      if (!box || !container) return;
+
+      try {
+        const list = JSON.parse(localStorage.getItem('meus_protocolos_gps') || '[]');
+        if (!Array.isArray(list) || !list.length) {
+          box.style.display = 'none';
+          return;
+        }
+
+        box.style.display = 'block';
+        container.innerHTML = list.map(item => {
+          const id = typeof item === 'string' ? item : item.id;
+          const label = typeof item === 'string' ? item : `${item.id}`;
+          return `
+            <button type="button" class="chip-proto-recente" onclick="consultarStatusEfetivo('${escapeHtml(id)}')">
+              <span>📋</span> ${escapeHtml(label)}
+            </button>
+          `;
+        }).join('');
+      } catch (e) {
+        box.style.display = 'none';
+      }
+    }
+
+    function mudarModoPrincipal(modo) {
+      const btnNovo = document.getElementById('btnTabNovo');
+      const btnConsultar = document.getElementById('btnTabConsultar');
+      const formArea = document.getElementById('formArea');
+      const consultaArea = document.getElementById('consultaArea');
+      const successBox = document.getElementById('successBox');
+
+      if (successBox) successBox.style.display = 'none';
+
+      if (modo === 'novo') {
+        if (btnNovo) btnNovo.classList.add('active');
+        if (btnConsultar) btnConsultar.classList.remove('active');
+        if (formArea) formArea.style.display = 'block';
+        if (consultaArea) consultaArea.style.display = 'none';
+      } else {
+        if (btnNovo) btnNovo.classList.remove('active');
+        if (btnConsultar) btnConsultar.classList.add('active');
+        if (formArea) formArea.style.display = 'none';
+        if (consultaArea) consultaArea.style.display = 'block';
+        carregarPedidosRecentes();
+        const inputBusca = document.getElementById('campoBuscaStatus');
+        if (inputBusca && !inputBusca.value.trim() && ultimoProtocoloCriado) {
+          inputBusca.value = ultimoProtocoloCriado;
+          consultarStatusEfetivo(ultimoProtocoloCriado);
+        }
+      }
+    }
+
+    function irParaAcompanhamentoCriado() {
+      mudarModoPrincipal('consultar');
+      if (ultimoProtocoloCriado) {
+        const inputBusca = document.getElementById('campoBuscaStatus');
+        if (inputBusca) inputBusca.value = ultimoProtocoloCriado;
+        consultarStatusEfetivo(ultimoProtocoloCriado);
+      }
+    }
+
+    async function consultarStatusEfetivo(termoDirect) {
+      const input = document.getElementById('campoBuscaStatus');
+      const termo = (termoDirect || (input ? input.value : '')).trim();
+      const resultadoArea = document.getElementById('resultadoConsultaArea');
+      if (!resultadoArea) return;
+
+      if (!termo) {
+        alert('Por favor, informe o número do Protocolo ou o seu CPF.');
+        if (input) input.focus();
+        return;
+      }
+
+      if (input && termoDirect) {
+        input.value = termoDirect;
+      }
+
+      resultadoArea.innerHTML = `
+        <div style="text-align: center; padding: 28px 10px; color: #94a3b8;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">⏳</div>
+          <p style="margin: 0; font-weight: 700;">Buscando sua solicitação no sistema...</p>
+        </div>
+      `;
+
+      try {
+        const res = await apiFetch(`/api/solicitacoes/consulta?q=${encodeURIComponent(termo)}`);
+        if (res.ok) {
+          const dados = await res.json();
+          if (Array.isArray(dados) && dados.length > 0) {
+            renderizarResultadoConsulta(dados);
+            dados.forEach(d => salvarProtocoloLocal(d.id, d.titulo, d.posto_nome || d.posto_short_name));
+            carregarPedidosRecentes();
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao consultar online:', e);
+      }
+
+      // Fallback local se estiver offline
+      try {
+        const locais = JSON.parse(localStorage.getItem('solic_gps_local') || '[]');
+        const termoClean = termo.toUpperCase().replace(/\D/g, '');
+        const achados = locais.filter(s => {
+          const idUp = (s.id || '').toUpperCase();
+          const cpfClean = (s.cpf || '').replace(/\D/g, '');
+          return idUp === termo.toUpperCase() || idUp.includes(termo.toUpperCase()) || (termoClean && cpfClean === termoClean);
+        });
+        if (achados.length) {
+          renderizarResultadoConsulta(achados);
+          return;
+        }
+      } catch (e) {}
+
+      resultadoArea.innerHTML = `
+        <div style="text-align: center; padding: 30px 14px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 12px; color: #fca5a5;">
+          <div style="font-size: 2.2rem; margin-bottom: 6px;">❌</div>
+          <h4 style="margin: 0 0 6px; color: #f87171; font-size: 1.05rem;">Nenhuma solicitação encontrada</h4>
+          <p style="font-size: 0.85rem; margin: 0; color: #cbd5e1;">
+            Verifique se o protocolo <strong>"${escapeHtml(termo)}"</strong> ou o CPF digitado está correto.
+          </p>
+        </div>
+      `;
+    }
+
+    function renderizarResultadoConsulta(solicitacoes) {
+      const container = document.getElementById('resultadoConsultaArea');
+      if (!container) return;
+
+      const html = solicitacoes.map(sol => {
+        const st = (sol.coluna || 'pendente').toLowerCase();
+        
+        let badgeInfo = {
+          classe: 'pendente',
+          icone: '⏳',
+          texto: 'EM ANÁLISE PELA SUPERVISÃO',
+          subtexto: 'Sua solicitação foi recebida e está aguardando avaliação da gestão.'
+        };
+
+        if (st === 'aprovado') {
+          badgeInfo = {
+            classe: 'aprovado',
+            icone: '✅',
+            texto: 'APROVADA PELO GESTOR',
+            subtexto: 'Solicitação autorizada! Aguardando entrega / liberação para o seu posto.'
+          };
+        } else if (st === 'reprovado') {
+          badgeInfo = {
+            classe: 'reprovado',
+            icone: '❌',
+            texto: 'NÃO APROVADA',
+            subtexto: sol.motivo_reprovacao 
+              ? `Motivo: ${escapeHtml(sol.motivo_reprovacao)}` 
+              : 'Solicitação não autorizada pela supervisão operacional.'
+          };
+        } else if (st === 'concluido') {
+          badgeInfo = {
+            classe: 'concluido',
+            icone: '📦',
+            texto: 'CONCLUÍDA / ENTREGUE',
+            subtexto: 'Demanda atendida e entregue com sucesso no posto!'
+          };
+        }
+
+        const step2Current = st === 'pendente';
+        const isReprovado = st === 'reprovado';
+        const isConcluido = st === 'concluido';
+        const isAprovado = st === 'aprovado';
+
+        const catObj = categoriasCarregadas.find(c => c.id === sol.tipo);
+        const catTexto = catObj ? `${catObj.icon || '📦'} ${catObj.nome}` : (sol.tipo || 'Geral').toUpperCase();
+        const dataSolFmt = formatarDataBR(sol.data_solicitacao || (sol.created_at ? sol.created_at.slice(0, 10) : ''));
+        const dataPrazoFmt = formatarDataBR(sol.prazo);
+
+        return `
+          <div class="card-consulta-item">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">
+              <div>
+                <span style="font-size: 0.76rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Protocolo Oficial:</span>
+                <div style="font-size: 1.25rem; font-weight: 900; color: #60a5fa; letter-spacing: 0.5px;">${escapeHtml(sol.id)}</div>
+              </div>
+              <span class="badge-status-pill ${badgeInfo.classe}">
+                ${badgeInfo.icone} ${badgeInfo.texto}
+              </span>
+            </div>
+
+            <!-- Stepper Visual de Acompanhamento -->
+            <div class="timeline-stepper">
+              <div class="step-line-bar"></div>
+
+              <div class="step-node">
+                <div class="step-circle done">✓</div>
+                <div class="step-label" style="color: #6ee7b7;">Enviado</div>
+              </div>
+
+              <div class="step-node">
+                <div class="step-circle ${step2Current ? 'current' : 'done'}">
+                  ${step2Current ? '⏳' : '✓'}
+                </div>
+                <div class="step-label" style="${step2Current ? 'color: #93c5fd;' : ''}">Análise</div>
+              </div>
+
+              <div class="step-node">
+                <div class="step-circle ${isReprovado ? 'rejected' : ((isAprovado || isConcluido) ? 'done' : '')}">
+                  ${isReprovado ? '✕' : ((isAprovado || isConcluido) ? '✓' : '3')}
+                </div>
+                <div class="step-label" style="${isReprovado ? 'color:#f87171;' : ((isAprovado || isConcluido) ? 'color:#6ee7b7;' : '')}">
+                  ${isReprovado ? 'Reprovado' : 'Aprovado'}
+                </div>
+              </div>
+
+              <div class="step-node">
+                <div class="step-circle ${isConcluido ? 'done' : ''}">
+                  ${isConcluido ? '✓' : '4'}
+                </div>
+                <div class="step-label" style="${isConcluido ? 'color: #6ee7b7;' : ''}">Entregue</div>
+              </div>
+            </div>
+
+            <!-- Caixa de Mensagem do Status Atual -->
+            <div style="background: ${isReprovado ? 'rgba(239, 68, 68, 0.15)' : (isAprovado ? 'rgba(16, 185, 129, 0.15)' : (isConcluido ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'))}; border: 1px solid ${isReprovado ? '#ef4444' : (isAprovado ? '#10b981' : (isConcluido ? '#3b82f6' : '#f59e0b'))}; border-radius: 10px; padding: 12px 14px; margin: 14px 0;">
+              <div style="font-weight: 800; font-size: 0.88rem; color: #fff; margin-bottom: 2px;">
+                ${badgeInfo.icone} Situação da sua solicitação:
+              </div>
+              <div style="font-size: 0.84rem; color: #e2e8f0; line-height: 1.4;">
+                ${badgeInfo.subtexto}
+              </div>
+            </div>
+
+            <!-- Datas e Prazo de Atendimento -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0; background: #162032; padding: 12px; border-radius: 10px; border: 1px solid #223049;">
+              <div>
+                <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 800; text-transform: uppercase;">📅 Data do Pedido</span>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-top: 2px;">${dataSolFmt}</div>
+              </div>
+              <div>
+                <span style="font-size: 0.72rem; color: #6ee7b7; font-weight: 800; text-transform: uppercase;">📦 Previsão de Entrega</span>
+                <div style="font-size: 1.05rem; font-weight: 900; color: #34d399; margin-top: 2px;">${dataPrazoFmt}</div>
+              </div>
+            </div>
+
+            <!-- Detalhes do Pedido -->
+            <div style="background: #0b1120; border: 1px solid #1e293b; border-radius: 8px; padding: 12px; font-size: 0.84rem; line-height: 1.6;">
+              <div><strong>📦 Categoria:</strong> ${catTexto}</div>
+              <div><strong>📍 Posto:</strong> ${escapeHtml(sol.posto_nome || sol.posto_short_name || 'Posto Operacional')}</div>
+              <div><strong>👮 Solicitante:</strong> ${escapeHtml(sol.solicitante || '')}</div>
+              ${sol.cpf ? `<div><strong>🪪 CPF:</strong> ${escapeHtml(sol.cpf)}</div>` : ''}
+              <div><strong>📝 Resumo da Demanda:</strong> ${escapeHtml(sol.titulo || '')}</div>
+              ${sol.quantidade ? `<div><strong>🔢 Quantidade/Efetivo:</strong> ${escapeHtml(sol.quantidade)}</div>` : ''}
+              ${sol.descricao ? `<div style="margin-top: 4px; color: #94a3b8;"><strong>Detalhes informados:</strong> ${escapeHtml(sol.descricao)}</div>` : ''}
+            </div>
+
+            <div style="margin-top: 12px; text-align: right;">
+              <button type="button" onclick="consultarStatusEfetivo('${escapeHtml(sol.id)}')" style="background: #1e293b; border: 1px solid #334155; color: #93c5fd; padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+                🔄 Atualizar Status
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
     }
 
     // ==========================================

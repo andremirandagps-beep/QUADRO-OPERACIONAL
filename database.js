@@ -968,6 +968,47 @@ module.exports = {
       return [];
     }
   },
+  consultarSolicitacoesEfetivo: (termo) => {
+    if (!termo || typeof termo !== 'string') return [];
+    const q = termo.trim();
+    if (!q) return [];
+    const digits = q.replace(/\D/g, '');
+
+    let rows = [];
+    if (digits.length >= 8) {
+      // Busca por CPF
+      rows = db.prepare(`
+        SELECT s.*, p.name as posto_full_name, p.short_name as posto_short_name
+        FROM solicitacoes s
+        LEFT JOIN postos p ON s.posto_id = p.id
+        WHERE REPLACE(REPLACE(REPLACE(COALESCE(s.cpf, ''), '.', ''), '-', ''), ' ', '') = ?
+           OR s.cpf = ?
+        ORDER BY s.created_at DESC
+        LIMIT 20
+      `).all(digits, q);
+    }
+
+    if (!rows.length) {
+      // Busca por ID do Protocolo (ex: SEG-611066 ou 611066)
+      rows = db.prepare(`
+        SELECT s.*, p.name as posto_full_name, p.short_name as posto_short_name
+        FROM solicitacoes s
+        LEFT JOIN postos p ON s.posto_id = p.id
+        WHERE UPPER(s.id) = UPPER(?)
+           OR UPPER(s.id) LIKE UPPER(?)
+        ORDER BY s.created_at DESC
+        LIMIT 10
+      `).all(q, `%${q}%`);
+    }
+
+    return rows.map(r => {
+      let historico = [];
+      try {
+        historico = stmts.getHistoricoBySolicitacao.all(r.id);
+      } catch (e) {}
+      return { ...r, historico };
+    });
+  },
   excluirSolicitacao: (id) => stmts.deleteSolicitacao.run(id),
 
   // Categorias de Solicitação

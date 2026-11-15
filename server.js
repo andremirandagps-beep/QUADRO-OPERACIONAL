@@ -237,6 +237,15 @@ async function handleApi(req, res, pathname, method) {
       return;
     }
 
+    if (pathname === '/api/solicitacoes/consulta' && method === 'GET') {
+      const urlObj = new URL(req.url, 'http://localhost');
+      const q = urlObj.searchParams.get('q') || '';
+      if (!q.trim()) return sendJson(res, 200, []);
+      const resultados = database.consultarSolicitacoesEfetivo(q);
+      sendJson(res, 200, resultados);
+      return;
+    }
+
     const solicHistMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)\/historico$/);
     if (solicHistMatch && method === 'GET') {
       const id = decodeURIComponent(solicHistMatch[1]);
@@ -256,6 +265,15 @@ async function handleApi(req, res, pathname, method) {
     }
 
     const solicMatch = pathname.match(/^\/api\/solicitacoes\/([^/]+)$/);
+    if (solicMatch && method === 'GET') {
+      const id = decodeURIComponent(solicMatch[1]);
+      const sol = database.getSolicitacaoById(id);
+      if (!sol) return sendError(res, 404, 'Solicitação não encontrada');
+      const historico = database.getHistoricoSolicitacao(id);
+      sendJson(res, 200, { ...sol, historico });
+      return;
+    }
+
     if (solicMatch && method === 'PUT') {
       const id = decodeURIComponent(solicMatch[1]);
       const body = await parseBody(req);
