@@ -599,5 +599,7 @@ server.listen(PORT, () => {
   console.log('║   Pressione Ctrl+C para encerrar                     ║');
   console.log('╚══════════════════════════════════════════════════════╝');
   console.log('');
-  exec(`start ${url}`);
+  if (process.platform === 'win32' && !process.env.RAILWAY_ENVIRONMENT && !process.env.RENDER) {
+    try { exec(`start ${url}`); } catch (e) {}
+  }
 });
