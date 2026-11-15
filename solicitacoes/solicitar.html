@@ -783,19 +783,22 @@
     }
 
     function getApiUrl(endpoint) {
-      if (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3333')) {
+      if (window.location.protocol === 'file:') {
         return `http://localhost:3333${endpoint}`;
       }
       return endpoint;
     }
 
     async function apiFetch(endpoint, options = {}) {
+      if (window.location.hostname.includes('github.io')) {
+        throw new Error('Modo Nuvem GitHub Pages (offline/serverless)');
+      }
       const url = getApiUrl(endpoint);
       try {
         const res = await fetch(url, options);
         return res;
       } catch (err) {
-        if (!url.startsWith('http://localhost:3333')) {
+        if (window.location.protocol === 'file:' && !url.startsWith('http://localhost:3333')) {
           try {
             return await fetch(`http://localhost:3333${endpoint}`, options);
           } catch (e) {
@@ -1241,6 +1244,34 @@
         if (achados.length) {
           renderizarResultadoConsulta(achados);
           return;
+        }
+      } catch (e) {}
+
+      // Busca na nuvem 24h caso o computador do gestor esteja desligado
+      try {
+        const nuvemRes = await fetch('https://ntfy.sh/gps_demanda_operacional_andre_miranda_2026/json?poll=1&since=48h');
+        if (nuvemRes.ok) {
+          const text = await nuvemRes.text();
+          const lines = text.trim().split('\n');
+          const nuvemAchados = [];
+          lines.forEach(line => {
+            try {
+              const ev = JSON.parse(line);
+              if (ev.event === 'message' && ev.message) {
+                const s = JSON.parse(ev.message);
+                const idUp = (s.id || '').toUpperCase();
+                const cpfClean = (s.cpf || '').replace(/\D/g, '');
+                const termoClean = termo.toUpperCase().replace(/\D/g, '');
+                if (idUp === termo.toUpperCase() || idUp.includes(termo.toUpperCase()) || (termoClean && cpfClean === termoClean)) {
+                  nuvemAchados.push({ ...s, coluna: s.coluna || 'pendente' });
+                }
+              }
+            } catch(err) {}
+          });
+          if (nuvemAchados.length) {
+            renderizarResultadoConsulta(nuvemAchados);
+            return;
+          }
         }
       } catch (e) {}
 
