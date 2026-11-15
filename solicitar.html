@@ -288,12 +288,12 @@
         <div class="form-group">
           <label>Qual a categoria da solicitação? *</label>
           <div class="chips-grid" id="chipsCategorias">
-            <div class="chip-item" data-val="alimentacao"><span class="ico">🍱</span>Alimentação / Plantão</div>
-            <div class="chip-item" data-val="efetivo"><span class="ico">👮‍♂️</span>Reforço / Rendição</div>
-            <div class="chip-item" data-val="material"><span class="ico">🔦</span>Material Tático / Pilhas</div>
+            <div class="chip-item" data-val="efetivo"><span class="ico">👮</span>Documentos (aso,integrações,etc</div>
+            <div class="chip-item" data-val="alimentacao"><span class="ico">🍱</span>Benefícios vt,vr,</div>
+            <div class="chip-item" data-val="material"><span class="ico">🔦</span>Material Tático</div>
             <div class="chip-item" data-val="comunicacao"><span class="ico">📻</span>Rádios HT / PTT</div>
-            <div class="chip-item" data-val="epi"><span class="ico">🛡️</span>EPI / Calçado / Capa</div>
-            <div class="chip-item" data-val="transporte"><span class="ico">🚔</span>Ronda / VTR / Combustível</div>
+            <div class="chip-item" data-val="epi"><span class="ico">🛡️</span>EPI & Uniformes</div>
+            <div class="chip-item" data-val="transporte"><span class="ico">🚔</span>Ronda / VTR</div>
           </div>
           <input type="hidden" id="pTipo">
         </div>
@@ -603,7 +603,20 @@
       }
     }
 
-    let categoriasCarregadas = [];
+    const CATEGORIAS_PADRAO = [
+      { id: "efetivo", nome: "Documentos (aso,integrações,etc", icon: "👮" },
+      { id: "alimentacao", nome: "Benefícios vt,vr,", icon: "🍱" },
+      { id: "material", nome: "Material Tático", icon: "🔦" },
+      { id: "comunicacao", nome: "Rádios HT / PTT", icon: "📻" },
+      { id: "epi", nome: "EPI & Uniformes", icon: "🛡️" },
+      { id: "transporte", nome: "Ronda / VTR", icon: "🚔" }
+    ];
+
+    let categoriasCarregadas = [...CATEGORIAS_PADRAO];
+    try {
+      const cached = JSON.parse(localStorage.getItem('gps_categorias') || 'null');
+      if (Array.isArray(cached) && cached.length) categoriasCarregadas = cached;
+    } catch(e) {}
 
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
@@ -696,6 +709,7 @@
           const dadosCat = await resCat.json();
           if (Array.isArray(dadosCat) && dadosCat.length > 0) {
             categoriasCarregadas = dadosCat;
+            try { localStorage.setItem('gps_categorias', JSON.stringify(dadosCat)); } catch(e) {}
             renderizarCategorias(dadosCat);
           }
         }
