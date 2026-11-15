@@ -587,6 +587,67 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
+// ========================================================
+// SINCRONIZAÇÃO EM NUVEM 24/7 (RECEBE PEDIDOS MESMO COM PC DESLIGADO)
+// ========================================================
+const NUVEM_TOPICO = 'gps_demanda_operacional_andre_miranda_2026';
+let ultimoTimestampNuvem = 0;
+
+try {
+  const tsFile = path.join(BASE_DIR, 'database', 'last_sync_nuvem.txt');
+  if (fs.existsSync(tsFile)) {
+    ultimoTimestampNuvem = parseInt(fs.readFileSync(tsFile, 'utf8').trim() || '0', 10);
+  }
+} catch(e) {}
+
+function sincronizarFilaNuvem() {
+  try {
+    const https = require('https');
+    const url = `https://ntfy.sh/${NUVEM_TOPICO}/json?poll=1${ultimoTimestampNuvem ? `&since=${ultimoTimestampNuvem}` : '&since=48h'}`;
+    
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        if (res.statusCode !== 200 || !data.trim()) return;
+        
+        const lines = data.trim().split('\n');
+        let novosCount = 0;
+        let maiorTime = ultimoTimestampNuvem;
+        
+        lines.forEach(line => {
+          try {
+            const ev = JSON.parse(line);
+            if (ev.time && ev.time > maiorTime) maiorTime = ev.time;
+            if (ev.event === 'message' && ev.message) {
+              const payload = JSON.parse(ev.message);
+              if (payload && payload.id && payload.titulo) {
+                const existe = database.getSolicitacaoById(payload.id);
+                if (!existe) {
+                  database.criarSolicitacao(payload);
+                  novosCount++;
+                  console.log(`[NUVEM 24H] ✅ Nova solicitação sincronizada da nuvem: ${payload.id} - ${payload.titulo}`);
+                }
+              }
+            }
+          } catch(err) {}
+        });
+
+        if (maiorTime > ultimoTimestampNuvem) {
+          ultimoTimestampNuvem = maiorTime;
+          try {
+            fs.writeFileSync(path.join(BASE_DIR, 'database', 'last_sync_nuvem.txt'), String(maiorTime), 'utf8');
+          } catch(e) {}
+        }
+
+        if (novosCount > 0) {
+          console.log(`[NUVEM 24H] 📥 Sincronização concluída: ${novosCount} pedido(s) recebido(s) enquanto o computador estava desligado!`);
+        }
+      });
+    }).on('error', () => {});
+  } catch(e) {}
+}
+
 server.listen(PORT, () => {
   const url = `http://localhost:${PORT}`;
   console.log('');
@@ -596,9 +657,15 @@ server.listen(PORT, () => {
   console.log('╠══════════════════════════════════════════════════════╣');
   console.log(`║   Acesse: ${url}                       ║`);
   console.log('║   Banco de Dados: database/quadro_operacional.db     ║');
+  console.log('║   Nuvem 24/7: Sincronização Ativa Automática         ║');
   console.log('║   Pressione Ctrl+C para encerrar                     ║');
   console.log('╚══════════════════════════════════════════════════════╝');
   console.log('');
+
+  // Sincroniza imediatamente na inicialização e a cada 20 segundos
+  sincronizarFilaNuvem();
+  setInterval(sincronizarFilaNuvem, 20000);
+
   if (process.platform === 'win32' && !process.env.RAILWAY_ENVIRONMENT && !process.env.RENDER) {
     try { exec(`start ${url}`); } catch (e) {}
   }

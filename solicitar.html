@@ -1058,8 +1058,10 @@
         coluna: 'pendente'
       };
 
-      let protocolo = `SEG-${Date.now().toString().slice(-4)}`;
+      let protocolo = `SEG-${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 90 + 10)}`;
+      payload.id = protocolo;
 
+      let salvoNoServidor = false;
       try {
         const res = await apiFetch('/api/solicitacoes', {
           method: 'POST',
@@ -1068,14 +1070,30 @@
         });
         if (res.ok) {
           const data = await res.json();
-          protocolo = data.id;
+          protocolo = data.id || protocolo;
+          salvoNoServidor = true;
         }
       } catch (e) {
-        // Fallback local
-        const lista = JSON.parse(localStorage.getItem('solic_gps_local') || '[]');
-        lista.unshift({ id: protocolo, ...payload, created_at: new Date().toISOString() });
-        localStorage.setItem('solic_gps_local', JSON.stringify(lista));
+        // Servidor local está offline (computador do gestor desligado)
       }
+
+      // ☁️ FILA NUVEM 24/7: Garante a entrega mesmo se o computador estiver desligado!
+      // Envia para o buffer seguro na nuvem que o servidor puxa assim que ligar o PC
+      try {
+        await fetch('https://ntfy.sh/gps_demanda_operacional_andre_miranda_2026', {
+          method: 'POST',
+          headers: {
+            'Title': `Nova Demanda GPS (${protocolo})`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ...payload, id: protocolo, origin: 'nuvem_24h' })
+        });
+      } catch (e) {}
+
+      // Salva no histórico local do próprio celular
+      const lista = JSON.parse(localStorage.getItem('solic_gps_local') || '[]');
+      lista.unshift({ id: protocolo, ...payload, created_at: new Date().toISOString() });
+      localStorage.setItem('solic_gps_local', JSON.stringify(lista));
 
       document.getElementById('protoTag').textContent = `PROTOCOLO: ${protocolo}`;
       const protoDataTxt = document.getElementById('protoDataTxt');
