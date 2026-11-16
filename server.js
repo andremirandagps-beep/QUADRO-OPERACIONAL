@@ -3,6 +3,9 @@
  * Grupo GPS - Quadro Operacional de Postos de Trabalho
  */
 
+// Desabilita bloqueios de certificado SSL em redes corporativas com proxy/inspeção (Grupo GPS)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -603,9 +606,11 @@ try {
 function sincronizarFilaNuvem() {
   try {
     const https = require('https');
-    const url = `https://ntfy.sh/${NUVEM_TOPICO}/json?poll=1${ultimoTimestampNuvem ? `&since=${ultimoTimestampNuvem}` : '&since=48h'}`;
+    const agent = new https.Agent({ rejectUnauthorized: false });
+    const sinceParam = ultimoTimestampNuvem ? Math.max(0, ultimoTimestampNuvem - 300) : '48h';
+    const url = `https://ntfy.sh/${NUVEM_TOPICO}/json?poll=1&since=${sinceParam}`;
     
-    https.get(url, (res) => {
+    https.get(url, { agent }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
@@ -626,7 +631,7 @@ function sincronizarFilaNuvem() {
                 if (!existe) {
                   database.criarSolicitacao(payload);
                   novosCount++;
-                  console.log(`[NUVEM 24H] ✅ Nova solicitação sincronizada da nuvem: ${payload.id} - ${payload.titulo}`);
+                  console.log(`[NUVEM 24H] ✅ Nova solicitação sincronizada da nuvem: ${payload.id} - ${payload.titulo} (${payload.solicitante})`);
                 }
               }
             }
@@ -644,8 +649,12 @@ function sincronizarFilaNuvem() {
           console.log(`[NUVEM 24H] 📥 Sincronização concluída: ${novosCount} pedido(s) recebido(s) enquanto o computador estava desligado!`);
         }
       });
-    }).on('error', () => {});
-  } catch(e) {}
+    }).on('error', (err) => {
+      console.warn('[NUVEM 24H Aviso Conexão]:', err.message);
+    });
+  } catch(e) {
+    console.error('[NUVEM 24H Erro]:', e.message);
+  }
 }
 
 server.listen(PORT, () => {

@@ -1916,10 +1916,10 @@
       carregarPostos().catch(e => console.warn(e));
       carregarSolicitacoes().catch(e => console.warn(e));
 
-      // Atualiza a cada 45 segundos
+      // Atualiza a cada 10 segundos
       setInterval(() => {
         carregarSolicitacoes().catch(e => console.warn(e));
-      }, 45000);
+      }, 10000);
     });
 
     // Comunicação unificada com a API central do Node/SQLite
