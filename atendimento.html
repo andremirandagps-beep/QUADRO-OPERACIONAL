@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Assistente Virtual Bartolomeu | Grupo GPS</title>
+<meta name="theme-color" content="#0b1120">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bartolomeu GPS">
+<link rel="icon" type="image/png" href="logo-gps.png">
+<style>
+  :root {
+    --bg-page: #070d19;
+    --bg-card: #0f172a;
+    --bg-card-sub: #1e293b;
+    --border: #1e293b;
+    --border-light: #334155;
+    --azul: #3b82f6;
+    --azul-dark: #1d4ed8;
+    --verde-wpp: #22c55e;
+    --verde-wpp-dark: #16a34a;
+    --amarelo: #f59e0b;
+    --vermelho: #ef4444;
+    --roxo: #8b5cf6;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  
+  html, body {
+    height: 100%;
+    width: 100%;
+    background: var(--bg-page);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  /* App Shell Container */
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 500px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    position: relative;
+    box-shadow: 0 0 50px rgba(0,0,0,0.6);
+  }
+
+  /* Header Topo */
+  .app-header {
+    background: linear-gradient(135deg, #0b1e3b 0%, #173b75 100%);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    z-index: 50;
+  }
+
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .header-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  .header-logo img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+  }
+
+  .header-text {
+    min-width: 0;
+  }
+
+  .header-text h1 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.3px;
+  }
+
+  .header-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #86efac;
+    font-weight: 600;
+    margin-top: 1px;
+  }
+
+  .header-status .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: pulse 1.8s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  /* Botão WhatsApp de Topo */
+  .btn-header-wpp {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(34, 197, 94, 0.35);
+    white-space: nowrap;
+    transition: transform 0.15s, box-shadow 0.15s;
+    flex-shrink: 0;
+  }
+
+  .btn-header-wpp:active {
+    transform: scale(0.95);
+  }
+
+  /* Control de Telas (Views) */
+  .view-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .view {
+    display: none !important;
+    width: 100%;
+    min-height: 100%;
+  }
+
+  .view.active {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  /* TELA INICIAL (Home) */
+  #view-home {
+    padding: 16px 16px 85px;
+    gap: 16px;
+  }
+
+  /* Mega Banner WhatsApp Fácil */
+  .wpp-hero-banner {
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+    border: 1px solid rgba(74, 222, 128, 0.35);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 4px 16px rgba(21, 128, 61, 0.3);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .wpp-hero-banner:active {
+    transform: scale(0.98);
+  }
+
+  .wpp-hero-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .wpp-hero-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #22c55e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+
+  .wpp-hero-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+  }
+
+  .wpp-hero-sub {
+    font-size: 11px;
+    color: #bbf7d0;
+    margin-top: 3px;
+  }
+
+  .wpp-hero-cta {
+    background: white;
+    color: #166534;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 8px 12px;
+    border-radius: 10px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  /* Card Bartolomeu Boas-vindas */
+  .bartolomeu-card {
+    background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+    border: 1px solid rgba(96, 165, 250, 0.25);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .bartolomeu-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+
+  .bartolomeu-info h2 {
+    font-size: 15px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 3px;
+  }
+
+  .bartolomeu-info p {
+    font-size: 12px;
+    color: #cbd5e1;
+    line-height: 1.4;
+  }
+
+  /* Bloco de Identificação Rápida */
+  .ident-card {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ident-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .search-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--bg-page);
+    border: 1.5px solid var(--border-light);
+    border-radius: 12px;
+    padding: 12px 14px 12px 38px;
+    color: var(--text-main);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus {
+    border-color: var(--azul);
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--text-dim);
+  }
+
+  .autocomplete-box {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    background: #1e293b;
+    border: 1.5px solid var(--azul);
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 100;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .autocomplete-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer;
+  }
+
+  .autocomplete-item:hover, .autocomplete-item:active {
+    background: rgba(59, 130, 246, 0.2);
+  }
+
+  .autocomplete-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .autocomplete-detail {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Badge de Usuário Identificado */
+  .badge-colaborador-ident {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .colab-ident-info {
+    font-size: 12px;
+    color: #bfdbfe;
+    line-height: 1.35;
+  }
+
+  .colab-ident-info strong {
+    color: white;
+  }
+
+  .btn-limpar-ident {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  /* Seletor de Gestão */
+  .gestao-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .gestao-chip {
+    background: var(--bg-page);
+    border: 2px solid var(--border-light);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .gestao-chip.active-rumo {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: #f59e0b;
+    color: #fbbf24;
+  }
+
+  .gestao-chip.active-base {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
+    color: #93c5fd;
+  }
+
+  /* Grid de Assuntos Frequentes */
+  .section-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+
+  .assuntos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .assunto-card {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+
+  .assunto-card:active {
+    transform: scale(0.97);
+    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--azul);
+  }
+
+  .assunto-icon {
+    font-size: 22px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .assunto-text {
+    min-width: 0;
+  }
+
+  .assunto-nome {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .assunto-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* TELA DE CHAT (Conversa) */
+  #view-chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chat-header-bar {
+    background: #0f1c34;
+    border-bottom: 1px solid var(--border-light);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .btn-voltar-home {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .chat-topic-tag {
+    background: rgba(59, 130, 246, 0.2);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 14px;
+    padding: 4px 10px;
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chat-protocolo-badge {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #86efac;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-family: monospace;
+  }
+
+  /* Mensagens do Chat */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg-page);
+  }
+
+  .msg-row {
+    display: flex;
+    gap: 8px;
+    max-width: 90%;
+  }
+
+  .msg-row.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+
+  .msg-row.ia {
+    align-self: flex-start;
+  }
+
+  .msg-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #1e3a8a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .msg-bubble {
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .msg-row.user .msg-bubble {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    border-bottom-right-radius: 2px;
+  }
+
+  .msg-row.ia .msg-bubble {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    border-bottom-left-radius: 2px;
+  }
+
+  .msg-row.ia .msg-bubble strong {
+    color: #93c5fd;
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .msg-row.user .msg-time {
+    text-align: right;
+  }
+
+  /* Botão WhatsApp dentro da mensagem */
+  .wpp-action-card {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1.5px solid #22c55e;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .wpp-action-info {
+    font-size: 11.5px;
+    color: #bbf7d0;
+    line-height: 1.35;
+  }
+
+  .wpp-action-info strong {
+    color: #4ade80 !important;
+  }
+
+  .btn-abrir-whatsapp {
+    background: #22c55e;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.35);
+    transition: transform 0.15s, background 0.15s;
+  }
+
+  .btn-abrir-whatsapp:active {
+    background: #16a34a;
+    transform: scale(0.97);
+  }
+
+  /* Chips de Perguntas Rápidas */
+  .quick-questions {
+    padding: 8px 12px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-light);
+    flex-shrink: 0;
+    scrollbar-width: none;
+  }
+
+  .quick-questions::-webkit-scrollbar { display: none; }
+
+  .qq-chip {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-light);
+    color: #cbd5e1;
+    font-size: 11.5px;
+    padding: 6px 12px;
+    border-radius: 16px;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .qq-chip:active {
+    background: var(--azul);
+    color: white;
+  }
+
+  /* Barra de Digitação */
+  .chat-input-bar {
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-light);
+    padding: 10px 12px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .chat-textarea {
+    flex: 1;
+    background: var(--bg-page);
+    border: 1.5px solid var(--border-light);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    resize: none;
+    max-height: 90px;
+    font-family: inherit;
+    line-height: 1.35;
+  }
+
+  .chat-textarea:focus {
+    border-color: var(--azul);
+  }
+
+  .btn-chat-send {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--azul) 0%, var(--azul-dark) 100%);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+  }
+
+  .btn-chat-send:active {
+    transform: scale(0.92);
+  }
+
+  /* Barra de Navegação Inferior Fixa */
+  .bottom-tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 500px;
+    background: #0f172a;
+    border-top: 1px solid var(--border-light);
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom, 0px));
+    z-index: 90;
+  }
+
+  .tab-item {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+
+  .tab-item .t-icon {
+    font-size: 18px;
+  }
+
+  .tab-item.active {
+    color: var(--azul);
+  }
+
+  /* Botão WhatsApp Central em Destaque na Tab Bar */
+  .tab-item.tab-wpp-central {
+    color: #22c55e;
+  }
+
+  .tab-item.tab-wpp-central .t-icon-box {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-top: -12px;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.45);
+    border: 2px solid #0f172a;
+  }
+
+  /* MODAL LISTA DE WHATSAPP RÁPIDO */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-backdrop.open {
+    display: flex;
+  }
+
+  .modal-sheet {
+    background: #0f172a;
+    border-top: 2px solid var(--border-light);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 500px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .sheet-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sheet-header h3 {
+    font-size: 15px;
+    font-weight: 800;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-sheet-close {
+    background: #1e293b;
+    border: none;
+    color: #94a3b8;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sheet-body {
+    padding: 14px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .wpp-contact-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-decoration: none;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+
+  .wpp-contact-card:active {
+    transform: scale(0.98);
+    border-color: #22c55e;
+  }
+
+  .wpp-contact-info h4 {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: white;
+  }
+
+  .wpp-contact-info p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .wpp-badge-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-left: 6px;
+  }
+
+  .tag-rumo { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+  .tag-base { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+  .tag-geral { background: rgba(16, 185, 129, 0.2); color: #86efac; }
+
+  .btn-call-wpp-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #22c55e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Typing Dot */
+  .typing-box {
+    display: flex;
+    gap: 4px;
+    padding: 6px 10px;
+  }
+
+  .dot-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #94a3b8;
+    animation: typing 1.2s infinite ease-in-out;
+  }
+
+  .dot-pulse:nth-child(2) { animation-delay: 0.2s; }
+  .dot-pulse:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- TOPO HEADER -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="header-logo">
+        <img src="logo-gps.png" alt="GPS" onerror="this.style.display='none'; this.parentElement.innerHTML='🛡️';">
+      </div>
+      <div class="header-text">
+        <h1>ASSISTENTE BARTOLOMEU</h1>
+        <div class="header-status">
+          <span class="dot"></span> Online 24h • Grupo GPS
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTÃO WHATSAPP DIRETO NO HEADER -->
+    <button class="btn-header-wpp" onclick="abrirModalWhatsApp()">
+      <span>💬</span> WhatsApp
+    </button>
+  </header>
+
+  <!-- RECIPIENTE PRINCIPAL DE TELAS -->
+  <div class="view-container">
+
+    <!-- ==================== TELA 1: HOME (Início) ==================== -->
+    <div class="view active" id="view-home">
+
+      <!-- MEGA BOTÃO DE ACESSO RÁPIDO AO WHATSAPP -->
+      <div class="wpp-hero-banner" onclick="abrirModalWhatsApp()">
+        <div class="wpp-hero-left">
+          <div class="wpp-hero-icon">📲</div>
+          <div>
+            <div class="wpp-hero-title">Falar no WhatsApp Agora</div>
+            <div class="wpp-hero-sub">Plantão 24h, Supervisão, RH ou Benefícios</div>
+          </div>
+        </div>
+        <div class="wpp-hero-cta">ABRIR ➔</div>
+      </div>
+
+      <!-- CARD BARTOLOMEU APRESENTAÇÃO -->
+      <div class="bartolomeu-card">
+        <div class="bartolomeu-avatar">🤖</div>
+        <div class="bartolomeu-info">
+          <h2>Olá! Sou o Bartolomeu</h2>
+          <p>Tire suas dúvidas operacionais ou consulte seu posto e escala instantaneamente.</p>
+        </div>
+      </div>
+
+      <!-- IDENTIFICAÇÃO DO COLABORADOR -->
+      <div class="ident-card">
+        <div class="ident-title">
+          <span>👤</span> SUA IDENTIFICAÇÃO (OPCIONAL)
+        </div>
+
+        <div class="search-wrap" id="wrap-busca">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="inp-busca-colab" 
+                 placeholder="Digite sua matrícula ou nome..." 
+                 autocomplete="off" oninput="onBuscaColaborador(this.value)">
+          <div class="autocomplete-box" id="auto-box" style="display:none;"></div>
+        </div>
+
+        <!-- Colaborador Identificado (aparece se selecionado) -->
+        <div class="badge-colaborador-ident" id="badge-identificado" style="display:none;">
+          <div class="colab-ident-info">
+            <strong id="badge-nome">DANIEL RIBEIRO</strong><br>
+            <span id="badge-detalhe">Mat: 000207 • Monitor</span>
+          </div>
+          <button class="btn-limpar-ident" onclick="limparIdentificacao()" title="Trocar">✕</button>
+        </div>
+
+        <!-- Seletor de Gestão -->
+        <div class="gestao-selector">
+          <div class="gestao-chip active-base" id="chip-base" onclick="setGestao('Base')">
+            <span>🔵</span> GESTÃO BASE
+          </div>
+          <div class="gestao-chip" id="chip-rumo" onclick="setGestao('Rumo')">
+            <span>🟡</span> GESTÃO RUMO
+          </div>
+        </div>
+      </div>
+
+      <!-- SELEÇÃO RÁPIDA DE ASSUNTOS -->
+      <div class="section-label">
+        <span>ESCOLHA O ASSUNTO PARA CONVERSAR:</span>
+      </div>
+
+      <div class="assuntos-grid">
+        <div class="assunto-card" onclick="iniciarConversa('Folha-ponto')">
+          <div class="assunto-icon">📅</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Folha-Ponto</div>
+            <div class="assunto-sub">Atestados e batidas</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Holerite')">
+          <div class="assunto-icon">📄</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Holerite</div>
+            <div class="assunto-sub">Acesso seguro contracheque</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Pagamento')">
+          <div class="assunto-icon">💵</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Pagamento</div>
+            <div class="assunto-sub">Dia 20 e 5º dia útil</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Benefícios')">
+          <div class="assunto-icon">💳</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Benefícios</div>
+            <div class="assunto-sub">VT, VR, VA e Saúde</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Reciclagem')">
+          <div class="assunto-icon">🛡️</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Reciclagem</div>
+            <div class="assunto-sub">Curso de vigilante</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Supervisão')">
+          <div class="assunto-icon">🚨</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Supervisão 24h</div>
+            <div class="assunto-sub">Plantão e emergência</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Uniformes')">
+          <div class="assunto-icon">👔</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Uniformes</div>
+            <div class="assunto-sub">Reposição e EPIs</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Material de apoio')">
+          <div class="assunto-icon">📦</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Material Posto</div>
+            <div class="assunto-sub">Livro ata e rádios</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Combustível')">
+          <div class="assunto-icon">⛽</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Combustível</div>
+            <div class="assunto-sub">Cartão frota e km</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Manutenção de veículos')">
+          <div class="assunto-icon">🚗</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Viaturas</div>
+            <div class="assunto-sub">Checklist e mecânica</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Escala e Posto')">
+          <div class="assunto-icon">📋</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Minha Escala</div>
+            <div class="assunto-sub">Consultar escala/posto</div>
+          </div>
+        </div>
+
+        <div class="assunto-card" onclick="iniciarConversa('Dúvidas Gerais')">
+          <div class="assunto-icon">💬</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Outras Dúvidas</div>
+            <div class="assunto-sub">Pergunte o que precisar</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== TELA 2: CHAT ==================== -->
+    <div class="view" id="view-chat">
+      <!-- Sub-header do chat -->
+      <div class="chat-header-bar">
+        <button class="btn-voltar-home" onclick="mostrarView('view-home')">
+          ← Voltar
+        </button>
+        <div class="chat-topic-tag" id="chat-topic-label">Assunto</div>
+        <div class="chat-protocolo-badge" id="chat-proto-label">#ONLINE</div>
+      </div>
+
+      <!-- Feed de mensagens -->
+      <div class="chat-messages" id="chat-box"></div>
+
+      <!-- Perguntas rápidas -->
+      <div class="quick-questions" id="quick-bar">
+        <span class="qq-chip" onclick="mandarPerguntaRapida(this.innerText)">📄 Quais documentos preciso?</span>
+        <span class="qq-chip" onclick="mandarPerguntaRapida(this.innerText)">⏰ Qual o prazo de resposta?</span>
+        <span class="qq-chip" onclick="mandarPerguntaRapida(this.innerText)">📲 Falar com o responsável no WhatsApp</span>
+      </div>
+
+      <!-- Barra de input -->
+      <div class="chat-input-bar">
+        <textarea class="chat-textarea" id="chat-input" placeholder="Digite sua dúvida para o Bartolomeu..." rows="1" onkeydown="onChatKey(event)"></textarea>
+        <button class="btn-chat-send" id="btn-send" onclick="enviarMensagem()">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BARRA DE NAVEGAÇÃO INFERIOR FIXA -->
+  <nav class="bottom-tab-bar">
+    <button class="tab-item active" id="tab-home" onclick="mostrarView('view-home')">
+      <span class="t-icon">🏠</span>
+      <span>Início</span>
+    </button>
+
+    <!-- MEGA BOTÃO WHATSAPP NO CENTRO DA BARRA -->
+    <button class="tab-item tab-wpp-central" onclick="abrirModalWhatsApp()">
+      <div class="t-icon-box">💬</div>
+      <span>WhatsApp</span>
+    </button>
+
+    <button class="tab-item" id="tab-chat" onclick="mostrarView('view-chat')">
+      <span class="t-icon">🤖</span>
+      <span>Conversa</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ==================== MODAL DE CONTATOS DE WHATSAPP ==================== -->
+<div class="modal-backdrop" id="modal-wpp" onclick="fecharModalWppFora(event)">
+  <div class="modal-sheet">
+    <div class="sheet-header">
+      <h3><span>💬</span> Contatos de WhatsApp do Plantão</h3>
+      <button class="btn-sheet-close" onclick="fecharModalWhatsApp()">✕</button>
+    </div>
+    <div class="sheet-body" id="lista-wpp-cards">
+      <!-- Carregado via JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// ESTADO
+// =====================================================
+const state = {
+  nome: 'COLABORADOR',
+  matricula: '',
+  colaboradorId: null,
+  posto: '',
+  gestao: 'Base',
+  assunto: 'Dúvidas Gerais',
+  atendimentoId: null,
+  protocolo: null
+};
+
+// Contatos de WhatsApp fixos para acesso ultra-rápido com 1 toque
+const contatosFixos = [
+  { nome: 'Supervisão 24h (Geral)', fone: '41992148064', tag: 'tag-geral', setor: 'Plantão 24h & Emergências' },
+  { nome: 'Supervisor da Noite', fone: '41984721699', tag: 'tag-geral', setor: 'Ronda & Plantão Noturno' },
+  { nome: 'Gestão Rumo / RH', fone: '41992642985', tag: 'tag-rumo', setor: 'Exclusivo para Gestão Rumo' },
+  { nome: 'Dayana – RH Base', fone: '41992908312', tag: 'tag-base', setor: 'Folha, Ponto e RH Base' },
+  { nome: 'Débora – Benefícios Base', fone: '41992642985', tag: 'tag-base', setor: 'VT, VR/VA e Plano de Saúde' },
+  { nome: 'Engel – RH & Benefícios', fone: '4199900829', tag: 'tag-base', setor: 'Suporte RH Base' }
+];
+
+// =====================================================
+// NAVEGAÇÃO ENTRE VIEWS (LIMPO E SEM CONFLITOS)
+// =====================================================
+function mostrarView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById(viewId);
+  if (target) target.classList.add('active');
+
+  document.getElementById('tab-home').classList.toggle('active', viewId === 'view-home');
+  document.getElementById('tab-chat').classList.toggle('active', viewId === 'view-chat');
+
+  if (viewId === 'view-chat') {
+    setTimeout(() => {
+      const box = document.getElementById('chat-box');
+      box.scrollTop = box.scrollHeight;
+    }, 100);
+  }
+}
+
+// =====================================================
+// GESTÃO
+// =====================================================
+function setGestao(g) {
+  state.gestao = g;
+  document.getElementById('chip-base').className = 'gestao-chip' + (g === 'Base' ? ' active-base' : '');
+  document.getElementById('chip-rumo').className = 'gestao-chip' + (g === 'Rumo' ? ' active-rumo' : '');
+}
+
+// =====================================================
+// BUSCA E AUTO-COMPLETE DE EFETIVO
+// =====================================================
+let timeoutBusca = null;
+
+function onBuscaColaborador(val) {
+  clearTimeout(timeoutBusca);
+  if (!val || val.trim().length < 2) {
+    document.getElementById('auto-box').style.display = 'none';
+    return;
+  }
+  timeoutBusca = setTimeout(async () => {
+    try {
+      const res = await fetch(`/api/ia/colaboradores/pesquisa?q=${encodeURIComponent(val.trim())}`);
+      const list = await res.json();
+      renderAutoComplete(list);
+    } catch(e) {}
+  }, 250);
+}
+
+function renderAutoComplete(list) {
+  const box = document.getElementById('auto-box');
+  if (!list || list.length === 0) {
+    box.style.display = 'none';
+    return;
+  }
+  box.innerHTML = list.map(c => `
+    <div class="autocomplete-item" onclick='selecionarColaborador(${JSON.stringify(c).replace(/'/g, "&#39;")})'>
+      <div class="autocomplete-name">${c.nome}</div>
+      <div class="autocomplete-detail">Mat: ${c.matricula} • ${c.funcao || 'Vigilante'} • ${c.posto_nome || ''}</div>
+    </div>
+  `).join('');
+  box.style.display = 'block';
+}
+
+function selecionarColaborador(c) {
+  state.nome = c.nome;
+  state.matricula = c.matricula;
+  state.colaboradorId = c.id;
+  state.posto = c.posto_nome || '';
+
+  document.getElementById('auto-box').style.display = 'none';
+  document.getElementById('wrap-busca').style.display = 'none';
+
+  document.getElementById('badge-nome').textContent = c.nome;
+  document.getElementById('badge-detalhe').textContent = `Mat: ${c.matricula} • ${c.funcao || 'Vigilante'} • ${c.posto_nome || ''}`;
+  document.getElementById('badge-identificado').style.display = 'flex';
+}
+
+function limparIdentificacao() {
+  state.nome = 'COLABORADOR';
+  state.matricula = '';
+  state.colaboradorId = null;
+  state.posto = '';
+
+  document.getElementById('inp-busca-colab').value = '';
+  document.getElementById('wrap-busca').style.display = 'block';
+  document.getElementById('badge-identificado').style.display = 'none';
+}
+
+// =====================================================
+// INICIAR CONVERSA
+// =====================================================
+function iniciarConversa(assunto) {
+  state.assunto = assunto;
+  document.getElementById('chat-topic-label').textContent = assunto;
+
+  const chatBox = document.getElementById('chat-box');
+  chatBox.innerHTML = '';
+
+  // Mensagem inicial do Bartolomeu
+  const primeiroNome = state.nome.split(' ')[0];
+  const msgIntro = `Olá, **${primeiroNome}**! 👋 Sou o **Bartolomeu**, assistente virtual do Grupo GPS.\n\nVocê selecionou o assunto: **${assunto}** (${state.gestao.toUpperCase()}).\n\nComo posso te ajudar com isso hoje? Pode digitar sua dúvida abaixo.`;
+
+  adicionarBolha('ia', msgIntro, null);
+
+  mostrarView('view-chat');
+  document.getElementById('chat-input').focus();
+}
+
+// =====================================================
+// MENSAGENS E CHAT
+// =====================================================
+function formatarTexto(t) {
+  if (!t) return '';
+  return t
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+    .replace(/_(.*?)_/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+function adicionarBolha(sender, texto, escalonamento) {
+  const box = document.getElementById('chat-box');
+  const hora = new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+
+  const row = document.createElement('div');
+  row.className = `msg-row ${sender}`;
+
+  let wppCardHtml = '';
+  if (escalonamento && escalonamento.link) {
+    wppCardHtml = `
+      <div class="wpp-action-card">
+        <div class="wpp-action-info">
+          📲 Deseja falar com o responsável agora?<br>
+          <strong>${escalonamento.responsavel}</strong> (${escalonamento.setor})
+        </div>
+        <a class="btn-abrir-whatsapp" href="${escalonamento.link}" target="_blank">
+          <span>💬</span> Abrir no WhatsApp Agora
+        </a>
+      </div>
+    `;
+  }
+
+  if (sender === 'ia') {
+    row.innerHTML = `
+      <div class="msg-avatar">🤖</div>
+      <div>
+        <div class="msg-bubble">${formatarTexto(texto)}${wppCardHtml}</div>
+        <div class="msg-time">${hora}</div>
+      </div>
+    `;
+  } else {
+    row.innerHTML = `
+      <div>
+        <div class="msg-bubble">${texto.replace(/\n/g, '<br>')}</div>
+        <div class="msg-time">${hora}</div>
+      </div>
+    `;
+  }
+
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+  return row;
+}
+
+function mostrarDigitando() {
+  const box = document.getElementById('chat-box');
+  const row = document.createElement('div');
+  row.id = 'row-typing';
+  row.className = 'msg-row ia';
+  row.innerHTML = `
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-bubble" style="padding: 8px 12px;">
+      <div class="typing-box">
+        <div class="dot-pulse"></div>
+        <div class="dot-pulse"></div>
+        <div class="dot-pulse"></div>
+      </div>
+    </div>
+  `;
+  box.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+  return row;
+}
+
+async function enviarMensagem() {
+  const inp = document.getElementById('chat-input');
+  const txt = inp.value.trim();
+  if (!txt) return;
+
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  adicionarBolha('user', txt, null);
+
+  const typingEl = mostrarDigitando();
+
+  try {
+    const payload = {
+      atendimento_id: state.atendimentoId,
+      colaborador_nome: state.nome,
+      colaborador_matricula: state.matricula,
+      colaborador_id: state.colaboradorId,
+      gestao: state.gestao,
+      empreendimento: state.posto,
+      assunto: state.assunto,
+      mensagem: txt
+    };
+
+    const res = await fetch('/api/ia/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    typingEl.remove();
+
+    if (data.atendimento_id) {
+      state.atendimentoId = data.atendimento_id;
+      state.protocolo = data.protocolo;
+      document.getElementById('chat-proto-label').textContent = data.protocolo;
+    }
+
+    // Adiciona resposta do Bartolomeu com botão de WhatsApp integrado
+    adicionarBolha('ia', data.resposta, data.destino_whatsapp);
+
+  } catch(e) {
+    typingEl.remove();
+    adicionarBolha('ia', 'Não consegui processar agora. Clique abaixo para falar direto com a Supervisão no WhatsApp:', {
+      responsavel: 'Supervisão Geral',
+      setor: 'Plantão',
+      link: 'https://api.whatsapp.com/send?phone=5541992148064'
+    });
+  }
+}
+
+function mandarPerguntaRapida(txt) {
+  if (txt.includes('WhatsApp')) {
+    abrirModalWhatsApp();
+    return;
+  }
+  document.getElementById('chat-input').value = txt;
+  enviarMensagem();
+}
+
+function onChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    enviarMensagem();
+  }
+}
+
+// =====================================================
+// MODAL WHATSAPP RÁPIDO
+// =====================================================
+function abrirModalWhatsApp() {
+  const lista = document.getElementById('lista-wpp-cards');
+  const proto = state.protocolo || `#GPS-${Date.now().toString().slice(-4)}`;
+  const nomeColab = state.nome;
+
+  lista.innerHTML = contatosFixos.map(c => {
+    const msg = `*GRUPO GPS — ATENDIMENTO* 🛡️%0A*Protocolo:* ${proto}%0A*Colaborador:* ${nomeColab} (Gestão: ${state.gestao})%0A*Assunto:* ${state.assunto}%0AOlá, preciso de orientações.`;
+    const link = `https://api.whatsapp.com/send?phone=55${c.fone}&text=${msg}`;
+
+    return `
+      <a class="wpp-contact-card" href="${link}" target="_blank">
+        <div class="wpp-contact-info">
+          <h4>${c.nome} <span class="wpp-badge-tag ${c.tag}">${c.tag.replace('tag-','').toUpperCase()}</span></h4>
+          <p>${c.setor}</p>
+        </div>
+        <div class="btn-call-wpp-circle">💬</div>
+      </a>
+    `;
+  }).join('');
+
+  document.getElementById('modal-wpp').classList.add('open');
+}
+
+function fecharModalWhatsApp() {
+  document.getElementById('modal-wpp').classList.remove('open');
+}
+
+function fecharModalWppFora(e) {
+  if (e.target.id === 'modal-wpp') fecharModalWhatsApp();
+}
+
+// Fechar auto-complete ao clicar fora
+document.addEventListener('click', e => {
+  if (!document.getElementById('wrap-busca').contains(e.target)) {
+    document.getElementById('auto-box').style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>

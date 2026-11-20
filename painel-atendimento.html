@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel – Assistente Virtual Bartolomeu | Grupo GPS</title>
+<meta name="theme-color" content="#0b1120">
+<link rel="icon" type="image/png" href="logo-gps.png">
+<style>
+  :root {
+    --bg: #0b1120;
+    --bg2: #111827;
+    --bg3: #1e293b;
+    --bg4: #0f172a;
+    --border: #1e293b;
+    --border2: #334155;
+    --azul: #3b82f6;
+    --azul2: #2563eb;
+    --verde: #10b981;
+    --verde2: #059669;
+    --amarelo: #f59e0b;
+    --vermelho: #ef4444;
+    --roxo: #8b5cf6;
+    --text: #f1f5f9;
+    --text2: #94a3b8;
+    --text3: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
+
+  /* ===== HEADER ===== */
+  .topbar {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar .logo { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: white; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .topbar .logo img { width: 38px; height: 38px; object-fit: contain; }
+  .topbar-title { flex: 1; }
+  .topbar-title h1 { font-size: 16px; font-weight: 800; color: white; }
+  .topbar-title p { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+  .topbar-links { display: flex; gap: 8px; }
+  .link-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: white;
+    text-decoration: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 6px; transition: all 0.2s; cursor: pointer;
+  }
+  .link-btn:hover { background: rgba(255,255,255,0.18); }
+
+  /* ===== LAYOUT ===== */
+  .layout { display: flex; height: calc(100vh - 70px); overflow: hidden; }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: 220px; flex-shrink: 0; background: var(--bg2);
+    border-right: 1px solid var(--border); overflow-y: auto;
+    display: flex; flex-direction: column; gap: 4px; padding: 16px 10px;
+  }
+  .sidebar-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 10px 8px 4px; }
+  .sidebar-btn {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    border-radius: 10px; cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 500;
+    transition: all 0.15s; border: none; background: none; width: 100%; text-align: left;
+  }
+  .sidebar-btn:hover { background: var(--bg3); color: var(--text); }
+  .sidebar-btn.active { background: rgba(59,130,246,0.15); color: #93c5fd; }
+  .sidebar-btn .s-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+  .sidebar-btn .badge { margin-left: auto; background: var(--vermelho); color: white; border-radius: 20px; padding: 2px 7px; font-size: 10px; font-weight: 700; }
+
+  /* ===== CONTENT AREA ===== */
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* ===== CARDS DE STATS ===== */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 20px 18px;
+    display: flex; flex-direction: column; gap: 8px;
+    transition: transform 0.15s;
+  }
+  .stat-card:hover { transform: translateY(-2px); }
+  .stat-card .st-icon { font-size: 28px; }
+  .stat-card .st-value { font-size: 32px; font-weight: 800; color: white; }
+  .stat-card .st-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  .stat-card.azul { border-color: rgba(59,130,246,0.3); }
+  .stat-card.verde { border-color: rgba(16,185,129,0.3); }
+  .stat-card.amarelo { border-color: rgba(245,158,11,0.3); }
+  .stat-card.vermelho { border-color: rgba(239,68,68,0.3); }
+  .stat-card.roxo { border-color: rgba(139,92,246,0.3); }
+
+  /* ===== SEÇÃO ===== */
+  .section-title {
+    font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title .pill {
+    background: rgba(59,130,246,0.15); color: #93c5fd; border-radius: 20px;
+    padding: 2px 10px; font-size: 11px; font-weight: 600;
+  }
+
+  /* ===== TOOLBAR ===== */
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center;
+  }
+  .toolbar .search-wrap { flex: 1; min-width: 200px; position: relative; }
+  .toolbar .search-wrap input {
+    width: 100%; background: var(--bg2); border: 1.5px solid var(--border2); border-radius: 10px;
+    padding: 9px 12px 9px 36px; color: var(--text); font-size: 13px; outline: none;
+  }
+  .toolbar .search-wrap input:focus { border-color: var(--azul); }
+  .toolbar .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--text3); }
+  .select-filter {
+    background: var(--bg2); border: 1.5px solid var(--border2); border-radius: 10px;
+    color: var(--text2); padding: 8px 12px; font-size: 13px; outline: none; cursor: pointer;
+  }
+  .select-filter:focus { border-color: var(--azul); }
+  .btn-action {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--azul2) 100%);
+    color: white; border: none; border-radius: 10px; padding: 9px 16px;
+    font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 7px;
+    white-space: nowrap; transition: all 0.2s;
+  }
+  .btn-action:hover { opacity: 0.9; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-verde { background: linear-gradient(135deg, var(--verde) 0%, var(--verde2) 100%); }
+  .btn-vermelho { background: linear-gradient(135deg, var(--vermelho) 0%, #dc2626 100%); }
+  .btn-ghost { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); }
+
+  /* ===== TABLE ===== */
+  .table-wrap { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: var(--bg4); padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; }
+  tbody tr { border-top: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  tbody td { padding: 12px 14px; font-size: 13px; color: var(--text); vertical-align: middle; }
+
+  /* Status badges */
+  .badge-status {
+    border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .badge-aberto { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+  .badge-andamento { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+  .badge-concluido { background: rgba(16,185,129,0.15); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+  .badge-cancelado { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+
+  /* Gestão badges */
+  .badge-rumo { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+  .badge-base { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+
+  /* ===== DETALHE ATENDIMENTO (drawer) ===== */
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; backdrop-filter: blur(3px); }
+  .drawer {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 420px; max-width: 95vw;
+    background: var(--bg2); border-left: 1px solid var(--border2);
+    overflow-y: auto; z-index: 201; transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header {
+    padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    background: var(--bg4); position: sticky; top: 0; z-index: 10;
+  }
+  .drawer-header h2 { font-size: 15px; font-weight: 700; color: white; }
+  .btn-close { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; color: var(--text2); padding: 7px 12px; font-size: 13px; cursor: pointer; }
+  .drawer-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 18px; }
+
+  .detail-block { background: var(--bg3); border-radius: 12px; padding: 16px; }
+  .detail-block h4 { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-label { font-size: 12px; color: var(--text2); flex-shrink: 0; }
+  .detail-value { font-size: 12px; color: var(--text); font-weight: 600; text-align: right; word-break: break-word; max-width: 200px; }
+
+  /* Histórico de conversa no drawer */
+  .conv-msgs { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; }
+  .conv-msg { padding: 10px 12px; border-radius: 12px; font-size: 12px; line-height: 1.5; }
+  .conv-msg.user { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.2); align-self: flex-end; color: #bfdbfe; max-width: 85%; }
+  .conv-msg.ia { background: var(--bg); border: 1px solid var(--border2); color: var(--text2); max-width: 85%; }
+  .conv-msg .conv-sender { font-size: 10px; font-weight: 700; margin-bottom: 4px; color: var(--text3); }
+  .conv-msg.user .conv-sender { text-align: right; color: #93c5fd; }
+
+  /* Ações do drawer */
+  .drawer-actions { padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg4); display: flex; flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
+
+  /* Link WhatsApp no drawer */
+  .btn-wpp-drawer {
+    background: #22c55e; color: white; border: none; border-radius: 10px;
+    padding: 10px 16px; font-size: 13px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; gap: 7px; text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-wpp-drawer:hover { background: #16a34a; }
+
+  /* ===== ABA CONTATOS ===== */
+  .contact-grid { display: grid; gap: 12px; }
+  .contact-card {
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; padding: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .contact-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--azul), var(--roxo)); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; flex-shrink: 0; }
+  .contact-info { flex: 1; min-width: 0; }
+  .contact-nome { font-size: 14px; font-weight: 700; color: white; }
+  .contact-det { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .contact-wpp { font-size: 11px; color: #4ade80; font-family: monospace; margin-top: 2px; }
+  .contact-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ===== ABA CONHECIMENTO ===== */
+  .conhecimento-card {
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; padding: 16px; margin-bottom: 10px;
+  }
+  .conhecimento-card .assunto-tag { background: rgba(139,92,246,0.15); color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); border-radius: 6px; padding: 2px 10px; font-size: 11px; font-weight: 700; display: inline-block; margin-bottom: 8px; }
+  .conhecimento-card h4 { font-size: 14px; font-weight: 700; color: white; margin-bottom: 6px; }
+  .conhecimento-card .palavras { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+  .conhecimento-card .resposta { font-size: 12px; color: var(--text2); line-height: 1.6; max-height: 80px; overflow: hidden; text-overflow: ellipsis; white-space: pre-wrap; }
+  .conhecimento-card:hover .resposta { max-height: none; }
+
+  /* ===== MODAL FORM ===== */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px;
+    padding: 28px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto;
+  }
+  .modal h3 { font-size: 16px; font-weight: 800; color: white; margin-bottom: 20px; }
+  .modal .form-group { margin-bottom: 14px; }
+  .modal label { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%; background: var(--bg3); border: 1.5px solid var(--border2); border-radius: 10px;
+    padding: 10px 12px; color: var(--text); font-size: 13px; outline: none; font-family: inherit;
+  }
+  .modal textarea { resize: vertical; min-height: 80px; }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: var(--azul); }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+  .modal select option { background: var(--bg2); }
+
+  /* ===== DASHBOARD CHARTS ===== */
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .chart-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 20px; }
+  .chart-card h4 { font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; }
+  .bar-label { font-size: 11px; color: var(--text2); width: 120px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { flex: 1; background: var(--bg3); border-radius: 4px; height: 16px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--azul2), var(--azul)); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+  .bar-count { font-size: 11px; color: var(--text3); width: 28px; text-align: right; }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 48px 20px; color: var(--text3); }
+  .empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; }
+
+  /* Paginação */
+  .pagination { display: flex; gap: 6px; justify-content: center; margin-top: 20px; }
+  .page-btn { background: var(--bg2); border: 1px solid var(--border2); border-radius: 8px; color: var(--text2); padding: 6px 12px; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .page-btn:hover { border-color: var(--azul); color: var(--azul); }
+  .page-btn.active { background: var(--azul); border-color: var(--azul); color: white; }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 56px; }
+    .sidebar-btn span:not(.s-icon):not(.badge) { display: none; }
+    .sidebar-label { display: none; }
+    .chart-row { grid-template-columns: 1fr; }
+    .topbar-links { display: none; }
+  }
+
+  .tab-hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <img src="logo-gps.png" alt="GPS" onerror="this.style.display='none'; this.parentElement.innerHTML='🛡️';">
+  </div>
+  <div class="topbar-title">
+    <h1>🤖 PAINEL DE CONTROLE – ASSISTENTE VIRTUAL BARTOLOMEU</h1>
+    <p id="last-update-txt">Grupo GPS · Carregando dados...</p>
+  </div>
+  <div class="topbar-links">
+    <a class="link-btn" href="index.html">📋 Quadro Operacional</a>
+    <a class="link-btn" href="solicitacoes.html">📂 Solicitações</a>
+    <a class="link-btn" href="atendimento.html" target="_blank">💬 Falar com Bartolomeu</a>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <span class="sidebar-label">Principal</span>
+    <button class="sidebar-btn active" onclick="showTab('dashboard')" id="btn-tab-dashboard">
+      <span class="s-icon">📊</span> <span>Dashboard</span>
+    </button>
+    <button class="sidebar-btn" onclick="showTab('atendimentos')" id="btn-tab-atendimentos">
+      <span class="s-icon">💬</span> <span>Atendimentos</span>
+      <span class="badge" id="badge-pendentes" style="display:none;">0</span>
+    </button>
+
+    <span class="sidebar-label">Configuração</span>
+    <button class="sidebar-btn" onclick="showTab('contatos')" id="btn-tab-contatos">
+      <span class="s-icon">📱</span> <span>Contatos WhatsApp</span>
+    </button>
+    <button class="sidebar-btn" onclick="showTab('conhecimento')" id="btn-tab-conhecimento">
+      <span class="s-icon">📚</span> <span>Base de Conhecimento</span>
+    </button>
+
+    <span class="sidebar-label">Sistema</span>
+    <button class="sidebar-btn" onclick="location.href='index.html'">
+      <span class="s-icon">🏠</span> <span>Voltar ao Sistema</span>
+    </button>
+    <button class="sidebar-btn" onclick="carregarTudo()">
+      <span class="s-icon">🔄</span> <span>Atualizar</span>
+    </button>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ======== ABA: DASHBOARD ======== -->
+    <div id="tab-dashboard">
+      <div class="section-title">📊 Dashboard de Atendimentos</div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card azul"><div class="st-icon">💬</div><div class="st-value" id="st-total">—</div><div class="st-label">Total de Atendimentos</div></div>
+        <div class="stat-card verde"><div class="st-icon">🤖</div><div class="st-value" id="st-ia">—</div><div class="st-label">Resolvidos pela IA</div></div>
+        <div class="stat-card amarelo"><div class="st-icon">📲</div><div class="st-value" id="st-wpp">—</div><div class="st-label">Encaminhados WhatsApp</div></div>
+        <div class="stat-card vermelho"><div class="st-icon">⏳</div><div class="st-value" id="st-pend">—</div><div class="st-label">Pendentes / Abertos</div></div>
+        <div class="stat-card verde"><div class="st-icon">✅</div><div class="st-value" id="st-conc">—</div><div class="st-label">Concluídos</div></div>
+        <div class="stat-card roxo"><div class="st-icon">📆</div><div class="st-value" id="st-hoje">—</div><div class="st-label">Atendimentos Hoje</div></div>
+      </div>
+
+      <div class="chart-row">
+        <div class="chart-card">
+          <h4>🏆 Assuntos Mais Solicitados</h4>
+          <div class="bar-chart" id="chart-assuntos">
+            <div class="empty"><div class="empty-icon">📊</div><p>Aguardando dados...</p></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h4>⚖️ Atendimentos por Gestão</h4>
+          <div class="bar-chart" id="chart-gestao">
+            <div class="empty"><div class="empty-icon">📊</div><p>Aguardando dados...</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">🕐 Últimos Atendimentos <span class="pill" id="dash-recent-count">0</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Protocolo</th>
+              <th>Colaborador</th>
+              <th>Gestão</th>
+              <th>Assunto</th>
+              <th>Status</th>
+              <th>Data/Hora</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-recentes"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ======== ABA: ATENDIMENTOS ======== -->
+    <div id="tab-atendimentos" class="tab-hidden">
+      <div class="section-title">💬 Todos os Atendimentos <span class="pill" id="count-atend">0</span></div>
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="busca-atend" placeholder="Nome, matrícula, protocolo..." oninput="filtrarAtendimentos()">
+        </div>
+        <select class="select-filter" id="fil-gestao" onchange="filtrarAtendimentos()">
+          <option value="Todas">Todas Gestões</option>
+          <option value="Base">Base</option>
+          <option value="Rumo">Rumo</option>
+        </select>
+        <select class="select-filter" id="fil-status" onchange="filtrarAtendimentos()">
+          <option value="Todos">Todos Status</option>
+          <option value="Aberto">Aberto</option>
+          <option value="Em Andamento">Em Andamento</option>
+          <option value="Concluído">Concluído</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+        <select class="select-filter" id="fil-assunto" onchange="filtrarAtendimentos()">
+          <option value="Todos">Todos Assuntos</option>
+          <option>Folha-ponto</option>
+          <option>Holerite</option>
+          <option>Pagamento</option>
+          <option>Benefícios</option>
+          <option>Reciclagem</option>
+          <option>Supervisão</option>
+          <option>Uniformes</option>
+          <option>Material de apoio</option>
+          <option>Combustível</option>
+          <option>Manutenção de veículos</option>
+          <option>Escala e Posto</option>
+          <option>Dúvidas Gerais</option>
+        </select>
+        <button class="btn-action" onclick="exportarCSV()">⬇️ Exportar CSV</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Protocolo</th>
+              <th>Colaborador</th>
+              <th>Matrícula</th>
+              <th>Gestão</th>
+              <th>Assunto</th>
+              <th>Responsável</th>
+              <th>Status</th>
+              <th>Data</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-atend"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="paginacao-atend"></div>
+    </div>
+
+    <!-- ======== ABA: CONTATOS ======== -->
+    <div id="tab-contatos" class="tab-hidden">
+      <div class="section-title">📱 Contatos de WhatsApp e Responsáveis</div>
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="busca-contato" placeholder="Nome ou setor..." oninput="renderContatos()">
+        </div>
+        <select class="select-filter" id="fil-cont-gestao" onchange="renderContatos()">
+          <option value="">Todas Gestões</option>
+          <option>Rumo</option>
+          <option>Base</option>
+          <option>Geral</option>
+        </select>
+        <button class="btn-action btn-verde" onclick="abrirModalContato()">➕ Novo Contato</button>
+      </div>
+
+      <div class="contact-grid" id="lista-contatos">
+        <div class="empty"><div class="empty-icon">📱</div><p>Carregando contatos...</p></div>
+      </div>
+    </div>
+
+    <!-- ======== ABA: BASE DE CONHECIMENTO ======== -->
+    <div id="tab-conhecimento" class="tab-hidden">
+      <div class="section-title">📚 Base de Conhecimento da IA</div>
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="busca-conh" placeholder="Assunto ou palavras-chave..." oninput="renderConhecimento()">
+        </div>
+        <select class="select-filter" id="fil-conh-gestao" onchange="renderConhecimento()">
+          <option value="">Todas Gestões</option>
+          <option>Todas</option>
+          <option>Rumo</option>
+          <option>Base</option>
+        </select>
+        <button class="btn-action btn-verde" onclick="abrirModalConhecimento()">➕ Nova Resposta</button>
+      </div>
+
+      <div id="lista-conhecimento">
+        <div class="empty"><div class="empty-icon">📚</div><p>Carregando base de conhecimento...</p></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== DRAWER: DETALHE DO ATENDIMENTO ===== -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="fecharDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div>
+      <h2 id="drawer-protocolo">Protocolo —</h2>
+      <div style="font-size:11px; color:var(--text3); margin-top:2px;" id="drawer-data">—</div>
+    </div>
+    <button class="btn-close" onclick="fecharDrawer()">✕ Fechar</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <div class="empty"><div class="empty-icon">⏳</div><p>Carregando...</p></div>
+  </div>
+  <div class="drawer-actions" id="drawer-actions"></div>
+</div>
+
+<!-- ===== MODAL: CONTATO ===== -->
+<div class="modal-overlay" id="modal-contato">
+  <div class="modal">
+    <h3 id="modal-cont-titulo">➕ Novo Contato</h3>
+    <input type="hidden" id="modal-cont-id">
+    <div class="form-group">
+      <label>Responsável *</label>
+      <input type="text" id="cont-responsavel" placeholder="Ex: Dayana" required>
+    </div>
+    <div class="form-group">
+      <label>Setor *</label>
+      <select id="cont-setor">
+        <option>RH</option>
+        <option>Benefícios</option>
+        <option>Supervisão</option>
+        <option>Gestão / RH</option>
+        <option>Operacional</option>
+        <option>Administrativo</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Gestão *</label>
+      <select id="cont-gestao">
+        <option>Geral</option>
+        <option>Base</option>
+        <option>Rumo</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Empreendimento (ou "Todos")</label>
+      <input type="text" id="cont-emp" placeholder="Ex: Todos" value="Todos">
+    </div>
+    <div class="form-group">
+      <label>WhatsApp (somente números) *</label>
+      <input type="text" id="cont-wpp" placeholder="Ex: 41992908312" inputmode="numeric">
+    </div>
+    <div class="form-group">
+      <label>Observações</label>
+      <textarea id="cont-obs" placeholder="Ex: Atende de 2ª a 6ª, 08h–18h"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Ativo?</label>
+      <select id="cont-ativo">
+        <option value="1">✅ Ativo</option>
+        <option value="0">🔴 Inativo</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-action btn-ghost" onclick="fecharModais()">Cancelar</button>
+      <button class="btn-action btn-verde" onclick="salvarContato()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CONHECIMENTO ===== -->
+<div class="modal-overlay" id="modal-conhecimento">
+  <div class="modal">
+    <h3 id="modal-conh-titulo">➕ Nova Resposta Oficial</h3>
+    <input type="hidden" id="modal-conh-id">
+    <div class="form-group">
+      <label>Assunto *</label>
+      <select id="conh-assunto">
+        <option>Folha-ponto</option>
+        <option>Holerite</option>
+        <option>Pagamento</option>
+        <option>Benefícios</option>
+        <option>Reciclagem</option>
+        <option>Supervisão</option>
+        <option>Uniformes</option>
+        <option>Material de apoio</option>
+        <option>Combustível</option>
+        <option>Manutenção de veículos</option>
+        <option>Escala e Posto</option>
+        <option>Dúvidas Gerais</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Título Interno *</label>
+      <input type="text" id="conh-titulo" placeholder="Descrição curta para identificar esta regra">
+    </div>
+    <div class="form-group">
+      <label>Palavras-chave (separadas por vírgula)</label>
+      <input type="text" id="conh-palavras" placeholder="Ex: ponto, folha, atestado, banco de horas">
+    </div>
+    <div class="form-group">
+      <label>Resposta Oficial (texto que a IA enviará) *</label>
+      <textarea id="conh-resposta" style="min-height: 140px;" placeholder="Use **negrito**, _itálico_, \n para quebra de linha..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Gestão Aplicável</label>
+      <select id="conh-gestao">
+        <option value="Todas">Todas</option>
+        <option value="Base">Apenas Base</option>
+        <option value="Rumo">Apenas Rumo</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Exigir encaminhamento para WhatsApp?</label>
+      <select id="conh-esc">
+        <option value="0">Não — a IA resolve sozinha</option>
+        <option value="1">Sim — sempre encaminhar ao responsável</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Ordem de prioridade (menor = primeiro)</label>
+      <input type="number" id="conh-ordem" value="0" min="0">
+    </div>
+    <div class="form-group">
+      <label>Ativo?</label>
+      <select id="conh-ativo">
+        <option value="1">✅ Ativo</option>
+        <option value="0">🔴 Inativo</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-action btn-ghost" onclick="fecharModais()">Cancelar</button>
+      <button class="btn-action btn-verde" onclick="salvarConhecimento()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// ESTADO
+// =====================================================
+let tabAtual = 'dashboard';
+let atendimentos = [];
+let contatos = [];
+let conhecimento = [];
+let currentPage = 1;
+const PER_PAGE = 20;
+
+// =====================================================
+// NAVEGAÇÃO TABS
+// =====================================================
+function showTab(tab) {
+  ['dashboard', 'atendimentos', 'contatos', 'conhecimento'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('tab-hidden', t !== tab);
+    document.getElementById('btn-tab-' + t).classList.toggle('active', t === tab);
+  });
+  tabAtual = tab;
+
+  if (tab === 'atendimentos') carregarAtendimentos();
+  else if (tab === 'contatos') carregarContatos();
+  else if (tab === 'conhecimento') carregarConhecimento();
+  else carregarDashboard();
+}
+
+// =====================================================
+// DASHBOARD
+// =====================================================
+async function carregarDashboard() {
+  try {
+    const r = await fetch('/api/ia/stats');
+    const s = await r.json();
+
+    document.getElementById('st-total').textContent = s.total || 0;
+    document.getElementById('st-ia').textContent = s.resolvidosIa || 0;
+    document.getElementById('st-wpp').textContent = s.encaminhadosWpp || 0;
+    document.getElementById('st-pend').textContent = s.pendentes || 0;
+    document.getElementById('st-conc').textContent = s.concluidos || 0;
+    document.getElementById('st-hoje').textContent = s.hojeTotal || 0;
+
+    // Badge pendentes na sidebar
+    const badgePend = document.getElementById('badge-pendentes');
+    if (s.pendentes > 0) { badgePend.textContent = s.pendentes; badgePend.style.display = ''; }
+    else badgePend.style.display = 'none';
+
+    // Charts
+    renderBarChart('chart-assuntos', s.porAssunto || [], 'assunto', 'total');
+    renderBarChart('chart-gestao', s.porGestao || [], 'gestao', 'total');
+
+    // Recentes
+    carregarRecentes();
+  } catch (e) {
+    console.error('Erro ao carregar stats:', e);
+  }
+}
+
+function renderBarChart(containerId, dados, labelKey, valueKey) {
+  const el = document.getElementById(containerId);
+  if (!dados || dados.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><p>Nenhum dado ainda</p></div>';
+    return;
+  }
+  const max = Math.max(...dados.map(d => d[valueKey]));
+  el.innerHTML = dados.map(d => `
+    <div class="bar-row">
+      <div class="bar-label" title="${d[labelKey]}">${d[labelKey]}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width: ${max > 0 ? Math.round((d[valueKey] / max) * 100) : 0}%"></div>
+      </div>
+      <div class="bar-count">${d[valueKey]}</div>
+    </div>
+  `).join('');
+}
+
+async function carregarRecentes() {
+  try {
+    const r = await fetch('/api/ia/atendimentos');
+    const lista = await r.json();
+    const recentes = lista.slice(0, 10);
+    document.getElementById('dash-recent-count').textContent = recentes.length;
+
+    const tbody = document.getElementById('tabela-recentes');
+    tbody.innerHTML = recentes.length === 0
+      ? `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text3);">Nenhum atendimento registrado ainda</td></tr>`
+      : recentes.map(a => rowAtend(a)).join('');
+  } catch (e) {
+    console.error('Erro ao carregar recentes:', e);
+  }
+}
+
+// =====================================================
+// ATENDIMENTOS
+// =====================================================
+async function carregarAtendimentos() {
+  try {
+    const r = await fetch('/api/ia/atendimentos');
+    atendimentos = await r.json();
+    currentPage = 1;
+    renderAtendimentos();
+  } catch (e) { console.error('Erro:', e); }
+}
+
+function filtrarAtendimentos() {
+  currentPage = 1;
+  renderAtendimentos();
+}
+
+function renderAtendimentos() {
+  const busca = (document.getElementById('busca-atend')?.value || '').toLowerCase();
+  const filGestao = document.getElementById('fil-gestao')?.value || 'Todas';
+  const filStatus = document.getElementById('fil-status')?.value || 'Todos';
+  const filAssunto = document.getElementById('fil-assunto')?.value || 'Todos';
+
+  let filtrados = atendimentos.filter(a => {
+    const matchBusca = !busca || [a.colaborador_nome, a.colaborador_matricula, a.protocolo, a.assunto].some(v => (v || '').toLowerCase().includes(busca));
+    const matchGestao = filGestao === 'Todas' || a.gestao === filGestao;
+    const matchStatus = filStatus === 'Todos' || a.status === filStatus;
+    const matchAssunto = filAssunto === 'Todos' || a.assunto === filAssunto;
+    return matchBusca && matchGestao && matchStatus && matchAssunto;
+  });
+
+  document.getElementById('count-atend').textContent = filtrados.length;
+
+  const totalPages = Math.max(1, Math.ceil(filtrados.length / PER_PAGE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const slice = filtrados.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+
+  const tbody = document.getElementById('tabela-atend');
+  tbody.innerHTML = slice.length === 0
+    ? `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3);">Nenhum atendimento encontrado</td></tr>`
+    : slice.map(a => rowAtendCompleto(a)).join('');
+
+  // Paginação
+  const pag = document.getElementById('paginacao-atend');
+  pag.innerHTML = '';
+  for (let i = 1; i <= totalPages; i++) {
+    pag.innerHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+}
+
+function goPage(p) { currentPage = p; renderAtendimentos(); }
+
+function statusBadge(s) {
+  if (!s) return '<span class="badge-status badge-aberto">⏳ Aberto</span>';
+  const map = {
+    'Aberto': 'badge-aberto',
+    'Em Andamento': 'badge-andamento',
+    'Concluído': 'badge-concluido',
+    'Cancelado': 'badge-cancelado'
+  };
+  const cls = map[s] || 'badge-aberto';
+  const icon = { 'Aberto': '⏳', 'Em Andamento': '🔄', 'Concluído': '✅', 'Cancelado': '🚫' }[s] || '—';
+  return `<span class="badge-status ${cls}">${icon} ${s}</span>`;
+}
+
+function gestBadge(g) {
+  if (!g) return '';
+  return g === 'Rumo' ? `<span class="badge-rumo">RUMO</span>` : `<span class="badge-base">BASE</span>`;
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  try {
+    return new Date(str).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+  } catch { return str; }
+}
+
+function rowAtend(a) {
+  return `<tr>
+    <td><span style="font-family:monospace; font-size:12px; color:#93c5fd;">${a.protocolo || a.id}</span></td>
+    <td>${a.colaborador_nome || '—'}</td>
+    <td>${gestBadge(a.gestao)}</td>
+    <td style="max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.assunto || '—'}</td>
+    <td>${statusBadge(a.status)}</td>
+    <td style="font-size:11px; color:var(--text3);">${formatDate(a.created_at)}</td>
+    <td><button class="btn-action btn-sm" onclick="abrirDrawer('${a.id}')">👁️ Ver</button></td>
+  </tr>`;
+}
+
+function rowAtendCompleto(a) {
+  return `<tr>
+    <td><span style="font-family:monospace; font-size:12px; color:#93c5fd;">${a.protocolo || a.id}</span></td>
+    <td style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.colaborador_nome || '—'}</td>
+    <td style="font-family:monospace; font-size:12px;">${a.colaborador_matricula || '—'}</td>
+    <td>${gestBadge(a.gestao)}</td>
+    <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px;">${a.assunto || '—'}</td>
+    <td style="max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:var(--text2);">${a.responsavel_destino || '—'}</td>
+    <td>${statusBadge(a.status)}</td>
+    <td style="font-size:11px; color:var(--text3);">${formatDate(a.created_at)}</td>
+    <td>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-action btn-sm" onclick="abrirDrawer('${a.id}')">👁️</button>
+        <button class="btn-action btn-sm btn-vermelho" onclick="excluirAtendimento('${a.id}')">🗑️</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+// =====================================================
+// DRAWER – DETALHE ATENDIMENTO
+// =====================================================
+let atendimentoAtual = null;
+
+async function abrirDrawer(id) {
+  document.getElementById('drawer-overlay').style.display = 'block';
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-body').innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><p>Carregando...</p></div>';
+  document.getElementById('drawer-actions').innerHTML = '';
+
+  try {
+    const r = await fetch(`/api/ia/atendimentos/${id}`);
+    if (!r.ok) throw new Error('Não encontrado');
+    const a = await r.json();
+    atendimentoAtual = a;
+
+    document.getElementById('drawer-protocolo').textContent = a.protocolo || a.id;
+    document.getElementById('drawer-data').textContent = formatDate(a.created_at) + ' · ' + (a.gestao || '');
+
+    // Histórico de conversa
+    let historico = [];
+    if (a.historico_conversa) {
+      try { historico = JSON.parse(a.historico_conversa); } catch { historico = []; }
+    }
+
+    const convHtml = historico.length > 0 ? historico.map(m => `
+      <div class="conv-msg ${m.sender}">
+        <div class="conv-sender">${m.sender === 'user' ? '👤 ' + (a.colaborador_nome || 'Colaborador') : '🤖 Bartolomeu (IA)'} · ${m.time || ''}</div>
+        ${(m.text || '').replace(/</g, '&lt;').replace(/\n/g, '<br>')}
+      </div>
+    `).join('') : '<div style="color:var(--text3); font-size:12px; padding:8px;">Nenhuma mensagem registrada.</div>';
+
+    document.getElementById('drawer-body').innerHTML = `
+      <div class="detail-block">
+        <h4>👤 Dados do Colaborador</h4>
+        <div class="detail-row"><div class="detail-label">Nome</div><div class="detail-value">${a.colaborador_nome || '—'}</div></div>
+        <div class="detail-row"><div class="detail-label">Matrícula</div><div class="detail-value">${a.colaborador_matricula || '—'}</div></div>
+        <div class="detail-row"><div class="detail-label">Gestão</div><div class="detail-value">${gestBadge(a.gestao)}</div></div>
+        <div class="detail-row"><div class="detail-label">Empreendimento</div><div class="detail-value">${a.empreendimento || '—'}</div></div>
+        <div class="detail-row"><div class="detail-label">Assunto</div><div class="detail-value">${a.assunto || '—'}</div></div>
+      </div>
+
+      <div class="detail-block">
+        <h4>📋 Status do Atendimento</h4>
+        <div class="detail-row"><div class="detail-label">Status</div><div class="detail-value">${statusBadge(a.status)}</div></div>
+        <div class="detail-row"><div class="detail-label">Resolvido por</div><div class="detail-value">${a.resolvido_por || 'Pendente'}</div></div>
+        <div class="detail-row"><div class="detail-label">Responsável</div><div class="detail-value">${a.responsavel_destino || '—'}</div></div>
+      </div>
+
+      ${a.responsavel_whatsapp ? `
+      <div class="detail-block">
+        <h4>📲 Contato de Encaminhamento</h4>
+        <div class="detail-row"><div class="detail-label">WhatsApp</div><div class="detail-value" style="color:#4ade80; font-family:monospace;">+55 ${a.responsavel_whatsapp}</div></div>
+        <div style="margin-top:10px;">
+          <a class="btn-wpp-drawer" href="https://api.whatsapp.com/send?phone=55${a.responsavel_whatsapp}" target="_blank">
+            💬 Abrir WhatsApp
+          </a>
+        </div>
+      </div>
+      ` : ''}
+
+      <div class="detail-block">
+        <h4>💬 Histórico da Conversa</h4>
+        <div class="conv-msgs">${convHtml}</div>
+      </div>
+
+      <div class="detail-block">
+        <h4>📝 Observações do Gestor</h4>
+        <textarea id="obs-gestor" style="width:100%; background:var(--bg); border:1px solid var(--border2); border-radius:8px; padding:10px; color:var(--text); font-size:12px; min-height:70px; resize:vertical;"
+          placeholder="Adicione observações internas...">${a.observacoes_gestor || ''}</textarea>
+      </div>
+    `;
+
+    // Ações
+    const statusOptions = ['Aberto', 'Em Andamento', 'Concluído', 'Cancelado'].filter(s => s !== a.status);
+    document.getElementById('drawer-actions').innerHTML = `
+      <select id="select-novo-status" class="select-filter" style="font-size:12px;">
+        <option value="">Mudar Status...</option>
+        ${statusOptions.map(s => `<option value="${s}">${s}</option>`).join('')}
+      </select>
+      <button class="btn-action btn-sm btn-verde" onclick="salvarDrawer()">💾 Salvar</button>
+      <button class="btn-action btn-sm btn-vermelho" onclick="excluirAtendimento('${a.id}')">🗑️ Excluir</button>
+    `;
+
+  } catch (e) {
+    document.getElementById('drawer-body').innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><p>Erro ao carregar atendimento.</p></div>';
+  }
+}
+
+async function salvarDrawer() {
+  if (!atendimentoAtual) return;
+  const obs = document.getElementById('obs-gestor')?.value || '';
+  const novoStatus = document.getElementById('select-novo-status')?.value || '';
+
+  const payload = {
+    observacoes_gestor: obs
+  };
+  if (novoStatus) payload.status = novoStatus;
+
+  await fetch(`/api/ia/atendimentos/${atendimentoAtual.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  fecharDrawer();
+  if (tabAtual === 'atendimentos') carregarAtendimentos();
+  else carregarDashboard();
+}
+
+async function excluirAtendimento(id) {
+  if (!confirm('Excluir este atendimento do histórico?')) return;
+  await fetch(`/api/ia/atendimentos/${id}`, { method: 'DELETE' });
+  fecharDrawer();
+  if (tabAtual === 'atendimentos') carregarAtendimentos();
+  else carregarDashboard();
+}
+
+function fecharDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').style.display = 'none';
+  atendimentoAtual = null;
+}
+
+// =====================================================
+// CONTATOS
+// =====================================================
+async function carregarContatos() {
+  const r = await fetch('/api/ia/contatos');
+  contatos = await r.json();
+  renderContatos();
+}
+
+function renderContatos() {
+  const busca = (document.getElementById('busca-contato')?.value || '').toLowerCase();
+  const filGestao = document.getElementById('fil-cont-gestao')?.value || '';
+
+  const filtrados = contatos.filter(c => {
+    const matchBusca = !busca || [c.responsavel, c.setor, c.empreendimento].some(v => (v || '').toLowerCase().includes(busca));
+    const matchGestao = !filGestao || c.gestao === filGestao;
+    return matchBusca && matchGestao;
+  });
+
+  const container = document.getElementById('lista-contatos');
+  if (filtrados.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📱</div><p>Nenhum contato encontrado</p></div>';
+    return;
+  }
+
+  container.innerHTML = filtrados.map(c => `
+    <div class="contact-card" style="${c.ativo ? '' : 'opacity:0.5;'}">
+      <div class="contact-avatar">${(c.responsavel || '?')[0].toUpperCase()}</div>
+      <div class="contact-info">
+        <div class="contact-nome">${c.responsavel || '—'} ${c.ativo ? '' : '<span style="font-size:10px; color:var(--vermelho);">[INATIVO]</span>'}</div>
+        <div class="contact-det">${c.setor} · ${gestBadge(c.gestao)} · ${c.empreendimento || 'Todos'}</div>
+        <div class="contact-wpp">📲 +55 ${c.whatsapp}</div>
+        ${c.observacoes ? `<div style="font-size:11px; color:var(--text3); margin-top:2px;">ℹ️ ${c.observacoes}</div>` : ''}
+      </div>
+      <div class="contact-actions">
+        <a class="btn-action btn-sm btn-verde" href="https://api.whatsapp.com/send?phone=55${c.whatsapp}" target="_blank">💬</a>
+        <button class="btn-action btn-sm" onclick='editarContato(${JSON.stringify(c).replace(/'/g,"&#39;")})'>✏️</button>
+        <button class="btn-action btn-sm btn-vermelho" onclick="excluirContato(${c.id})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function abrirModalContato(c = null) {
+  document.getElementById('modal-cont-titulo').textContent = c ? '✏️ Editar Contato' : '➕ Novo Contato';
+  document.getElementById('modal-cont-id').value = c ? c.id : '';
+  document.getElementById('cont-responsavel').value = c ? c.responsavel : '';
+  document.getElementById('cont-setor').value = c ? c.setor : 'RH';
+  document.getElementById('cont-gestao').value = c ? c.gestao : 'Geral';
+  document.getElementById('cont-emp').value = c ? c.empreendimento : 'Todos';
+  document.getElementById('cont-wpp').value = c ? c.whatsapp : '';
+  document.getElementById('cont-obs').value = c ? c.observacoes : '';
+  document.getElementById('cont-ativo').value = c ? (c.ativo ? '1' : '0') : '1';
+  document.getElementById('modal-contato').classList.add('open');
+}
+
+function editarContato(c) { abrirModalContato(c); }
+
+async function salvarContato() {
+  const id = document.getElementById('modal-cont-id').value;
+  const data = {
+    responsavel: document.getElementById('cont-responsavel').value.trim(),
+    setor: document.getElementById('cont-setor').value,
+    gestao: document.getElementById('cont-gestao').value,
+    empreendimento: document.getElementById('cont-emp').value.trim() || 'Todos',
+    whatsapp: document.getElementById('cont-wpp').value.replace(/\D/g,''),
+    observacoes: document.getElementById('cont-obs').value.trim(),
+    ativo: parseInt(document.getElementById('cont-ativo').value)
+  };
+
+  if (!data.responsavel || !data.whatsapp) { alert('Responsável e WhatsApp são obrigatórios.'); return; }
+
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/ia/contatos/${id}` : '/api/ia/contatos';
+  await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+
+  fecharModais();
+  carregarContatos();
+}
+
+async function excluirContato(id) {
+  if (!confirm('Excluir este contato?')) return;
+  await fetch(`/api/ia/contatos/${id}`, { method: 'DELETE' });
+  carregarContatos();
+}
+
+// =====================================================
+// BASE DE CONHECIMENTO
+// =====================================================
+async function carregarConhecimento() {
+  const r = await fetch('/api/ia/conhecimento');
+  conhecimento = await r.json();
+  renderConhecimento();
+}
+
+function renderConhecimento() {
+  const busca = (document.getElementById('busca-conh')?.value || '').toLowerCase();
+  const filGestao = document.getElementById('fil-conh-gestao')?.value || '';
+
+  const filtrados = conhecimento.filter(k => {
+    const matchBusca = !busca || [k.assunto, k.titulo, k.palavras_chave, k.resposta_oficial].some(v => (v || '').toLowerCase().includes(busca));
+    const matchGestao = !filGestao || k.gestao_aplicavel === filGestao || k.gestao_aplicavel === 'Todas';
+    return matchBusca && matchGestao;
+  });
+
+  const container = document.getElementById('lista-conhecimento');
+  if (filtrados.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📚</div><p>Nenhum item encontrado</p></div>';
+    return;
+  }
+
+  container.innerHTML = filtrados.map(k => `
+    <div class="conhecimento-card" style="${k.ativo ? '' : 'opacity:0.5;'}">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+        <div>
+          <span class="assunto-tag">${k.assunto}</span>
+          ${k.ativo ? '' : '<span style="font-size:10px; color:var(--vermelho); margin-left:6px;">[INATIVO]</span>'}
+          ${k.exigir_escalonamento ? '<span style="font-size:10px; color:#fbbf24; margin-left:6px;">⚠️ Sempre encaminha ao WhatsApp</span>' : ''}
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-action btn-sm" onclick='editarConhecimento(${JSON.stringify(k).replace(/'/g, "&#39;")})'>✏️</button>
+          <button class="btn-action btn-sm btn-vermelho" onclick="excluirConhecimento(${k.id})">🗑️</button>
+        </div>
+      </div>
+      <h4>${k.titulo}</h4>
+      ${k.palavras_chave ? `<div class="palavras">🔑 ${k.palavras_chave}</div>` : ''}
+      <div class="resposta">${(k.resposta_oficial || '').replace(/</g, '&lt;')}</div>
+      <div style="font-size:10px; color:var(--text3); margin-top:8px;">Gestão: ${k.gestao_aplicavel} · Ordem: ${k.ordem}</div>
+    </div>
+  `).join('');
+}
+
+function abrirModalConhecimento(k = null) {
+  document.getElementById('modal-conh-titulo').textContent = k ? '✏️ Editar Resposta' : '➕ Nova Resposta Oficial';
+  document.getElementById('modal-conh-id').value = k ? k.id : '';
+  document.getElementById('conh-assunto').value = k ? k.assunto : 'Folha-ponto';
+  document.getElementById('conh-titulo').value = k ? k.titulo : '';
+  document.getElementById('conh-palavras').value = k ? k.palavras_chave : '';
+  document.getElementById('conh-resposta').value = k ? k.resposta_oficial : '';
+  document.getElementById('conh-gestao').value = k ? k.gestao_aplicavel : 'Todas';
+  document.getElementById('conh-esc').value = k ? (k.exigir_escalonamento ? '1' : '0') : '0';
+  document.getElementById('conh-ordem').value = k ? k.ordem : 0;
+  document.getElementById('conh-ativo').value = k ? (k.ativo ? '1' : '0') : '1';
+  document.getElementById('modal-conhecimento').classList.add('open');
+}
+
+function editarConhecimento(k) { abrirModalConhecimento(k); }
+
+async function salvarConhecimento() {
+  const id = document.getElementById('modal-conh-id').value;
+  const data = {
+    assunto: document.getElementById('conh-assunto').value,
+    titulo: document.getElementById('conh-titulo').value.trim(),
+    palavras_chave: document.getElementById('conh-palavras').value.trim(),
+    resposta_oficial: document.getElementById('conh-resposta').value.trim(),
+    gestao_aplicavel: document.getElementById('conh-gestao').value,
+    exigir_escalonamento: parseInt(document.getElementById('conh-esc').value),
+    ordem: parseInt(document.getElementById('conh-ordem').value) || 0,
+    ativo: parseInt(document.getElementById('conh-ativo').value)
+  };
+
+  if (!data.titulo || !data.resposta_oficial) { alert('Título e Resposta Oficial são obrigatórios.'); return; }
+
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/ia/conhecimento/${id}` : '/api/ia/conhecimento';
+  await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+
+  fecharModais();
+  carregarConhecimento();
+}
+
+async function excluirConhecimento(id) {
+  if (!confirm('Excluir esta regra da base de conhecimento?')) return;
+  await fetch(`/api/ia/conhecimento/${id}`, { method: 'DELETE' });
+  carregarConhecimento();
+}
+
+// =====================================================
+// MODAIS
+// =====================================================
+function fecharModais() {
+  document.getElementById('modal-contato').classList.remove('open');
+  document.getElementById('modal-conhecimento').classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) fecharModais(); });
+});
+
+// =====================================================
+// EXPORTAR CSV
+// =====================================================
+function exportarCSV() {
+  const cols = ['protocolo', 'colaborador_nome', 'colaborador_matricula', 'gestao', 'empreendimento', 'assunto', 'resolvido_por', 'responsavel_destino', 'responsavel_whatsapp', 'status', 'observacoes_gestor', 'created_at'];
+  const header = ['Protocolo', 'Nome', 'Matrícula', 'Gestão', 'Empreendimento', 'Assunto', 'Resolvido Por', 'Responsável', 'WhatsApp', 'Status', 'Obs. Gestor', 'Data/Hora'];
+
+  const csvLines = [
+    header.join(';'),
+    ...atendimentos.map(a => cols.map(c => `"${(a[c] || '').toString().replace(/"/g, '""')}"`).join(';'))
+  ];
+
+  const blob = new Blob(['\uFEFF' + csvLines.join('\n')], { type: 'text/csv; charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `atendimentos-ia-gps-${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+// =====================================================
+// INIT
+// =====================================================
+function carregarTudo() {
+  carregarDashboard();
+  document.getElementById('last-update-txt').textContent =
+    `Atualizado em: ${new Date().toLocaleString('pt-BR')} · Grupo GPS`;
+}
+
+carregarTudo();
+
+// Auto-atualizar a cada 90 segundos
+setInterval(() => {
+  if (tabAtual === 'dashboard') carregarDashboard();
+  else if (tabAtual === 'atendimentos') carregarAtendimentos();
+}, 90000);
+</script>
+</body>
+</html>

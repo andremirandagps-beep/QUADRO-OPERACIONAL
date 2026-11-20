@@ -229,6 +229,192 @@ function initSchema() {
     console.log('🌱 Funções/Cargos criados com dados iniciais.');
   }
 
+  // ========================================================
+  // MÓDULO IA - ATENDIMENTO AO EFETIVO & PAINEL DE CONTROLE
+  // ========================================================
+  db.exec(`
+    -- Contatos de WhatsApp e Responsáveis por Setor e Gestão
+    CREATE TABLE IF NOT EXISTS ia_contatos (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      responsavel     TEXT NOT NULL,
+      setor           TEXT NOT NULL,
+      gestao          TEXT NOT NULL DEFAULT 'Geral', -- 'Rumo', 'Base', 'Geral'
+      empreendimento  TEXT DEFAULT 'Todos',
+      whatsapp        TEXT NOT NULL,
+      observacoes     TEXT,
+      ativo           INTEGER DEFAULT 1,
+      created_at      TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    -- Base de Conhecimento Oficial da IA (Respostas e Regras)
+    CREATE TABLE IF NOT EXISTS ia_base_conhecimento (
+      id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+      assunto              TEXT NOT NULL,
+      titulo               TEXT NOT NULL,
+      palavras_chave       TEXT,
+      resposta_oficial     TEXT NOT NULL,
+      gestao_aplicavel     TEXT DEFAULT 'Todas', -- 'Todas', 'Rumo', 'Base'
+      exigir_escalonamento INTEGER DEFAULT 0,
+      ativo                INTEGER DEFAULT 1,
+      ordem                INTEGER DEFAULT 0,
+      created_at           TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at           TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    -- Histórico de Atendimentos Realizados pela IA
+    CREATE TABLE IF NOT EXISTS ia_atendimentos (
+      id                    TEXT PRIMARY KEY,
+      protocolo             TEXT NOT NULL,
+      colaborador_id        TEXT,
+      colaborador_nome      TEXT NOT NULL,
+      colaborador_matricula TEXT NOT NULL,
+      gestao                TEXT NOT NULL,
+      empreendimento        TEXT,
+      assunto               TEXT NOT NULL,
+      mensagem_inicial      TEXT,
+      historico_conversa    TEXT,
+      resolvido_por         TEXT DEFAULT 'Pendente',
+      responsavel_destino   TEXT,
+      responsavel_whatsapp  TEXT,
+      status                TEXT DEFAULT 'Aberto',
+      observacoes_gestor    TEXT,
+      avaliacao             INTEGER,
+      created_at            TEXT DEFAULT (datetime('now', 'localtime')),
+      updated_at            TEXT DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_ia_atend_status ON ia_atendimentos(status);
+    CREATE INDEX IF NOT EXISTS idx_ia_atend_mat ON ia_atendimentos(colaborador_matricula);
+    CREATE INDEX IF NOT EXISTS idx_ia_atend_dt ON ia_atendimentos(created_at);
+  `);
+
+  // Seeds de Contatos WhatsApp Iniciais (contatos.csv)
+  const iaContatosCount = db.prepare('SELECT COUNT(*) as c FROM ia_contatos').get().c;
+  if (iaContatosCount === 0) {
+    const seedContatos = [
+      { responsavel: 'Supervisor da Noite', setor: 'Supervisão', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41984721699', observacoes: 'Plantão Noturno / Ronda Noturna', ativo: 1 },
+      { responsavel: 'Supervisão 24h', setor: 'Supervisão', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41992148064', observacoes: 'Supervisão Operacional 24h', ativo: 1 },
+      { responsavel: 'Gestão Rumo / RH', setor: 'Gestão / RH', gestao: 'Rumo', empreendimento: 'Todos', whatsapp: '41992642985', observacoes: 'Gestão e RH específico para funcionários da Rumo', ativo: 1 },
+      { responsavel: 'Dayana', setor: 'RH', gestao: 'Base', empreendimento: 'Todos', whatsapp: '41992908312', observacoes: 'RH Base - Folha, Ponto e Atendimento ao Efetivo', ativo: 1 },
+      { responsavel: 'Engel', setor: 'RH', gestao: 'Base', empreendimento: 'Todos', whatsapp: '4199900829', observacoes: 'RH Base - Ponto e Admissões', ativo: 1 },
+      { responsavel: 'Débora', setor: 'Benefícios', gestao: 'Base', empreendimento: 'Todos', whatsapp: '41992642985', observacoes: 'Benefícios Base (VT, VR, VA, Saúde e Odonto)', ativo: 1 },
+      { responsavel: 'Engel (Benefícios)', setor: 'Benefícios', gestao: 'Base', empreendimento: 'Todos', whatsapp: '4199900829', observacoes: 'Benefícios Base - Suporte e Cartões', ativo: 1 }
+    ];
+    const insContato = db.prepare('INSERT INTO ia_contatos (responsavel, setor, gestao, empreendimento, whatsapp, observacoes, ativo) VALUES (@responsavel, @setor, @gestao, @empreendimento, @whatsapp, @observacoes, @ativo)');
+    seedContatos.forEach(c => insContato.run(c));
+    console.log('🌱 Contatos de WhatsApp da IA criados com dados iniciais.');
+  }
+
+  // Seeds da Base de Conhecimento Oficial da IA
+  const iaConhecimentoCount = db.prepare('SELECT COUNT(*) as c FROM ia_base_conhecimento').get().c;
+  if (iaConhecimentoCount === 0) {
+    const seedConhecimento = [
+      {
+        assunto: 'Folha-ponto',
+        titulo: 'Registro de Ponto, Espelho e Envio de Atestados',
+        palavras_chave: 'ponto, folha de ponto, bater ponto, esqueci de bater, espelho de ponto, batida, atraso, falta, atestado, justificativa, banco de horas',
+        resposta_oficial: '📌 **Orientações sobre Folha-Ponto e Atestados Médicos:**\n\n1. **Registro de Ponto:** Todo colaborador deve registrar pontualmente suas batidas (entrada, intervalo e saída) no relógio biométrico ou aplicativo homologado do Grupo GPS.\n2. **Esquecimento ou divergência:** Solicite a ficha de ajuste manual de ponto ao seu supervisor imediato ou informe a justificativa com data e horário da batida faltante.\n3. **Atestados Médicos:** Devem ser encaminhados em até **48 horas úteis** da data de emissão. O documento deve conter carimbo legível, CRM, CID e assinatura do médico.\n4. **Encaminhamento:** Se precisar enviar o atestado ou ajustar pendências, escolha sua gestão (Rumo ou Base) para falar diretamente com o RH responsável pelo WhatsApp.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 1
+      },
+      {
+        assunto: 'Holerite',
+        titulo: 'Consulta Segura de Holerite e Contracheque',
+        palavras_chave: 'holerite, contracheque, comprovante de pagamento, contracheque online, salario comprovante, rendimentos, informe de rendimentos, irrf',
+        resposta_oficial: '🔒 **Acesso Seguro ao Holerite / Contracheque:**\n\nPor normas da LGPD e sigilo financeiro, dados salariais e demonstrativos de pagamento não são expostos em chats abertos.\n\n📱 **Como acessar seu holerite:**\n1. Acesse o **Portal do Colaborador Grupo GPS** ou o aplicativo oficial da empresa.\n2. Digite seu CPF e senha cadastrada.\n3. Selecione a competência desejada para download em PDF.\n\n⚠️ Caso não tenha login ou tenha esquecido a senha, clique no botão abaixo para que o RH da sua gestão (Rumo ou Base) reset seu acesso com segurança.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 2
+      },
+      {
+        assunto: 'Pagamento',
+        titulo: 'Datas de Pagamento, Adiantamento e Adicionais',
+        palavras_chave: 'pagamento, adiantamento, dia 20, quinto dia util, salario, caiu salario, adicional noturno, periculosidade, hora extra, conta salario',
+        resposta_oficial: '💵 **Calendário e Regras de Pagamento do Grupo GPS:**\n\n• **Adiantamento Salarial (Vale):** Disponibilizado até o dia **20** de cada mês.\n• **Saldo de Salário:** Creditado até o **5º dia útil** do mês subsequente.\n• **Adicional Noturno:** 20% sobre as horas trabalhadas entre 22:00 e 05:00.\n• **Periculosidade (30%):** Pago a funções de vigilância armada e desarmada conforme legislação.\n• **Horas Extras e Feriados:** Apurados conforme escala (50% em dias normais e 100% em feriados/folgas trabalhadas).\n\nPara conferência de valores específicos da sua folha, fale com o RH da sua gestão via WhatsApp.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 3
+      },
+      {
+        assunto: 'Benefícios',
+        titulo: 'Vale Transporte (VT), VR/VA e Planos de Saúde/Odontológico',
+        palavras_chave: 'beneficios, vale transporte, vt, urbs, metrocard, vale refeicao, vale alimentacao, vr, va, alelo, ticket, cartao beneficios, plano de saude, unimed, odonto, dentista',
+        resposta_oficial: '💳 **Benefícios do Colaborador:**\n\n1. **Vale Transporte (VT):** As cargas nos cartões de transporte (URBS, Metrocard, etc.) são efetuadas até o último dia útil para utilização no mês seguinte. Em caso de troca de linha ou mudança de endereço, envie comprovante atualizado.\n2. **Vale Alimentação / Refeição (VA/VR):** Disponibilizado mensalmente no cartão de benefícios da operadora parceira. Para desbloqueio, utilize o aplicativo da bandeira do cartão com seu CPF.\n3. **Planos de Saúde e Odonto:** A inclusão de dependentes (cônjuge e filhos até 21 anos) ou segunda via de carteirinha digital deve ser tratada diretamente com o setor de Benefícios.\n\nClique no botão abaixo para falar com o responsável de Benefícios no WhatsApp.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 4
+      },
+      {
+        assunto: 'Reciclagem',
+        titulo: 'Curso de Reciclagem de Vigilante e Convocação',
+        palavras_chave: 'reciclagem, curso de vigilante, certificado, validade da reciclagem, academia, policia federal, data da reciclagem, escala de reciclagem',
+        resposta_oficial: '🛡️ **Curso de Reciclagem de Formação de Vigilante:**\n\n• **Validade:** A reciclagem é obrigatória a cada **2 anos** conforme exigência da Polícia Federal.\n• **Convocação:** O setor operacional e a supervisão convocam o colaborador com antecedência de 30 dias.\n• **Documentos Necessários:** RG, CPF, Título de Eleitor, Certificado de Reservista, Atestado de Antecedentes Criminais e Exame Psicotécnico/Médico atualizado.\n• **Remuneração e Escala:** Os dias do curso são abonados mediante apresentação do comprovante da academia credenciada.\n\nPara consultar a data de vencimento da sua reciclagem ou escala, fale com a Supervisão pelo WhatsApp.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 5
+      },
+      {
+        assunto: 'Supervisão',
+        titulo: 'Supervisão Operacional, Plantão Noturno e Emergências',
+        palavras_chave: 'supervisao, supervisor, supervisor da noite, plantao 24h, rendicao, falta no posto, problema no posto, ronda, emergencia, livro de ocorrencias',
+        resposta_oficial: '🚨 **Supervisão Operacional do Grupo GPS:**\n\n• **Plantão Diurno / 24h:** Atendimento a dúvidas operacionais gerais, vistorias e suporte de escala.\n• **Supervisor da Noite:** Atendimento especializado no período noturno (19:00 às 07:00) para ocorrências, rendições emergenciais, falta de colega e rondas táticas.\n• **Livro de Ocorrências:** Registre todos os fatos relevantes durante o turno.\n\nSe você está em situação de emergência ou rendição no posto, clique imediatamente no botão do WhatsApp abaixo.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 1,
+        ordem: 6
+      },
+      {
+        assunto: 'Uniformes',
+        titulo: 'Reposição e Troca de Uniformes e EPIs',
+        palavras_chave: 'uniforme, farda, coturno, bota, camisa, calca, jaqueta, reposicao de uniforme, tamanho, epi, colete, capa de chuva',
+        resposta_oficial: '👔 **Regras para Uniformes e EPIs:**\n\n1. **Troca por Desgaste:** Solicite à supervisão informando o item necessário (camisa, calça, jaqueta ou coturno) e numeração correta.\n2. **Devolução Obrigatória:** A peça antiga desgastada deve ser entregue no ato da retirada da peça nova.\n3. **EPIs (Colete Balístico, Capa de Chuva, Lanterna):** Devem permanecer obrigatoriamente no posto ou sob guarda cautelar individual.\n\nPara solicitar reposição de peças de uniforme, entre em contato com a Supervisão via WhatsApp.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 7
+      },
+      {
+        assunto: 'Material de apoio',
+        titulo: 'Materiais Operacionais para o Posto de Trabalho',
+        palavras_chave: 'material de apoio, livro de ata, livro de ocorrencia, lanterna, pilha, prancheta, detector de metal, radio ht, bateria, carregador',
+        resposta_oficial: '📦 **Solicitação de Material de Apoio:**\n\n• Materiais comuns: Livro de ata/ocorrência, pilhas recarregáveis, carregador de rádio HT, pranchetas, canetas, lanternas táticas e detector manual de metais.\n• Para reabastecimento do posto, o supervisor operacional inclui o pedido na rota semanal ou você pode registrar a demanda pelo sistema de Apoio Operacional GPS.\n\nCaso o material seja urgente para o seu turno de serviço, acione a Supervisão no botão abaixo.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 8
+      },
+      {
+        assunto: 'Combustível',
+        titulo: 'Cartão de Combustível e Abastecimento de Frotas',
+        palavras_chave: 'combustivel, gasolina, alcool, diesel, abastecer, abastecimento, ticket log, cartao combustivel, posto credenciado, quilometragem, km',
+        resposta_oficial: '⛽ **Regras de Abastecimento de Viaturas e Motos:**\n\n1. **Postos Credenciados:** Utilize apenas a rede credenciada do cartão frota (Ticket Log / Good Card).\n2. **Cupom e Odômetro:** É obrigatório conferir a quilometragem exata do odômetro digitada na maquininha pelo frentista antes de digitar a senha.\n3. **Guarda do Comprovante:** Guarde o cupom fiscal de abastecimento e anote no relatório diário de tráfego (RDT).\n\nEm caso de cartão bloqueado, sem saldo ou problemas no posto, contate imediatamente a Supervisão de plantão.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 9
+      },
+      {
+        assunto: 'Manutenção de veículos',
+        titulo: 'Checklist Diário, Manutenção Preventiva e Sinistros',
+        palavras_chave: 'manutencao, viatura, vtr, moto, pneu, freio, oleo, troca de oleo, avaria, conserto, oficina, batida, sinistro, veiculo',
+        resposta_oficial: '🚗 **Manutenção e Cuidados com Veículos Operacionais:**\n\n• **Checklist Diário:** Inspecione nível de óleo do motor, água do radiador, calibragem e estado dos pneus, luzes e sirene antes de iniciar a ronda.\n• **Troca de Óleo / Revisão:** Avise com 500 km de antecedência da quilometragem da etiqueta para agendamento em oficina credenciada.\n• **Sinistro ou Pane Mecânica:** Pare o veículo em local seguro, sinalize com triângulo e comunique imediatamente o Plantão da Supervisão.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 1,
+        ordem: 10
+      },
+      {
+        assunto: 'Escala e Posto',
+        titulo: 'Consulta de Posto de Trabalho, Equipe e Horário de Escala',
+        palavras_chave: 'escala, minha escala, meu posto, onde trabalho, equipe, impar, par, 12x36, horario de trabalho, folga, folguista, ferista',
+        resposta_oficial: '📅 **Consulta de Escala e Alocação:**\n\nO sistema do Quadro Operacional do Grupo GPS mantém atualizada a relação de postos, equipes (Ímpares / Pares) e horários de cada colaborador.\n\n💡 Digitando sua matrícula ou nome nesta tela, o sistema já identifica seu posto cadastrado, escala e equipe. Se houver remanejamento recente ou permuta de plantão com colega, confirme a liberação formal com a Supervisão.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 11
+      }
+    ];
+
+    const insConh = db.prepare('INSERT INTO ia_base_conhecimento (assunto, titulo, palavras_chave, resposta_oficial, gestao_aplicavel, exigir_escalonamento, ordem) VALUES (@assunto, @titulo, @palavras_chave, @resposta_oficial, @gestao_aplicavel, @exigir_escalonamento, @ordem)');
+    seedConhecimento.forEach(k => insConh.run(k));
+    console.log('🌱 Base de Conhecimento da IA criada com dados iniciais.');
+  }
+
   console.log('✅ Schema do banco de dados criado/verificado com sucesso.');
 }
 
@@ -435,6 +621,41 @@ function prepareStatements() {
     insertFuncao: db.prepare(`INSERT INTO funcoes_cargo (nome, icone, ativo, ordem) VALUES (@nome, @icone, @ativo, @ordem)`),
     updateFuncao: db.prepare(`UPDATE funcoes_cargo SET nome = @nome, icone = @icone, ativo = @ativo, ordem = @ordem WHERE id = @id`),
     deleteFuncao: db.prepare(`DELETE FROM funcoes_cargo WHERE id = ?`),
+
+    // IA - Contatos WhatsApp
+    getAllIaContatos: db.prepare(`SELECT * FROM ia_contatos ORDER BY gestao, setor, responsavel`),
+    getIaContatoById: db.prepare(`SELECT * FROM ia_contatos WHERE id = ?`),
+    insertIaContato: db.prepare(`INSERT INTO ia_contatos (responsavel, setor, gestao, empreendimento, whatsapp, observacoes, ativo) VALUES (@responsavel, @setor, @gestao, @empreendimento, @whatsapp, @observacoes, @ativo)`),
+    updateIaContato: db.prepare(`UPDATE ia_contatos SET responsavel = @responsavel, setor = @setor, gestao = @gestao, empreendimento = @empreendimento, whatsapp = @whatsapp, observacoes = @observacoes, ativo = @ativo WHERE id = @id`),
+    deleteIaContato: db.prepare(`DELETE FROM ia_contatos WHERE id = ?`),
+
+    // IA - Base de Conhecimento
+    getAllIaConhecimento: db.prepare(`SELECT * FROM ia_base_conhecimento ORDER BY ordem, assunto, id`),
+    getIaConhecimentoById: db.prepare(`SELECT * FROM ia_base_conhecimento WHERE id = ?`),
+    insertIaConhecimento: db.prepare(`INSERT INTO ia_base_conhecimento (assunto, titulo, palavras_chave, resposta_oficial, gestao_aplicavel, exigir_escalonamento, ativo, ordem) VALUES (@assunto, @titulo, @palavras_chave, @resposta_oficial, @gestao_aplicavel, @exigir_escalonamento, @ativo, @ordem)`),
+    updateIaConhecimento: db.prepare(`UPDATE ia_base_conhecimento SET assunto = @assunto, titulo = @titulo, palavras_chave = @palavras_chave, resposta_oficial = @resposta_oficial, gestao_aplicavel = @gestao_aplicavel, exigir_escalonamento = @exigir_escalonamento, ativo = @ativo, ordem = @ordem, updated_at = datetime('now', 'localtime') WHERE id = @id`),
+    deleteIaConhecimento: db.prepare(`DELETE FROM ia_base_conhecimento WHERE id = ?`),
+
+    // IA - Atendimentos
+    getAllIaAtendimentos: db.prepare(`SELECT * FROM ia_atendimentos ORDER BY created_at DESC`),
+    getIaAtendimentoById: db.prepare(`SELECT * FROM ia_atendimentos WHERE id = ?`),
+    insertIaAtendimento: db.prepare(`
+      INSERT INTO ia_atendimentos (id, protocolo, colaborador_id, colaborador_nome, colaborador_matricula, gestao, empreendimento, assunto, mensagem_inicial, historico_conversa, resolvido_por, responsavel_destino, responsavel_whatsapp, status, observacoes_gestor, avaliacao)
+      VALUES (@id, @protocolo, @colaborador_id, @colaborador_nome, @colaborador_matricula, @gestao, @empreendimento, @assunto, @mensagem_inicial, @historico_conversa, @resolvido_por, @responsavel_destino, @responsavel_whatsapp, @status, @observacoes_gestor, @avaliacao)
+    `),
+    updateIaAtendimento: db.prepare(`
+      UPDATE ia_atendimentos
+      SET historico_conversa = @historico_conversa,
+          resolvido_por = @resolvido_por,
+          responsavel_destino = @responsavel_destino,
+          responsavel_whatsapp = @responsavel_whatsapp,
+          status = @status,
+          observacoes_gestor = @observacoes_gestor,
+          avaliacao = @avaliacao,
+          updated_at = datetime('now', 'localtime')
+      WHERE id = @id
+    `),
+    deleteIaAtendimento: db.prepare(`DELETE FROM ia_atendimentos WHERE id = ?`),
   };
 }
 
@@ -1041,6 +1262,182 @@ module.exports = {
     return stmts.getFuncaoById.get(id);
   },
   deleteFuncao: (id) => stmts.deleteFuncao.run(id),
+
+  // ========================================================
+  // MÉTODOS IA ATENDIMENTO & PAINEL DE CONTROLE
+  // ========================================================
+  // Contatos WhatsApp
+  getAllIaContatos: () => stmts.getAllIaContatos.all(),
+  getIaContatoById: (id) => stmts.getIaContatoById.get(id),
+  createIaContato: (data) => {
+    const info = stmts.insertIaContato.run({
+      responsavel: data.responsavel,
+      setor: data.setor || 'Supervisão',
+      gestao: data.gestao || 'Geral',
+      empreendimento: data.empreendimento || 'Todos',
+      whatsapp: data.whatsapp ? data.whatsapp.replace(/\D/g, '') : '',
+      observacoes: data.observacoes || '',
+      ativo: data.ativo !== undefined ? data.ativo : 1
+    });
+    return stmts.getIaContatoById.get(info.lastInsertRowid);
+  },
+  updateIaContato: (id, data) => {
+    const cur = stmts.getIaContatoById.get(id);
+    if (!cur) return null;
+    stmts.updateIaContato.run({
+      id,
+      responsavel: data.responsavel !== undefined ? data.responsavel : cur.responsavel,
+      setor: data.setor !== undefined ? data.setor : cur.setor,
+      gestao: data.gestao !== undefined ? data.gestao : cur.gestao,
+      empreendimento: data.empreendimento !== undefined ? data.empreendimento : cur.empreendimento,
+      whatsapp: data.whatsapp !== undefined ? data.whatsapp.replace(/\D/g, '') : cur.whatsapp,
+      observacoes: data.observacoes !== undefined ? data.observacoes : cur.observacoes,
+      ativo: data.ativo !== undefined ? data.ativo : cur.ativo
+    });
+    return stmts.getIaContatoById.get(id);
+  },
+  deleteIaContato: (id) => stmts.deleteIaContato.run(id),
+
+  // Base de Conhecimento
+  getAllIaConhecimento: () => stmts.getAllIaConhecimento.all(),
+  getIaConhecimentoById: (id) => stmts.getIaConhecimentoById.get(id),
+  createIaConhecimento: (data) => {
+    const info = stmts.insertIaConhecimento.run({
+      assunto: data.assunto,
+      titulo: data.titulo,
+      palavras_chave: data.palavras_chave || '',
+      resposta_oficial: data.resposta_oficial,
+      gestao_aplicavel: data.gestao_aplicavel || 'Todas',
+      exigir_escalonamento: data.exigir_escalonamento ? 1 : 0,
+      ativo: data.ativo !== undefined ? data.ativo : 1,
+      ordem: data.ordem !== undefined ? data.ordem : 0
+    });
+    return stmts.getIaConhecimentoById.get(info.lastInsertRowid);
+  },
+  updateIaConhecimento: (id, data) => {
+    const cur = stmts.getIaConhecimentoById.get(id);
+    if (!cur) return null;
+    stmts.updateIaConhecimento.run({
+      id,
+      assunto: data.assunto !== undefined ? data.assunto : cur.assunto,
+      titulo: data.titulo !== undefined ? data.titulo : cur.titulo,
+      palavras_chave: data.palavras_chave !== undefined ? data.palavras_chave : cur.palavras_chave,
+      resposta_oficial: data.resposta_oficial !== undefined ? data.resposta_oficial : cur.resposta_oficial,
+      gestao_aplicavel: data.gestao_aplicavel !== undefined ? data.gestao_aplicavel : cur.gestao_aplicavel,
+      exigir_escalonamento: data.exigir_escalonamento !== undefined ? (data.exigir_escalonamento ? 1 : 0) : cur.exigir_escalonamento,
+      ativo: data.ativo !== undefined ? data.ativo : cur.ativo,
+      ordem: data.ordem !== undefined ? data.ordem : cur.ordem
+    });
+    return stmts.getIaConhecimentoById.get(id);
+  },
+  deleteIaConhecimento: (id) => stmts.deleteIaConhecimento.run(id),
+
+  // Atendimentos
+  getAllIaAtendimentos: (filtros = {}) => {
+    let sql = 'SELECT * FROM ia_atendimentos WHERE 1=1';
+    const params = [];
+
+    if (filtros.gestao && filtros.gestao !== 'Todas') {
+      sql += ' AND gestao = ?';
+      params.push(filtros.gestao);
+    }
+    if (filtros.assunto && filtros.assunto !== 'Todos') {
+      sql += ' AND assunto = ?';
+      params.push(filtros.assunto);
+    }
+    if (filtros.status && filtros.status !== 'Todos') {
+      sql += ' AND status = ?';
+      params.push(filtros.status);
+    }
+    if (filtros.search) {
+      sql += ' AND (colaborador_nome LIKE ? OR colaborador_matricula LIKE ? OR protocolo LIKE ? OR assunto LIKE ?)';
+      const s = '%' + filtros.search + '%';
+      params.push(s, s, s, s);
+    }
+
+    sql += ' ORDER BY created_at DESC';
+    return db.prepare(sql).all(...params);
+  },
+
+  getIaAtendimentoById: (id) => stmts.getIaAtendimentoById.get(id),
+
+  criarIaAtendimento: (data) => {
+    const id = data.id || 'AT-' + Date.now().toString().slice(-6) + '-' + Math.floor(Math.random() * 900 + 100);
+    const protocolo = '#' + (data.protocolo || id.replace('AT-', ''));
+    stmts.insertIaAtendimento.run({
+      id,
+      protocolo,
+      colaborador_id: data.colaborador_id || null,
+      colaborador_nome: (data.colaborador_nome || 'COLABORADOR').toUpperCase().trim(),
+      colaborador_matricula: data.colaborador_matricula || '',
+      gestao: data.gestao || 'Base',
+      empreendimento: data.empreendimento || '',
+      assunto: data.assunto || 'Dúvidas Gerais',
+      mensagem_inicial: data.mensagem_inicial || '',
+      historico_conversa: typeof data.historico_conversa === 'string' ? data.historico_conversa : JSON.stringify(data.historico_conversa || []),
+      resolvido_por: data.resolvido_por || 'Pendente',
+      responsavel_destino: data.responsavel_destino || null,
+      responsavel_whatsapp: data.responsavel_whatsapp || null,
+      status: data.status || 'Aberto',
+      observacoes_gestor: data.observacoes_gestor || '',
+      avaliacao: data.avaliacao || null
+    });
+    return stmts.getIaAtendimentoById.get(id);
+  },
+
+  atualizarIaAtendimento: (id, data) => {
+    const cur = stmts.getIaAtendimentoById.get(id);
+    if (!cur) return null;
+    stmts.updateIaAtendimento.run({
+      id,
+      historico_conversa: data.historico_conversa !== undefined ? (typeof data.historico_conversa === 'string' ? data.historico_conversa : JSON.stringify(data.historico_conversa)) : cur.historico_conversa,
+      resolvido_por: data.resolvido_por !== undefined ? data.resolvido_por : cur.resolvido_por,
+      responsavel_destino: data.responsavel_destino !== undefined ? data.responsavel_destino : cur.responsavel_destino,
+      responsavel_whatsapp: data.responsavel_whatsapp !== undefined ? data.responsavel_whatsapp : cur.responsavel_whatsapp,
+      status: data.status !== undefined ? data.status : cur.status,
+      observacoes_gestor: data.observacoes_gestor !== undefined ? data.observacoes_gestor : cur.observacoes_gestor,
+      avaliacao: data.avaliacao !== undefined ? data.avaliacao : cur.avaliacao
+    });
+    return stmts.getIaAtendimentoById.get(id);
+  },
+
+  deleteIaAtendimento: (id) => stmts.deleteIaAtendimento.run(id),
+
+  getIaStats: () => {
+    const hoje = new Date().toISOString().substring(0, 10);
+    const total = db.prepare('SELECT COUNT(*) as c FROM ia_atendimentos').get().c;
+    const hojeTotal = db.prepare('SELECT COUNT(*) as c FROM ia_atendimentos WHERE date(created_at) = ?').get(hoje).c;
+    const resolvidosIa = db.prepare("SELECT COUNT(*) as c FROM ia_atendimentos WHERE resolvido_por = 'IA'").get().c;
+    const encaminhadosWpp = db.prepare("SELECT COUNT(*) as c FROM ia_atendimentos WHERE resolvido_por = 'WhatsApp'").get().c;
+    const pendentes = db.prepare("SELECT COUNT(*) as c FROM ia_atendimentos WHERE status = 'Aberto' OR status = 'Em Andamento'").get().c;
+    const concluidos = db.prepare("SELECT COUNT(*) as c FROM ia_atendimentos WHERE status = 'Concluído'").get().c;
+
+    const porAssunto = db.prepare(`
+      SELECT assunto, COUNT(*) as total 
+      FROM ia_atendimentos 
+      GROUP BY assunto 
+      ORDER BY total DESC 
+      LIMIT 10
+    `).all();
+
+    const porGestao = db.prepare(`
+      SELECT gestao, COUNT(*) as total 
+      FROM ia_atendimentos 
+      GROUP BY gestao 
+      ORDER BY total DESC
+    `).all();
+
+    return {
+      total,
+      hojeTotal,
+      resolvidosIa,
+      encaminhadosWpp,
+      pendentes,
+      concluidos,
+      porAssunto,
+      porGestao
+    };
+  }
 };
 
 

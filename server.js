@@ -13,6 +13,7 @@ const { exec } = require('child_process');
 
 // Load Database
 const database = require('./database.js');
+const iaService = require('./ia_service.js');
 
 const PORT = process.env.PORT || 3333;
 const BASE_DIR = __dirname;
@@ -78,6 +79,107 @@ async function handleApi(req, res, pathname, method) {
     return;
   }
 
+    // ======================================================
+    // ROTAS IA - ATENDIMENTO & PAINEL DE CONTROLE
+    // ======================================================
+
+    // GET /api/ia/stats
+    if (pathname === '/api/ia/stats' && method === 'GET') {
+      sendJson(res, 200, database.getIaStats());
+      return;
+    }
+
+    // GET /api/ia/colaboradores/pesquisa
+    if (pathname === '/api/ia/colaboradores/pesquisa' && method === 'GET') {
+      const urlObj = new URL(req.url, 'http://localhost');
+      const q = urlObj.searchParams.get('q') || '';
+      sendJson(res, 200, iaService.pesquisarColaboradores(q));
+      return;
+    }
+
+    // POST /api/ia/chat
+    if (pathname === '/api/ia/chat' && method === 'POST') {
+      const body = await parseBody(req);
+      const resultado = iaService.processarChatIA(body);
+      sendJson(res, 200, resultado);
+      return;
+    }
+
+    // GET /api/ia/atendimentos
+    if (pathname === '/api/ia/atendimentos' && method === 'GET') {
+      const urlObj = new URL(req.url, 'http://localhost');
+      const filtros = {
+        search: urlObj.searchParams.get('search') || '',
+        gestao: urlObj.searchParams.get('gestao') || 'Todas',
+        assunto: urlObj.searchParams.get('assunto') || 'Todos',
+        status: urlObj.searchParams.get('status') || 'Todos'
+      };
+      sendJson(res, 200, database.getAllIaAtendimentos(filtros));
+      return;
+    }
+
+    // /api/ia/atendimentos/:id
+    const iaAtendMatch = pathname.match(/^\/api\/ia\/atendimentos\/([^/]+)$/);
+    if (iaAtendMatch) {
+      const atendId = decodeURIComponent(iaAtendMatch[1]);
+      if (method === 'GET') {
+        const a = database.getIaAtendimentoById(atendId);
+        if (!a) return sendError(res, 404, 'Atendimento nao encontrado');
+        sendJson(res, 200, a); return;
+      }
+      if (method === 'PUT') {
+        const body = await parseBody(req);
+        const updated = database.atualizarIaAtendimento(atendId, body);
+        if (!updated) return sendError(res, 404, 'Atendimento nao encontrado');
+        sendJson(res, 200, updated); return;
+      }
+      if (method === 'DELETE') {
+        database.deleteIaAtendimento(atendId);
+        sendJson(res, 200, { success: true }); return;
+      }
+    }
+
+    // GET/POST /api/ia/contatos
+    if (pathname === '/api/ia/contatos' && method === 'GET') {
+      sendJson(res, 200, database.getAllIaContatos()); return;
+    }
+    if (pathname === '/api/ia/contatos' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.responsavel || !body.whatsapp) return sendError(res, 400, 'Dados obrigatorios');
+      sendJson(res, 201, database.createIaContato(body)); return;
+    }
+    const iaContMatch = pathname.match(/^\/api\/ia\/contatos\/(\d+)$/);
+    if (iaContMatch) {
+      const cid = parseInt(iaContMatch[1], 10);
+      if (method === 'PUT') {
+        const body = await parseBody(req);
+        const updated = database.updateIaContato(cid, body);
+        if (!updated) return sendError(res, 404, 'Contato nao encontrado');
+        sendJson(res, 200, updated); return;
+      }
+      if (method === 'DELETE') { database.deleteIaContato(cid); sendJson(res, 200, { success: true }); return; }
+    }
+
+    // GET/POST /api/ia/conhecimento
+    if (pathname === '/api/ia/conhecimento' && method === 'GET') {
+      sendJson(res, 200, database.getAllIaConhecimento()); return;
+    }
+    if (pathname === '/api/ia/conhecimento' && method === 'POST') {
+      const body = await parseBody(req);
+      if (!body.assunto || !body.resposta_oficial) return sendError(res, 400, 'Dados obrigatorios');
+      sendJson(res, 201, database.createIaConhecimento(body)); return;
+    }
+    const iaConhMatch = pathname.match(/^\/api\/ia\/conhecimento\/(\d+)$/);
+    if (iaConhMatch) {
+      const kid = parseInt(iaConhMatch[1], 10);
+      if (method === 'PUT') {
+        const body = await parseBody(req);
+        const updated = database.updateIaConhecimento(kid, body);
+        if (!updated) return sendError(res, 404, 'Conhecimento nao encontrado');
+        sendJson(res, 200, updated); return;
+      }
+      if (method === 'DELETE') { database.deleteIaConhecimento(kid); sendJson(res, 200, { success: true }); return; }
+    }
   try {
     // -------------------------------------------------------
     // GET /api/state - full board state (used by frontend)
@@ -573,6 +675,8 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/mapa') pathname = '/mapa.html';
   if (pathname === '/monitor' || pathname === '/painel') pathname = '/monitor.html';
   if (pathname === '/solicitacoes') pathname = '/solicitacoes.html';
+  if (pathname === '/atendimento' || pathname === '/ia' || pathname === '/chat') pathname = '/atendimento.html';
+  if (pathname === '/painel-ia' || pathname === '/painel-atendimento' || pathname === '/admin-ia') pathname = '/painel-atendimento.html';
 
   const filePath = path.join(BASE_DIR, pathname);
   if (!filePath.startsWith(BASE_DIR)) {
