@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>GRUPO GPS &bull; Painel de Acompanhamento TV &bull; Rotação Contínua</title>
+  <link rel="icon" type="image/png" href="logo-gps.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-dark: #070d17;
+      --surface-dark: rgba(15, 23, 42, 0.88);
+      --border-dark: rgba(255, 255, 255, 0.12);
+      --primary-blue: #3b82f6;
+      --primary-green: #10b981;
+      --primary-amber: #f59e0b;
+      --primary-purple: #8b5cf6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text-main);
+      user-select: none;
+    }
+
+    /* BARRA DE PROGRESSO SUPERIOR (CONTAGEM REGRESSIVA VISUAL) */
+    #progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 99999;
+      pointer-events: none;
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #10b981 100%);
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.9);
+      transition: width 0.25s linear;
+    }
+
+    /* CONTAINER DOS IFRAMES DAS TELAS */
+    .screens-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .screen-frame {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transition: opacity 0.45s ease-in-out, transform 0.45s ease-in-out;
+      transform: scale(0.995);
+      background: #0b1120;
+      z-index: 1;
+    }
+
+    .screen-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+      transform: scale(1);
+      z-index: 10;
+    }
+
+    /* HUD / BARRA DE CONTROLE FLUTUANTE */
+    .monitor-hud {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 18px;
+      background: var(--surface-dark);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-dark);
+      border-radius: 50px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      z-index: 9999;
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* AUTO-HIDE NO MOUSE OCIOSO */
+    .monitor-hud.hud-hidden {
+      opacity: 0.12;
+      transform: translateX(-50%) translateY(-6px);
+    }
+
+    .monitor-hud.hud-hidden:hover {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* BRAND LOGO E TITULO */
+    .hud-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-right: 12px;
+      border-right: 1px solid var(--border-dark);
+    }
+
+    .hud-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .hud-brand-text {
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #93c5fd;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ABAS DE TELAS (PILLS) */
+    .hud-tabs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 4px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .hud-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .hud-tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .hud-tab-btn.active {
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .hud-tab-btn.tab-quadro.active {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    }
+
+    .hud-tab-btn.tab-mapa.active {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .hud-tab-btn.tab-solic.active {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    }
+
+    .hud-tab-indicator {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .hud-tab-btn.active .hud-tab-indicator {
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    /* STATUS DE ROTACAO E CONTADOR */
+    .hud-status-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      border-left: 1px solid var(--border-dark);
+      border-right: 1px solid var(--border-dark);
+    }
+
+    .hud-status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      white-space: nowrap;
+    }
+
+    .hud-status-badge.paused {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+
+    .hud-status-badge.paused .pulse-dot {
+      background: #f59e0b;
+      box-shadow: 0 0 8px #f59e0b;
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.6; }
+    }
+
+    .hud-countdown {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #93c5fd;
+      min-width: 44px;
+      text-align: center;
+    }
+
+    /* BOTÕES DE CONTROLE */
+    .hud-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-dark);
+      border-radius: 20px;
+      color: #f1f5f9;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .hud-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #fff;
+    }
+
+    .hud-btn.btn-toggle-play {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      border-color: #4f46e5;
+    }
+
+    .hud-btn.btn-toggle-play:hover {
+      background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+    }
+
+    .hud-btn.btn-fullscreen {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: rgba(139, 92, 246, 0.4);
+      color: #c084fc;
+    }
+
+    .hud-btn.btn-fullscreen:hover {
+      background: rgba(139, 92, 246, 0.35);
+      color: #fff;
+    }
+
+    .hud-btn.btn-exit {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .hud-btn.btn-exit:hover {
+      background: rgba(239, 68, 68, 0.3);
+      color: #fff;
+    }
+
+    .hud-select-time {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-dark);
+      color: #cbd5e1;
+      padding: 5px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .hud-select-time:hover, .hud-select-time:focus {
+      border-color: #60a5fa;
+      color: #fff;
+    }
+
+    /* BANNER FLUTUANTE DE TELA CHEIA / INSTRUÇÃO */
+    .fullscreen-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(139, 92, 246, 0.45);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(139, 92, 246, 0.25);
+      border-radius: 50px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 99998;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: float-banner 3s ease-in-out infinite;
+    }
+
+    .fullscreen-toast:hover {
+      transform: translateX(-50%) scale(1.03);
+      border-color: #a78bfa;
+    }
+
+    .fullscreen-toast.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(30px);
+      pointer-events: none;
+    }
+
+    @keyframes float-banner {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-5px); }
+    }
+
+    .toast-icon {
+      font-size: 1.3rem;
+    }
+
+    .toast-text {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .toast-btn {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      border: none;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* DISCRETO BOTÃO DE RETOMADA CASO O HUD ESTEJA OCULTO */
+    .mini-hud-trigger {
+      position: fixed;
+      top: 8px;
+      right: 12px;
+      padding: 4px 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      font-size: 0.72rem;
+      color: #64748b;
+      cursor: pointer;
+      z-index: 9998;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .mini-hud-trigger:hover {
+      opacity: 1;
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA DE PROGRESSO DO CICLO -->
+  <div id="progress-container">
+    <div id="progress-bar"></div>
+  </div>
+
+  <!-- BARRA DE CONTROLE FLUTUANTE (HUD) -->
+  <header id="monitor-hud" class="monitor-hud">
+    <!-- BRAND LOGO -->
+    <div class="hud-brand">
+      <img src="logo-gps.png" alt="Logo Grupo GPS" class="hud-logo">
+      <span class="hud-brand-text">Monitor Operacional</span>
+    </div>
+
+    <!-- ABAS / TELAS DO CICLO -->
+    <nav class="hud-tabs" aria-label="Navegação entre telas">
+      <button class="hud-tab-btn tab-quadro active" id="tab-0" onclick="goToScreen(0)" title="Tela 1: Quadro Operacional de Postos e Crachás (Atalho: 1)">
+        <span class="hud-tab-indicator"></span>
+        <span>📋 Quadro Operacional</span>
+      </button>
+
+      <button class="hud-tab-btn tab-mapa" id="tab-1" onclick="goToScreen(1)" title="Tela 2: Mapeamento Geográfico e Visitas (Atalho: 2)">
+        <span class="hud-tab-indicator"></span>
+        <span>🗺️ Mapeamento</span>
+      </button>
+
+      <button class="hud-tab-btn tab-solic" id="tab-2" onclick="goToScreen(2)" title="Tela 3: Solicitações de Efetivo e Apoio (Atalho: 3)">
+        <span class="hud-tab-indicator"></span>
+        <span>🛡️ Solicitações</span>
+      </button>
+    </nav>
+
+    <!-- STATUS DA ROTAÇÃO E CONTAGEM REGRESSIVA -->
+    <div class="hud-status-wrapper">
+      <div id="status-badge" class="hud-status-badge" title="Status da Alternância Automática">
+        <span class="pulse-dot"></span>
+        <span id="status-text">ROTAÇÃO ATIVA</span>
+      </div>
+      <div id="countdown-badge" class="hud-countdown" title="Tempo restante até a próxima alternância">60s</div>
+    </div>
+
+    <!-- CONTROLES ADICIONAIS -->
+    <div class="hud-controls">
+      <!-- BOTÃO ATIVAR / PAUSAR ROTAÇÃO -->
+      <button id="btn-toggle-rotation" class="hud-btn btn-toggle-play" onclick="toggleRotation()" title="Pausar ou Retomar a Rotação Automática (Atalho: Espaço)">
+        <span id="btn-toggle-icon">⏸️</span>
+        <span id="btn-toggle-label">Pausar</span>
+      </button>
+
+      <!-- INTERVALO DE ROTAÇÃO -->
+      <select id="select-interval" class="hud-select-time" onchange="changeInterval(this.value)" title="Tempo de permanência em cada tela">
+        <option value="30">30 seg</option>
+        <option value="60" selected>1 min (Padrão)</option>
+        <option value="120">2 min</option>
+        <option value="300">5 min</option>
+      </select>
+
+      <!-- NAVEGAÇÃO ANTERIOR / PRÓXIMO -->
+      <button class="hud-btn" onclick="prevScreen()" title="Tela Anterior (Atalho: Seta Esquerda)">◀</button>
+      <button class="hud-btn" onclick="nextScreen()" title="Próxima Tela (Atalho: Seta Direita)">▶</button>
+
+      <!-- BOTÃO TELA CHEIA -->
+      <button id="btn-fullscreen" class="hud-btn btn-fullscreen" onclick="toggleFullscreen()" title="Alternar Modo Tela Cheia (Atalho: F ou F11)">
+        <span id="btn-fs-icon">⛶</span>
+        <span id="btn-fs-label">Tela Cheia</span>
+      </button>
+
+      <!-- SAIR DO MODO MONITOR -->
+      <a href="index.html" class="hud-btn btn-exit" title="Sair do modo monitor e voltar ao sistema normal" style="text-decoration: none;">
+        <span>✕ Sair</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- CONTAINER DE TELAS (IFRAMES) -->
+  <main class="screens-container">
+    <iframe id="frame-0" class="screen-frame active" src="index.html?autoscroll=1&mode=monitor" title="Quadro Operacional de Postos"></iframe>
+    <iframe id="frame-1" class="screen-frame" src="mapa.html?mode=monitor" title="Mapeamento e Visitas Operacionais"></iframe>
+    <iframe id="frame-2" class="screen-frame" src="solicitacoes.html?autoscroll=1&mode=monitor" title="Solicitações de Efetivo"></iframe>
+  </main>
+
+  <!-- BANNER CONVITE PARA TELA CHEIA (SOME AO ENTRAR EM TELA CHEIA) -->
+  <div id="fullscreen-toast" class="fullscreen-toast" onclick="toggleFullscreen()">
+    <span class="toast-icon">📺</span>
+    <span class="toast-text">Modo Painel Monitor ativado! Clique para exibir em <strong>Tela Cheia</strong></span>
+    <button class="toast-btn">Entrar em Tela Cheia ⛶</button>
+  </div>
+
+  <script>
+    // ========================================================
+    // CONFIGURAÇÃO E ESTADO DO MONITOR
+    // ========================================================
+    const screens = [
+      { id: 0, title: "Quadro Operacional", frameId: "frame-0", tabId: "tab-0" },
+      { id: 1, title: "Mapeamento", frameId: "frame-1", tabId: "tab-1" },
+      { id: 2, title: "Solicitações", frameId: "frame-2", tabId: "tab-2" }
+    ];
+
+    let currentScreenIndex = 0;
+    let cycleDuration = 60; // 60 segundos padrão (1 minuto)
+    let remainingSeconds = cycleDuration;
+    let isRotating = true;
+    let timerInterval = null;
+    let hudHideTimeout = null;
+
+    const progressBar = document.getElementById('progress-bar');
+    const countdownBadge = document.getElementById('countdown-badge');
+    const statusBadge = document.getElementById('status-badge');
+    const statusText = document.getElementById('status-text');
+    const btnToggleLabel = document.getElementById('btn-toggle-label');
+    const btnToggleIcon = document.getElementById('btn-toggle-icon');
+    const selectInterval = document.getElementById('select-interval');
+    const hud = document.getElementById('monitor-hud');
+    const fullscreenToast = document.getElementById('fullscreen-toast');
+    const btnFsIcon = document.getElementById('btn-fs-icon');
+    const btnFsLabel = document.getElementById('btn-fs-label');
+
+    // ========================================================
+    // TRANSIÇÃO DE TELAS
+    // ========================================================
+    function goToScreen(index) {
+      if (index < 0) index = screens.length - 1;
+      if (index >= screens.length) index = 0;
+
+      currentScreenIndex = index;
+
+      screens.forEach((screen, i) => {
+        const frame = document.getElementById(screen.frameId);
+        const tab = document.getElementById(screen.tabId);
+
+        if (i === currentScreenIndex) {
+          frame.classList.add('active');
+          tab.classList.add('active');
+
+          // Notifica iframe ou dispara resize para Leaflet renderizar perfeitamente
+          try {
+            if (frame.contentWindow) {
+              frame.contentWindow.dispatchEvent(new Event('resize'));
+              // Se for o mapa e tiver objeto de mapa Leaflet, recalcula dimensões
+              if (frame.contentWindow.state && frame.contentWindow.state.map) {
+                frame.contentWindow.state.map.invalidateSize();
+              }
+              // Se tiver função de refresh específica, chama
+              if (typeof frame.contentWindow.refreshOperacional === 'function') {
+                frame.contentWindow.refreshOperacional();
+              }
+              if (typeof frame.contentWindow.loadData === 'function') {
+                frame.contentWindow.loadData();
+              }
+              if (typeof frame.contentWindow.carregarSolicitacoes === 'function') {
+                frame.contentWindow.carregarSolicitacoes();
+              }
+
+              // Auto-Scroll da tela ativa: inicia rolagem suave tipo o Quadro Operacional
+              if (isRotating) {
+                setTimeout(() => {
+                  try {
+                    if (typeof frame.contentWindow.startAutoScroll === 'function') {
+                      frame.contentWindow.startAutoScroll();
+                    } else if (frame.contentWindow.QuadroApp && typeof frame.contentWindow.QuadroApp.startAutoScroll === 'function') {
+                      frame.contentWindow.QuadroApp.startAutoScroll();
+                    }
+                  } catch(e) {}
+                }, 400);
+              }
+            }
+          } catch(e) {
+            // Ignora se não puder acessar window
+          }
+        } else {
+          frame.classList.remove('active');
+          tab.classList.remove('active');
+
+          // Ao desativar a tela, pausa a rolagem e reseta a posição ao topo
+          try {
+            if (frame.contentWindow) {
+              if (typeof frame.contentWindow.pauseAutoScroll === 'function') {
+                frame.contentWindow.pauseAutoScroll();
+              } else if (frame.contentWindow.QuadroApp && typeof frame.contentWindow.QuadroApp.pauseAutoScroll === 'function') {
+                frame.contentWindow.QuadroApp.pauseAutoScroll();
+              }
+              frame.contentWindow.scrollTo({ top: 0, behavior: 'instant' });
+            }
+          } catch(e) {}
+        }
+      });
+
+      // Reseta o tempo da contagem regressiva para o novo ciclo
+      remainingSeconds = cycleDuration;
+      updateDisplay();
+    }
+
+    function nextScreen() {
+      goToScreen(currentScreenIndex + 1);
+    }
+
+    function prevScreen() {
+      goToScreen(currentScreenIndex - 1);
+    }
+
+    // ========================================================
+    // CONTROLE DE ROTAÇÃO (ATIVAR / PAUSAR)
+    // ========================================================
+    function toggleRotation() {
+      isRotating = !isRotating;
+      updateRotationUI();
+    }
+
+    function updateRotationUI() {
+      const activeFrame = document.getElementById(screens[currentScreenIndex].frameId);
+
+      if (isRotating) {
+        statusBadge.classList.remove('paused');
+        statusText.textContent = "ROTAÇÃO ATIVA";
+        btnToggleIcon.textContent = "⏸️";
+        btnToggleLabel.textContent = "Pausar";
+
+        // Retoma rolagem na tela ativa
+        try {
+          if (activeFrame && activeFrame.contentWindow) {
+            if (typeof activeFrame.contentWindow.startAutoScroll === 'function') {
+              activeFrame.contentWindow.startAutoScroll();
+            } else if (activeFrame.contentWindow.QuadroApp && typeof activeFrame.contentWindow.QuadroApp.startAutoScroll === 'function') {
+              activeFrame.contentWindow.QuadroApp.startAutoScroll();
+            }
+          }
+        } catch(e) {}
+      } else {
+        statusBadge.classList.add('paused');
+        statusText.textContent = "PAUSADO";
+        btnToggleIcon.textContent = "▶️";
+        btnToggleLabel.textContent = "Retomar";
+
+        // Pausa rolagem na tela ativa
+        try {
+          if (activeFrame && activeFrame.contentWindow) {
+            if (typeof activeFrame.contentWindow.pauseAutoScroll === 'function') {
+              activeFrame.contentWindow.pauseAutoScroll();
+            } else if (activeFrame.contentWindow.QuadroApp && typeof activeFrame.contentWindow.QuadroApp.pauseAutoScroll === 'function') {
+              activeFrame.contentWindow.QuadroApp.pauseAutoScroll();
+            }
+          }
+        } catch(e) {}
+      }
+    }
+
+    function changeInterval(seconds) {
+      cycleDuration = parseInt(seconds, 10) || 60;
+      remainingSeconds = cycleDuration;
+      updateDisplay();
+    }
+
+    // ========================================================
+    // LOOP DO TIMER (TICK A CADA 1 SEGUNDO)
+    // ========================================================
+    function startTimerLoop() {
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        if (!isRotating) return;
+
+        remainingSeconds--;
+
+        if (remainingSeconds <= 0) {
+          nextScreen();
+        } else {
+          updateDisplay();
+        }
+      }, 1000);
+    }
+
+    function updateDisplay() {
+      countdownBadge.textContent = remainingSeconds + 's';
+      const pct = Math.max(0, Math.min(100, ((cycleDuration - remainingSeconds) / cycleDuration) * 100));
+      progressBar.style.width = pct + '%';
+    }
+
+    // ========================================================
+    // TELA CHEIA (FULLSCREEN API)
+    // ========================================================
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.warn("Erro ao entrar em tela cheia:", err.message);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        fullscreenToast.classList.add('hidden');
+        btnFsIcon.textContent = "⤓";
+        btnFsLabel.textContent = "Sair Cheia";
+      } else {
+        fullscreenToast.classList.remove('hidden');
+        btnFsIcon.textContent = "⛶";
+        btnFsLabel.textContent = "Tela Cheia";
+      }
+    });
+
+    // ========================================================
+    // AUTO-HIDE DO HUD PARA MONITOR LIMPO NA TV
+    // ========================================================
+    function resetHudTimer() {
+      hud.classList.remove('hud-hidden');
+      document.body.style.cursor = 'default';
+
+      clearTimeout(hudHideTimeout);
+      hudHideTimeout = setTimeout(() => {
+        // Só oculta se o mouse não estiver em cima do HUD
+        if (!hud.matches(':hover')) {
+          hud.classList.add('hud-hidden');
+          // Oculta o cursor do mouse na TV após 4 segundos ocioso
+          document.body.style.cursor = 'none';
+        }
+      }, 4000);
+    }
+
+    window.addEventListener('mousemove', resetHudTimer);
+    window.addEventListener('keydown', resetHudTimer);
+    window.addEventListener('touchstart', resetHudTimer);
+
+    // ========================================================
+    // ATALHOS DE TECLADO
+    // ========================================================
+    window.addEventListener('keydown', (e) => {
+      // Espaço: Pausa / Retoma rotação
+      if (e.code === 'Space') {
+        e.preventDefault();
+        toggleRotation();
+      }
+      // F ou F11: Tela Cheia
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+      // Seta Direita: Próxima tela
+      else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        nextScreen();
+      }
+      // Seta Esquerda: Tela anterior
+      else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevScreen();
+      }
+      // Teclas 1, 2, 3: Pular para telas
+      else if (e.key === '1') {
+        goToScreen(0);
+      } else if (e.key === '2') {
+        goToScreen(1);
+      } else if (e.key === '3') {
+        goToScreen(2);
+      }
+    });
+
+    // ========================================================
+    // INICIALIZAÇÃO
+    // ========================================================
+    goToScreen(0);
+    startTimerLoop();
+    resetHudTimer();
+
+    // Se já estiver em tela cheia na inicialização (ex: bat com kiosk/fullscreen), oculta toast
+    if (window.innerHeight === screen.height || document.fullscreenElement) {
+      fullscreenToast.classList.add('hidden');
+    }
+
+    // Inicia rolagem assim que os iframes terminarem de carregar o DOM
+    screens.forEach((screen, i) => {
+      const frame = document.getElementById(screen.frameId);
+      if (frame) {
+        frame.addEventListener('load', () => {
+          if (i === currentScreenIndex && isRotating) {
+            setTimeout(() => {
+              try {
+                if (frame.contentWindow) {
+                  if (typeof frame.contentWindow.startAutoScroll === 'function') {
+                    frame.contentWindow.startAutoScroll();
+                  } else if (frame.contentWindow.QuadroApp && typeof frame.contentWindow.QuadroApp.startAutoScroll === 'function') {
+                    frame.contentWindow.QuadroApp.startAutoScroll();
+                  }
+                }
+              } catch(e) {}
+            }, 600);
+          }
+        });
+      }
+    });
+
+    // Auto-oculta o banner de tela cheia após 15 segundos se não clicado
+    setTimeout(() => {
+      fullscreenToast.classList.add('hidden');
+    }, 15000);
+  </script>
+</body>
+</html>

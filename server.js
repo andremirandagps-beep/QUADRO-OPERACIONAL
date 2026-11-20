@@ -571,6 +571,8 @@ const server = http.createServer(async (req, res) => {
   // Static files
   if (pathname === '/' || pathname === '') pathname = '/index.html';
   if (pathname === '/mapa') pathname = '/mapa.html';
+  if (pathname === '/monitor' || pathname === '/painel') pathname = '/monitor.html';
+  if (pathname === '/solicitacoes') pathname = '/solicitacoes.html';
 
   const filePath = path.join(BASE_DIR, pathname);
   if (!filePath.startsWith(BASE_DIR)) {

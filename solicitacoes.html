@@ -955,11 +955,35 @@
     </div>
 
     <div class="header-actions">
+      <!-- Auto-Scroll / Modo Apresentação (Play e Pause) -->
+      <div class="autoscroll-control-group" id="solicAutoscrollGroup">
+        <button type="button" class="btn btn-autoscroll" id="btnToggleAutoscrollSolic" onclick="toggleAutoScrollSolic()" title="Rolar solicitações automaticamente / Pausar (Atalho: Barra de Espaço)">
+          <svg class="autoscroll-icon-play" id="iconPlaySolic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <svg class="autoscroll-icon-pause" id="iconPauseSolic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="display:none;">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+          <span id="labelAutoscrollSolic">Play</span>
+        </button>
+
+        <select id="selectAutoscrollSpeedSolic" class="select-filter select-autoscroll-speed" onchange="changeAutoscrollSpeedSolic(this.value)" title="Velocidade da movimentação">
+          <option value="0.6">0.5x Lento</option>
+          <option value="1.0" selected>1x Normal</option>
+          <option value="1.8">2x Rápido</option>
+          <option value="2.8">3x Veloz</option>
+        </select>
+      </div>
+
       <a href="index.html" class="btn btn-secondary" style="text-decoration: none;">
         <span>📋 Quadro Operacional</span>
       </a>
       <a href="mapa.html" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #059669; text-decoration: none;">
         <span>🗺️ Mapa & Visitas</span>
+      </a>
+      <a href="monitor.html" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-color: #6d28d9; text-decoration: none;" title="Painel de Acompanhamento TV: Rotação automática a cada 60s em tela cheia">
+        <span>🖥️ Modo Monitor (TV)</span>
       </a>
       <button class="btn btn-secondary" id="btnHistGeral" style="cursor: pointer;" onclick="abrirModalHistoricoGeral()">
         <span>📜 Histórico Geral</span>
@@ -2042,6 +2066,7 @@
       popularFiltroPostos();
       renderizarQuadro();
     }
+    window.carregarSolicitacoes = carregarSolicitacoes;
 
     function diasRestantes(prazo) {
       if (!prazo) return null;
@@ -3260,10 +3285,225 @@
       if (curVal) sel.value = curVal;
     }
 
+    // ========================================================
+    // AUTO-SCROLL (ROLA O PAINEL DE SOLICITAÇÕES AUTOMATICAMENTE COMO O QUADRO)
+    // ========================================================
+    const autoScrollSolic = {
+      isPlaying: false,
+      speed: 1.0,
+      basePxPerSec: 46,
+      animId: null,
+      lastTime: null,
+      fractionalPx: 0,
+      isWaitingAtBottom: false,
+      isRewinding: false,
+      waitTimeoutId: null
+    };
+
+    function getPageScrollTop() {
+      return window.pageYOffset || document.documentElement.scrollTop || (document.body ? document.body.scrollTop : 0) || 0;
+    }
+
+    function getPageScrollHeight() {
+      return Math.max(
+        document.body ? document.body.scrollHeight : 0,
+        document.documentElement ? document.documentElement.scrollHeight : 0
+      );
+    }
+
+    function getPageMaxScroll() {
+      const total = getPageScrollHeight();
+      const view = window.innerHeight || document.documentElement.clientHeight || 0;
+      return Math.max(0, total - view);
+    }
+
+    function performScrollBy(deltaY) {
+      window.scrollBy(0, deltaY);
+      if (document.documentElement.scrollTop === 0 && document.body && document.body.scrollTop !== undefined && deltaY > 0) {
+        document.body.scrollTop += deltaY;
+      }
+    }
+
+    function performScrollToTop(smooth = true) {
+      window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+      if (document.body && document.body.scrollTop > 0) {
+        document.body.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
+      }
+    }
+
+    function updateAutoScrollUI() {
+      const btn = document.getElementById('btnToggleAutoscrollSolic');
+      const label = document.getElementById('labelAutoscrollSolic');
+      const iconPlay = document.getElementById('iconPlaySolic');
+      const iconPause = document.getElementById('iconPauseSolic');
+      if (!btn) return;
+
+      if (autoScrollSolic.isPlaying) {
+        btn.classList.add('is-playing');
+        btn.classList.remove('is-paused');
+        if (label) label.textContent = 'Pause';
+        if (iconPlay) iconPlay.style.display = 'none';
+        if (iconPause) iconPause.style.display = 'block';
+      } else {
+        btn.classList.remove('is-playing');
+        btn.classList.add('is-paused');
+        if (label) label.textContent = 'Play';
+        if (iconPlay) iconPlay.style.display = 'block';
+        if (iconPause) iconPause.style.display = 'none';
+      }
+    }
+
+    function startAutoScrollSolic() {
+      if (autoScrollSolic.isPlaying) return;
+      autoScrollSolic.isPlaying = true;
+      autoScrollSolic.lastTime = null;
+      autoScrollSolic.fractionalPx = 0;
+      autoScrollSolic.isWaitingAtBottom = false;
+      autoScrollSolic.isRewinding = false;
+
+      updateAutoScrollUI();
+
+      const maxScroll = getPageMaxScroll();
+      const currentY = getPageScrollTop();
+      if (maxScroll > 50 && currentY >= maxScroll - 15) {
+        performScrollToTop(true);
+        setTimeout(() => {
+          if (autoScrollSolic.isPlaying) {
+            autoScrollSolic.animId = requestAnimationFrame(autoScrollLoopSolic);
+          }
+        }, 1200);
+        return;
+      }
+
+      autoScrollSolic.animId = requestAnimationFrame(autoScrollLoopSolic);
+    }
+
+    function pauseAutoScrollSolic(reason = '') {
+      if (!autoScrollSolic.isPlaying && !autoScrollSolic.isWaitingAtBottom && !autoScrollSolic.isRewinding) return;
+
+      autoScrollSolic.isPlaying = false;
+      autoScrollSolic.isWaitingAtBottom = false;
+      autoScrollSolic.isRewinding = false;
+
+      if (autoScrollSolic.waitTimeoutId) {
+        clearTimeout(autoScrollSolic.waitTimeoutId);
+        autoScrollSolic.waitTimeoutId = null;
+      }
+      if (autoScrollSolic.animId) {
+        cancelAnimationFrame(autoScrollSolic.animId);
+        autoScrollSolic.animId = null;
+      }
+
+      updateAutoScrollUI();
+    }
+
+    function toggleAutoScrollSolic() {
+      if (autoScrollSolic.isPlaying || autoScrollSolic.isWaitingAtBottom || autoScrollSolic.isRewinding) {
+        pauseAutoScrollSolic('user');
+      } else {
+        startAutoScrollSolic();
+      }
+    }
+
+    function changeAutoscrollSpeedSolic(val) {
+      autoScrollSolic.speed = parseFloat(val) || 1.0;
+    }
+
+    function autoScrollLoopSolic(timestamp) {
+      if (!autoScrollSolic.isPlaying) return;
+
+      if (autoScrollSolic.lastTime === null) {
+        autoScrollSolic.lastTime = timestamp;
+      }
+
+      let dt = (timestamp - autoScrollSolic.lastTime) / 1000;
+      autoScrollSolic.lastTime = timestamp;
+      if (dt > 0.1) dt = 0.1;
+
+      const maxScroll = getPageMaxScroll();
+      if (maxScroll <= 20) {
+        pauseAutoScrollSolic();
+        return;
+      }
+
+      const currentY = getPageScrollTop();
+      if (currentY >= maxScroll - 6) {
+        handleBottomReachedSolic();
+        return;
+      }
+
+      const pxToMove = autoScrollSolic.basePxPerSec * autoScrollSolic.speed * dt;
+      autoScrollSolic.fractionalPx += pxToMove;
+
+      if (autoScrollSolic.fractionalPx >= 1) {
+        const moveInt = Math.floor(autoScrollSolic.fractionalPx);
+        autoScrollSolic.fractionalPx -= moveInt;
+        performScrollBy(moveInt);
+      }
+
+      autoScrollSolic.animId = requestAnimationFrame(autoScrollLoopSolic);
+    }
+
+    function handleBottomReachedSolic() {
+      autoScrollSolic.isWaitingAtBottom = true;
+      if (autoScrollSolic.animId) {
+        cancelAnimationFrame(autoScrollSolic.animId);
+        autoScrollSolic.animId = null;
+      }
+
+      autoScrollSolic.waitTimeoutId = setTimeout(() => {
+        if (!autoScrollSolic.isPlaying) return;
+        autoScrollSolic.isRewinding = true;
+
+        performScrollToTop(true);
+
+        autoScrollSolic.waitTimeoutId = setTimeout(() => {
+          if (!autoScrollSolic.isPlaying) return;
+          autoScrollSolic.isRewinding = false;
+          autoScrollSolic.isWaitingAtBottom = false;
+          autoScrollSolic.lastTime = null;
+          autoScrollSolic.fractionalPx = 0;
+          autoScrollSolic.animId = requestAnimationFrame(autoScrollLoopSolic);
+        }, 1600);
+      }, 3500);
+    }
+
+    // Pausa por rolagem manual do usuário com mouse wheel
+    window.addEventListener('wheel', (e) => {
+      if (Math.abs(e.deltaY) > 8 && autoScrollSolic.isPlaying) {
+        pauseAutoScrollSolic('wheel');
+      }
+    }, { passive: true });
+
+    // Atalho Espaço para Play/Pause
+    window.addEventListener('keydown', (e) => {
+      const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT';
+      if ((e.code === 'Space' || e.key === ' ' || e.key === 'p' || e.key === 'P') && !isTyping) {
+        const modalOpen = document.querySelector('.modal-demanda[style*="display: flex"], .modal-demanda[style*="display: block"], .modal-full[style*="display: flex"]');
+        if (!modalOpen) {
+          e.preventDefault();
+          toggleAutoScrollSolic();
+        }
+      }
+    });
+
+    // Exposição global para o Monitor Hub (monitor.html)
+    window.startAutoScroll = startAutoScrollSolic;
+    window.pauseAutoScroll = pauseAutoScrollSolic;
+    window.toggleAutoScroll = toggleAutoScrollSolic;
+    window.autoScrollSolic = autoScrollSolic;
+
     // Carrega categorias e funções dinamicamente ao iniciar
     window.addEventListener('DOMContentLoaded', () => {
       cfgCarregarCategorias();
       cfgCarregarFuncoes();
+
+      // Auto-inicia a rolagem se solicitado por URL ou se estiver rodando em monitor / iframe
+      if (window.location.search.includes('autoscroll=1') || window.location.search.includes('mode=monitor') || window.top !== window.self) {
+        setTimeout(() => {
+          startAutoScrollSolic();
+        }, 1200);
+      }
     });
 
     if ('serviceWorker' in navigator) {

@@ -1043,11 +1043,14 @@
   }
 
   // ========================================================
-  // EXPOR MÉTODOS PARA USO NOS POPUPS DO LEAFLET
+  // EXPOR MÉTODOS PARA USO NOS POPUPS DO LEAFLET E MODO MONITOR
   // ========================================================
+  window.loadData = loadData;
   window.GPS_MAP = {
     openBaixa: (postoId) => openVisitaModal(postoId),
-    openHist: (postoId) => openHistoricoModal(postoId)
+    openHist: (postoId) => openHistoricoModal(postoId),
+    refresh: () => loadData(),
+    state: state
   };
 
   // ========================================================

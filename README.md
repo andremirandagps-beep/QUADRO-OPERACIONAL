@@ -6,14 +6,22 @@ Sistema visual e operacional para gestão de postos de trabalho, alocação de e
 
 ## 🚀 Como Iniciar
 
-Você tem duas opções simples para abrir o sistema:
+Você tem opções simples para abrir o sistema conforme sua necessidade:
 
-1. **Mapeamento de Clientes & Baixa de Visitas:** Duplo-clique em **`INICIAR_MAPA.bat`**
-   - Abre o mapa interativo com todos os 71 clientes divididos por cidades, status de visita em tempo real e formulário de baixa.
-2. **Quadro Operacional de Crachás:** Duplo-clique em **`INICIAR_QUADRO.bat`**
+1. **Painel de Monitoramento TV / Monitor (Rotação Automática):** Duplo-clique em **`INICIAR_MODO_MONITOR.bat`**
+   - Abre o painel em **Tela Cheia** com alternância automática e contínua a cada 60 segundos entre:
+     - 📋 **Quadro Operacional** (1 min)
+     - 🗺️ **Mapeamento de Clientes & Visitas** (1 min)
+     - 🛡️ **Solicitações de Efetivo & Apoio** (1 min)
+   - Permite pausar/retomar a rotação a qualquer momento (tecla `Espaço`), alternar tela cheia (`F11`), mudar abas manualmente ou alterar o tempo de rotação.
+2. **Mapeamento de Clientes & Baixa de Visitas:** Duplo-clique em **`INICIAR_MAPA.bat`**
+   - Abre o mapa interativo com todos os clientes divididos por cidades, status de visita em tempo real e formulário de baixa.
+3. **Quadro Operacional de Crachás:** Duplo-clique em **`INICIAR_QUADRO.bat`**
    - Abre o painel de gestão de crachás, escalas e postos de trabalho.
+4. **Solicitações de Efetivo:** Duplo-clique em **`INICIAR_SOLICITACOES.bat`**
+   - Abre o painel Kanban de chamados e demandas operacionais com links para celulares do efetivo.
 
-Ambos os módulos são integrados e você pode alternar entre eles a qualquer momento pelo botão **`🗺️ Mapa & Visitas`** ou **`Quadro Operacional`**.
+Todos os módulos são integrados e contam com o botão **`🖥️ Modo Monitor (TV)`** nos cabeçalhos.
 
 ---
 

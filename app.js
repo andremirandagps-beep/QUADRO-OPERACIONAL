@@ -168,6 +168,11 @@
     initTheme();
     setupEventListeners();
     loadFromAPI();
+    if (window.location.search.includes('autoscroll=1') || window.location.search.includes('mode=monitor')) {
+      setTimeout(() => {
+        startAutoScroll();
+      }, 1200);
+    }
   }
 
   function normalizeState(st) {
@@ -2388,8 +2393,15 @@
   // ========================================================
   // GLOBAL API EXPOSURE FOR INLINE EVENTS
   // ========================================================
+  window.refreshOperacional = loadFromAPI;
+  window.startAutoScroll = startAutoScroll;
+  window.pauseAutoScroll = pauseAutoScroll;
+  window.toggleAutoScroll = toggleAutoScroll;
   window.QuadroApp = {
+    refresh: loadFromAPI,
     toggleAutoScroll,
+    startAutoScroll,
+    pauseAutoScroll,
     startAutoScroll,
     pauseAutoScroll,
     openEditColabModal,
