@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conectar WhatsApp Bartolomeu | Grupo GPS</title>
+<link rel="icon" type="image/png" href="logo-gps.png">
+<style>
+  :root {
+    --bg-page: #0b1120;
+    --bg-card: #131c31;
+    --border: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --verde: #22c55e;
+    --azul: #38bdf8;
+    --amarelo: #f59e0b;
+    --vermelho: #ef4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .connect-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .logo-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .logo-header img {
+    height: 42px;
+    object-fit: contain;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: 0.3px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    margin-bottom: 20px;
+  }
+
+  /* Badge de Status */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+
+  .status-badge.aguardando {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid #f59e0b;
+    color: #fbbf24;
+  }
+
+  .status-badge.conectado {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid #22c55e;
+    color: #86efac;
+  }
+
+  .status-badge.desconectado {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+  }
+
+  .dot-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* Box do QR Code */
+  .qr-wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: 16px;
+    display: inline-block;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    margin-bottom: 24px;
+    min-width: 270px;
+    min-height: 270px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qr-wrapper img {
+    display: block;
+    width: 230px;
+    height: 230px;
+  }
+
+  .qr-placeholder {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Passo a Passo */
+  .steps-box {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+    margin-bottom: 24px;
+  }
+
+  .steps-box h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--azul);
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    font-weight: 800;
+  }
+
+  .step-item {
+    font-size: 13px;
+    color: #cbd5e1;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .step-item:last-child { margin-bottom: 0; }
+
+  .step-num {
+    background: var(--azul);
+    color: #0b1120;
+    font-weight: 800;
+    font-size: 11px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Botões */
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    border: none;
+  }
+
+  .btn-primary {
+    background: #0284c7;
+    color: white;
+  }
+  .btn-primary:hover { background: #0369a1; }
+
+  .btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+  }
+  .btn-danger:hover { background: #ef4444; color: white; }
+
+  .btn-ghost {
+    background: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .btn-ghost:hover { background: rgba(255, 255, 255, 0.15); color: white; }
+
+  /* Conectado Sucesso Box */
+  .conectado-box {
+    display: none;
+    padding: 20px 10px;
+  }
+  .conectado-box .icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .conectado-box h2 {
+    font-size: 18px;
+    color: #86efac;
+    margin-bottom: 8px;
+    font-weight: 800;
+  }
+  .conectado-box p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="connect-card">
+  <div class="logo-header">
+    <img src="logo-gps.png" alt="Grupo GPS" onerror="this.style.display='none';">
+    <h1>BARTOLOMEU WHATSAPP</h1>
+  </div>
+  <p class="subtitle">Conexão do Robô de Atendimento ao Efetivo • Número: <strong>(41) 98472-1699</strong></p>
+
+  <div id="status-badge-el" class="status-badge aguardando">
+    <span class="dot-pulse"></span>
+    <span id="status-txt">Verificando status do WhatsApp...</span>
+  </div>
+
+  <!-- CONTAINER DE QR CODE -->
+  <div id="box-qr-container">
+    <div class="qr-wrapper">
+      <div id="qr-content" class="qr-placeholder">
+        Gerando QR Code...<br>Aguarde alguns segundos.
+      </div>
+    </div>
+
+    <div class="steps-box">
+      <h3>Como conectar no WhatsApp:</h3>
+      <div class="step-item">
+        <span class="step-num">1</span>
+        <span>Abra o WhatsApp no celular do número <strong>(41) 98472-1699</strong>.</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">2</span>
+        <span>Toque nos <strong>3 pontinhos</strong> (ou Configurações) &gt; <strong>Aparelhos Conectados</strong>.</span>
+      </div>
+      <div class="step-item">
+        <span class="step-num">3</span>
+        <span>Toque em <strong>Conectar um Aparelho</strong> e aponte a câmera para este QR Code.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTAINER DE SUCESSO -->
+  <div id="box-sucesso" class="conectado-box">
+    <div class="icon">✅</div>
+    <h2>WhatsApp Conectado com Sucesso!</h2>
+    <p>O Bartolomeu está 100% ativo no WhatsApp respondendo aos colaboradores, prestando orientações e direcionando chamados automaticamente.</p>
+  </div>
+
+  <div class="btn-group">
+    <a href="painel-atendimento.html" class="btn btn-primary">📊 Painel de Atendimentos</a>
+    <a href="index.html" class="btn btn-ghost">📋 Quadro Operacional</a>
+    <button id="btn-desconectar" class="btn btn-danger" onclick="desconectar()" style="display:none;">Desconectar</button>
+  </div>
+</div>
+
+<script>
+let timer = null;
+
+async function atualizarStatus() {
+  try {
+    const res = await fetch('/api/whatsapp/status');
+    const data = await res.json();
+
+    const badge = document.getElementById('status-badge-el');
+    const txt = document.getElementById('status-txt');
+    const qrContainer = document.getElementById('box-qr-container');
+    const sucessoContainer = document.getElementById('box-sucesso');
+    const btnDesc = document.getElementById('btn-desconectar');
+    const qrContent = document.getElementById('qr-content');
+
+    if (data.status === 'conectado') {
+      badge.className = 'status-badge conectado';
+      txt.textContent = `🟢 Conectado: +${data.numero}`;
+      qrContainer.style.display = 'none';
+      sucessoContainer.style.display = 'block';
+      btnDesc.style.display = 'inline-flex';
+    } else if (data.status === 'aguardando_qr' && data.qrCode) {
+      badge.className = 'status-badge aguardando';
+      txt.textContent = '🟡 Aguardando escaneamento do QR Code...';
+      qrContainer.style.display = 'block';
+      sucessoContainer.style.display = 'none';
+      btnDesc.style.display = 'none';
+      qrContent.innerHTML = `<img src="${data.qrCode}" alt="QR Code WhatsApp">`;
+    } else {
+      badge.className = 'status-badge desconectado';
+      txt.textContent = '🔴 Inicializando conexão...';
+      qrContainer.style.display = 'block';
+      sucessoContainer.style.display = 'none';
+      btnDesc.style.display = 'none';
+      if (!data.qrCode) {
+        qrContent.innerHTML = `Carregando QR Code...<br><span style="font-size:11px;color:#94a3b8;">Aguarde a conexão com os servidores do WhatsApp</span>`;
+      }
+    }
+  } catch(e) {
+    console.warn('Erro ao verificar status:', e);
+  }
+}
+
+async function desconectar() {
+  if (!confirm('Deseja realmente desconectar a sessão do WhatsApp do Bartolomeu?')) return;
+  try {
+    await fetch('/api/whatsapp/desconectar', { method: 'POST' });
+    alert('Sessão encerrada. Aguarde o novo QR Code.');
+    atualizarStatus();
+  } catch(e) {
+    alert('Erro ao desconectar.');
+  }
+}
+
+atualizarStatus();
+timer = setInterval(atualizarStatus, 3000);
+</script>
+</body>
+</html>

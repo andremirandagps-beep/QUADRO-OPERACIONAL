@@ -14,6 +14,7 @@ const { exec } = require('child_process');
 // Load Database
 const database = require('./database.js');
 const iaService = require('./ia_service.js');
+const whatsappBot = require('./whatsapp_bot.js');
 
 const PORT = process.env.PORT || 3333;
 const BASE_DIR = __dirname;
@@ -82,6 +83,27 @@ async function handleApi(req, res, pathname, method) {
     // ======================================================
     // ROTAS IA - ATENDIMENTO & PAINEL DE CONTROLE
     // ======================================================
+
+    // GET /api/whatsapp/status
+    if (pathname === '/api/whatsapp/status' && method === 'GET') {
+      sendJson(res, 200, whatsappBot.getStatusWhatsApp());
+      return;
+    }
+
+    // POST /api/whatsapp/desconectar
+    if (pathname === '/api/whatsapp/desconectar' && method === 'POST') {
+      await whatsappBot.desconectarWhatsApp();
+      whatsappBot.iniciarBotWhatsApp();
+      sendJson(res, 200, { success: true, message: 'WhatsApp desconectado com sucesso' });
+      return;
+    }
+
+    // POST /api/whatsapp/conectar
+    if (pathname === '/api/whatsapp/conectar' && method === 'POST') {
+      whatsappBot.iniciarBotWhatsApp();
+      sendJson(res, 200, { success: true, message: 'Iniciando conexão...' });
+      return;
+    }
 
     // GET /api/ia/stats
     if (pathname === '/api/ia/stats' && method === 'GET') {
@@ -780,6 +802,13 @@ server.listen(PORT, () => {
   // Sincroniza imediatamente na inicialização e a cada 20 segundos
   sincronizarFilaNuvem();
   setInterval(sincronizarFilaNuvem, 20000);
+
+  // Inicializa o Robô WhatsApp Bartolomeu automaticamente
+  try {
+    whatsappBot.iniciarBotWhatsApp();
+  } catch (errBot) {
+    console.error('⚠️ [WhatsApp Bot] Erro ao iniciar automaticamente:', errBot.message);
+  }
 
   if (process.platform === 'win32' && !process.env.RAILWAY_ENVIRONMENT && !process.env.RENDER) {
     try { exec(`start ${url}`); } catch (e) {}

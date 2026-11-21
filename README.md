@@ -20,8 +20,36 @@ Você tem opções simples para abrir o sistema conforme sua necessidade:
    - Abre o painel de gestão de crachás, escalas e postos de trabalho.
 4. **Solicitações de Efetivo:** Duplo-clique em **`INICIAR_SOLICITACOES.bat`**
    - Abre o painel Kanban de chamados e demandas operacionais com links para celulares do efetivo.
+5. **Central de Atendimento ao Efetivo (IA + WhatsApp + Painel):** Duplo-clique em **`INICIAR_IA_ATENDIMENTO.bat`**
+   - Inicia o servidor e abre simultaneamente:
+     - 📱 **Atendimento Virtual do Efetivo:** Autoatendimento com 8 assuntos unificados para Gestão Rumo e Base, supervisores diurno/noturno e atendimento humano sob demanda.
+     - 🖥️ **Painel Administrativo (Gestor / RH):** Histórico de chamados em tempo real, controle de status, métricas e gestão de contatos de WhatsApp.
 
 Todos os módulos são integrados e contam com o botão **`🖥️ Modo Monitor (TV)`** nos cabeçalhos.
+
+---
+
+## 🤖 Módulo: Atendimento Virtual ao Efetivo & Painel Administrativo
+
+Fluxo completo de autoatendimento e suporte operacional:
+
+1. **Menu Unificado de Assuntos (Gestão Rumo e Base):**
+   - 📅 **RH / Folha-ponto:** Atestados (prazo 48h), batidas e espelho de ponto.
+   - 💵 **Pagamento / Holerite:** Datas (dia 20 e 5º dia útil), adiantamento e acesso seguro ao holerite.
+   - 💳 **Benefícios:** Recarga de VT, VR/VA, planos de saúde e odontológico.
+   - 🏖️ **Férias:** Programação, aviso de 30 dias e abono pecuniário.
+   - 🛡️ **Cursos / Reciclagem:** Academia credenciada, agendamento e validade de CNV.
+   - 🚨 **Supervisão (Diurno e Noturno):** Escolha imediata de turno:
+     - ☀️ **Supervisor Diurno (07:00 às 19:00):** Tel: (41) 99214-8064
+     - 🌙 **Supervisor Noturno (19:00 às 07:00):** Tel: (41) 98472-1699
+   - 👔 **Uniformes / Materiais:** Reposição de fardamento, coturnos, EPIs e materiais de posto.
+   - 💬 **Outros assuntos:** Triagem e atendimento administrativo geral.
+
+2. **Funcionamento do Atendimento:**
+   - O funcionário informa seu Nome e Empreendimento (com preenchimento automático para colaboradores cadastrados).
+   - A IA responde às dúvidas operacionais com base nas diretrizes oficiais da empresa.
+   - Se a dúvida não for resolvida ou se o colaborador clicar em **"👤 Falar com Humano"** a qualquer momento, o sistema gera o protocolo oficial e transfere a conversa diretamente para o WhatsApp do responsável com a mensagem pré-formatada.
+   - **Registro Simultâneo:** Todo chamado é registrado no banco de dados SQLite (`ia_atendimentos`) e disponibilizado no **Painel Administrativo** (`painel-atendimento.html`) para acompanhamento de SLA, status e auditoria.
 
 ---
 

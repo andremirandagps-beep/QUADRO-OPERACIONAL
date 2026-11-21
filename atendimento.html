@@ -436,6 +436,93 @@
     color: #93c5fd;
   }
 
+  .field-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .btn-header-humano {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(21, 128, 61, 0.3) 100%);
+    border: 1px solid #22c55e;
+    color: #86efac;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: all 0.15s;
+    margin-left: auto;
+  }
+
+  .btn-header-humano:hover, .btn-header-humano:active {
+    background: #22c55e;
+    color: #0b1329;
+    transform: scale(0.97);
+  }
+
+  .qq-chip-humano {
+    background: rgba(34, 197, 94, 0.2) !important;
+    border-color: rgba(34, 197, 94, 0.5) !important;
+    color: #86efac !important;
+    font-weight: 800 !important;
+  }
+
+  /* Cards de escolha de Supervisor Diurno / Noturno */
+  .supervisor-choice-card {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .supervisor-choice-card:hover, .supervisor-choice-card:active {
+    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    transform: translateY(-1px);
+  }
+
+  .sup-icon {
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .sup-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sup-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-main);
+  }
+
+  .sup-horario {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .sup-arrow {
+    font-size: 16px;
+    color: #22c55e;
+    font-weight: 700;
+  }
+
   /* Grid de Assuntos Frequentes */
   .section-label {
     font-size: 13px;
@@ -1009,8 +1096,8 @@
         <div class="wpp-hero-left">
           <div class="wpp-hero-icon">📲</div>
           <div>
-            <div class="wpp-hero-title">Falar no WhatsApp Agora</div>
-            <div class="wpp-hero-sub">Plantão 24h, Supervisão, RH ou Benefícios</div>
+            <div class="wpp-hero-title">Falar com Bartolomeu no WhatsApp</div>
+            <div class="wpp-hero-sub">Número Principal: (41) 98472-1699 • Atendimento 24h</div>
           </div>
         </div>
         <div class="wpp-hero-cta">ABRIR ➔</div>
@@ -1021,143 +1108,140 @@
         <div class="bartolomeu-avatar">🤖</div>
         <div class="bartolomeu-info">
           <h2>Olá! Sou o Bartolomeu</h2>
-          <p>Tire suas dúvidas operacionais ou consulte seu posto e escala instantaneamente.</p>
+          <p>Assistente Virtual do Grupo GPS. Tire dúvidas operacionais simples ou solicite direcionamento ao responsável.</p>
         </div>
       </div>
 
-      <!-- IDENTIFICAÇÃO DO COLABORADOR -->
+      <!-- IDENTIFICAÇÃO DO FUNCIONÁRIO -->
       <div class="ident-card">
         <div class="ident-title">
-          <span>👤</span> SUA IDENTIFICAÇÃO (OPCIONAL)
+          <span>👤</span> IDENTIFICAÇÃO DO FUNCIONÁRIO
         </div>
 
-        <div class="search-wrap" id="wrap-busca">
-          <span class="search-icon">🔍</span>
-          <input type="text" class="search-input" id="inp-busca-colab" 
-                 placeholder="Digite sua matrícula ou nome..." 
-                 autocomplete="off" oninput="onBuscaColaborador(this.value)">
-          <div class="autocomplete-box" id="auto-box" style="display:none;"></div>
-        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <!-- Campo 1: Nome do Funcionário -->
+          <div>
+            <label class="field-label">Nome do Funcionário:</label>
+            <div class="search-wrap" id="wrap-busca">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="search-input" id="inp-busca-colab" 
+                     placeholder="Digite seu nome ou matrícula..." 
+                     autocomplete="off" oninput="onBuscaColaborador(this.value)">
+              <div class="autocomplete-box" id="auto-box" style="display:none;"></div>
+            </div>
 
-        <!-- Colaborador Identificado (aparece se selecionado) -->
-        <div class="badge-colaborador-ident" id="badge-identificado" style="display:none;">
-          <div class="colab-ident-info">
-            <strong id="badge-nome">DANIEL RIBEIRO</strong><br>
-            <span id="badge-detalhe">Mat: 000207 • Monitor</span>
+            <!-- Colaborador Identificado da base (aparece se selecionado) -->
+            <div class="badge-colaborador-ident" id="badge-identificado" style="display:none;">
+              <div class="colab-ident-info">
+                <strong id="badge-nome">DANIEL RIBEIRO</strong><br>
+                <span id="badge-detalhe">Mat: 000207 • Monitor</span>
+              </div>
+              <button class="btn-limpar-ident" onclick="limparIdentificacao()" title="Trocar">✕</button>
+            </div>
           </div>
-          <button class="btn-limpar-ident" onclick="limparIdentificacao()" title="Trocar">✕</button>
-        </div>
 
-        <!-- Seletor de Gestão -->
-        <div class="gestao-selector">
-          <div class="gestao-chip active-base" id="chip-base" onclick="setGestao('Base')">
-            <span>🔵</span> GESTÃO BASE
+          <!-- Campo 2: Empreendimento / Posto -->
+          <div>
+            <label class="field-label">Empreendimento / Posto de Trabalho:</label>
+            <div class="search-wrap">
+              <span class="search-icon">🏢</span>
+              <input type="text" class="search-input" id="inp-empreendimento" 
+                     placeholder="Ex: Terminal CIC, Pátio Rumo, Shopping..." 
+                     list="lista-empreendimentos" oninput="onMudarEmpreendimento(this.value)">
+              <datalist id="lista-empreendimentos"></datalist>
+            </div>
           </div>
-          <div class="gestao-chip" id="chip-rumo" onclick="setGestao('Rumo')">
-            <span>🟡</span> GESTÃO RUMO
+
+          <!-- Seletor de Gestão -->
+          <div>
+            <label class="field-label">Gestão Responsável:</label>
+            <div class="gestao-selector">
+              <div class="gestao-chip active-base" id="chip-base" onclick="setGestao('Base')">
+                <span>🔵</span> GESTÃO BASE
+              </div>
+              <div class="gestao-chip" id="chip-rumo" onclick="setGestao('Rumo')">
+                <span>🟡</span> GESTÃO RUMO
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- SELEÇÃO RÁPIDA DE ASSUNTOS -->
+      <!-- SELEÇÃO RÁPIDA DE ASSUNTOS (MENU UNIFICADO) -->
       <div class="section-label">
-        <span>ESCOLHA O ASSUNTO PARA CONVERSAR:</span>
+        <span>MENU DE ASSUNTOS (RUMO E BASE):</span>
       </div>
 
       <div class="assuntos-grid">
-        <div class="assunto-card" onclick="iniciarConversa('Folha-ponto')">
+        <!-- 1. RH / Folha-ponto -->
+        <div class="assunto-card" onclick="iniciarConversa('RH / Folha-ponto')">
           <div class="assunto-icon">📅</div>
           <div class="assunto-text">
-            <div class="assunto-nome">Folha-Ponto</div>
-            <div class="assunto-sub">Atestados e batidas</div>
+            <div class="assunto-nome">RH / Folha-ponto</div>
+            <div class="assunto-sub">Atestados, batidas e espelho</div>
           </div>
         </div>
 
-        <div class="assunto-card" onclick="iniciarConversa('Holerite')">
-          <div class="assunto-icon">📄</div>
-          <div class="assunto-text">
-            <div class="assunto-nome">Holerite</div>
-            <div class="assunto-sub">Acesso seguro contracheque</div>
-          </div>
-        </div>
-
-        <div class="assunto-card" onclick="iniciarConversa('Pagamento')">
+        <!-- 2. Pagamento / Holerite -->
+        <div class="assunto-card" onclick="iniciarConversa('Pagamento / Holerite')">
           <div class="assunto-icon">💵</div>
           <div class="assunto-text">
-            <div class="assunto-nome">Pagamento</div>
-            <div class="assunto-sub">Dia 20 e 5º dia útil</div>
+            <div class="assunto-nome">Pagamento / Holerite</div>
+            <div class="assunto-sub">Contracheque e dia 20/5º útil</div>
           </div>
         </div>
 
+        <!-- 3. Benefícios -->
         <div class="assunto-card" onclick="iniciarConversa('Benefícios')">
           <div class="assunto-icon">💳</div>
           <div class="assunto-text">
             <div class="assunto-nome">Benefícios</div>
-            <div class="assunto-sub">VT, VR, VA e Saúde</div>
+            <div class="assunto-sub">VT, VR, VA, saúde e odonto</div>
           </div>
         </div>
 
-        <div class="assunto-card" onclick="iniciarConversa('Reciclagem')">
+        <!-- 4. Férias -->
+        <div class="assunto-card" onclick="iniciarConversa('Férias')">
+          <div class="assunto-icon">🏖️</div>
+          <div class="assunto-text">
+            <div class="assunto-nome">Férias</div>
+            <div class="assunto-sub">Programação, aviso e recibos</div>
+          </div>
+        </div>
+
+        <!-- 5. Cursos / Reciclagem -->
+        <div class="assunto-card" onclick="iniciarConversa('Cursos / Reciclagem')">
           <div class="assunto-icon">🛡️</div>
           <div class="assunto-text">
-            <div class="assunto-nome">Reciclagem</div>
-            <div class="assunto-sub">Curso de vigilante</div>
+            <div class="assunto-nome">Cursos / Reciclagem</div>
+            <div class="assunto-sub">Vigilante, academia e CNV</div>
           </div>
         </div>
 
-        <div class="assunto-card" onclick="iniciarConversa('Supervisão')">
+        <!-- 6. Supervisão -->
+        <div class="assunto-card" onclick="escolherSupervisao()">
           <div class="assunto-icon">🚨</div>
           <div class="assunto-text">
-            <div class="assunto-nome">Supervisão 24h</div>
-            <div class="assunto-sub">Plantão e emergência</div>
+            <div class="assunto-nome">Supervisão</div>
+            <div class="assunto-sub">☀️ Diurno • 🌙 Noturno</div>
           </div>
         </div>
 
-        <div class="assunto-card" onclick="iniciarConversa('Uniformes')">
+        <!-- 7. Uniformes / Materiais -->
+        <div class="assunto-card" onclick="iniciarConversa('Uniformes / Materiais')">
           <div class="assunto-icon">👔</div>
           <div class="assunto-text">
-            <div class="assunto-nome">Uniformes</div>
-            <div class="assunto-sub">Reposição e EPIs</div>
+            <div class="assunto-nome">Uniformes / Materiais</div>
+            <div class="assunto-sub">Fardamento, EPIs e suprimentos</div>
           </div>
         </div>
 
-        <div class="assunto-card" onclick="iniciarConversa('Material de apoio')">
-          <div class="assunto-icon">📦</div>
-          <div class="assunto-text">
-            <div class="assunto-nome">Material Posto</div>
-            <div class="assunto-sub">Livro ata e rádios</div>
-          </div>
-        </div>
-
-        <div class="assunto-card" onclick="iniciarConversa('Combustível')">
-          <div class="assunto-icon">⛽</div>
-          <div class="assunto-text">
-            <div class="assunto-nome">Combustível</div>
-            <div class="assunto-sub">Cartão frota e km</div>
-          </div>
-        </div>
-
-        <div class="assunto-card" onclick="iniciarConversa('Manutenção de veículos')">
-          <div class="assunto-icon">🚗</div>
-          <div class="assunto-text">
-            <div class="assunto-nome">Viaturas</div>
-            <div class="assunto-sub">Checklist e mecânica</div>
-          </div>
-        </div>
-
-        <div class="assunto-card" onclick="iniciarConversa('Escala e Posto')">
-          <div class="assunto-icon">📋</div>
-          <div class="assunto-text">
-            <div class="assunto-nome">Minha Escala</div>
-            <div class="assunto-sub">Consultar escala/posto</div>
-          </div>
-        </div>
-
-        <div class="assunto-card" onclick="iniciarConversa('Dúvidas Gerais')">
+        <!-- 8. Outros assuntos -->
+        <div class="assunto-card" onclick="iniciarConversa('Outros assuntos')">
           <div class="assunto-icon">💬</div>
           <div class="assunto-text">
-            <div class="assunto-nome">Outras Dúvidas</div>
-            <div class="assunto-sub">Pergunte o que precisar</div>
+            <div class="assunto-nome">Outros assuntos</div>
+            <div class="assunto-sub">Atendimento administrativo</div>
           </div>
         </div>
       </div>
@@ -1173,6 +1257,9 @@
         </button>
         <div class="chat-topic-tag" id="chat-topic-label">Assunto</div>
         <div class="chat-protocolo-badge" id="chat-proto-label">#ONLINE</div>
+        <button class="btn-header-humano" onclick="solicitarHumanoImediato()" title="Transferir para WhatsApp humano a qualquer momento">
+          👤 Falar com Humano
+        </button>
       </div>
 
       <!-- Feed de mensagens -->
@@ -1180,14 +1267,14 @@
 
       <!-- Perguntas rápidas -->
       <div class="quick-questions" id="quick-bar">
+        <span class="qq-chip qq-chip-humano" onclick="solicitarHumanoImediato()">👤 Falar com Humano Agora</span>
         <span class="qq-chip" onclick="mandarPerguntaRapida(this.innerText)">📄 Quais documentos preciso?</span>
         <span class="qq-chip" onclick="mandarPerguntaRapida(this.innerText)">⏰ Qual o prazo de resposta?</span>
-        <span class="qq-chip" onclick="mandarPerguntaRapida(this.innerText)">📲 Falar com o responsável no WhatsApp</span>
       </div>
 
       <!-- Barra de input -->
       <div class="chat-input-bar">
-        <textarea class="chat-textarea" id="chat-input" placeholder="Digite sua dúvida para o Bartolomeu..." rows="1" onkeydown="onChatKey(event)"></textarea>
+        <textarea class="chat-textarea" id="chat-input" placeholder="Digite sua dúvida ou mensagem para o Bartolomeu..." rows="1" onkeydown="onChatKey(event)"></textarea>
         <button class="btn-chat-send" id="btn-send" onclick="enviarMensagem()">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -1220,6 +1307,43 @@
 
 </div>
 
+<!-- ==================== MODAL DE ESCOLHA: SUPERVISÃO DIURNO OU NOTURNO ==================== -->
+<div class="modal-backdrop" id="modal-supervisao" onclick="fecharModalSupervisaoFora(event)">
+  <div class="modal-sheet" style="max-width: 440px;">
+    <div class="sheet-header">
+      <h3><span>🚨</span> Plantão da Supervisão</h3>
+      <button class="btn-sheet-close" onclick="fecharModalSupervisao()">✕</button>
+    </div>
+    <div class="sheet-body" style="padding: 16px;">
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px; line-height:1.4;">
+        Escolha com qual supervisor você deseja falar:
+      </p>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <!-- Supervisor Diurno -->
+        <div class="supervisor-choice-card" onclick="selecionarTurnoSupervisao('Supervisão (Diurno)')">
+          <div class="sup-icon">☀️</div>
+          <div class="sup-info">
+            <div class="sup-title">Supervisor Diurno</div>
+            <div class="sup-horario">Plantão das 07:00 às 19:00 • Tel: (41) 99214-8064</div>
+          </div>
+          <div class="sup-arrow">➔</div>
+        </div>
+
+        <!-- Supervisor Noturno -->
+        <div class="supervisor-choice-card" onclick="selecionarTurnoSupervisao('Supervisão (Noturno)')">
+          <div class="sup-icon">🌙</div>
+          <div class="sup-info">
+            <div class="sup-title">Supervisor Noturno</div>
+            <div class="sup-horario">Plantão das 19:00 às 07:00 • Tel: (41) 98472-1699</div>
+          </div>
+          <div class="sup-arrow">➔</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ==================== MODAL DE CONTATOS DE WHATSAPP ==================== -->
 <div class="modal-backdrop" id="modal-wpp" onclick="fecharModalWppFora(event)">
   <div class="modal-sheet">
@@ -1250,8 +1374,9 @@ const state = {
 
 // Contatos de WhatsApp fixos para acesso ultra-rápido com 1 toque
 const contatosFixos = [
-  { nome: 'Supervisão 24h (Geral)', fone: '41992148064', tag: 'tag-geral', setor: 'Plantão 24h & Emergências' },
-  { nome: 'Supervisor da Noite', fone: '41984721699', tag: 'tag-geral', setor: 'Ronda & Plantão Noturno' },
+  { nome: '🤖 Bartolomeu (Central Principal)', fone: '41984721699', tag: 'tag-geral', setor: 'Assistente Virtual GPS • (41) 98472-1699' },
+  { nome: 'Supervisor Diurno (07h–19h)', fone: '41992148064', tag: 'tag-geral', setor: 'Plantão Diurno • (41) 99214-8064' },
+  { nome: 'Supervisor Noturno (19h–07h)', fone: '41984721699', tag: 'tag-geral', setor: 'Plantão Noturno & Ronda • (41) 98472-1699' },
   { nome: 'Gestão Rumo / RH', fone: '41992642985', tag: 'tag-rumo', setor: 'Exclusivo para Gestão Rumo' },
   { nome: 'Dayana – RH Base', fone: '41992908312', tag: 'tag-base', setor: 'Folha, Ponto e RH Base' },
   { nome: 'Débora – Benefícios Base', fone: '41992642985', tag: 'tag-base', setor: 'VT, VR/VA e Plano de Saúde' },
@@ -1321,11 +1446,20 @@ function renderAutoComplete(list) {
   box.style.display = 'block';
 }
 
+function onMudarEmpreendimento(val) {
+  state.posto = (val || '').trim();
+}
+
 function selecionarColaborador(c) {
   state.nome = c.nome;
   state.matricula = c.matricula;
   state.colaboradorId = c.id;
   state.posto = c.posto_nome || '';
+
+  const inpEmp = document.getElementById('inp-empreendimento');
+  if (inpEmp && c.posto_nome) {
+    inpEmp.value = c.posto_nome;
+  }
 
   document.getElementById('auto-box').style.display = 'none';
   document.getElementById('wrap-busca').style.display = 'none';
@@ -1342,23 +1476,61 @@ function limparIdentificacao() {
   state.posto = '';
 
   document.getElementById('inp-busca-colab').value = '';
+  const inpEmp = document.getElementById('inp-empreendimento');
+  if (inpEmp) inpEmp.value = '';
+
   document.getElementById('wrap-busca').style.display = 'block';
   document.getElementById('badge-identificado').style.display = 'none';
+}
+
+// =====================================================
+// ESCOLHA DE SUPERVISÃO DIURNO / NOTURNO
+// =====================================================
+function escolherSupervisao() {
+  document.getElementById('modal-supervisao').classList.add('open');
+}
+
+function fecharModalSupervisao() {
+  document.getElementById('modal-supervisao').classList.remove('open');
+}
+
+function fecharModalSupervisaoFora(e) {
+  if (e.target.id === 'modal-supervisao') fecharModalSupervisao();
+}
+
+function selecionarTurnoSupervisao(turno) {
+  fecharModalSupervisao();
+  iniciarConversa(turno);
 }
 
 // =====================================================
 // INICIAR CONVERSA
 // =====================================================
 function iniciarConversa(assunto) {
+  // Captura nome se digitado diretamente no input sem autocomplete
+  const inpNome = document.getElementById('inp-busca-colab');
+  if (inpNome && inpNome.value.trim() && (!state.matricula || state.nome === 'COLABORADOR')) {
+    state.nome = inpNome.value.trim();
+  }
+  const inpEmp = document.getElementById('inp-empreendimento');
+  if (inpEmp && inpEmp.value.trim()) {
+    state.posto = inpEmp.value.trim();
+  }
+
   state.assunto = assunto;
   document.getElementById('chat-topic-label').textContent = assunto;
 
   const chatBox = document.getElementById('chat-box');
   chatBox.innerHTML = '';
 
-  // Mensagem inicial do Bartolomeu
-  const primeiroNome = state.nome.split(' ')[0];
-  const msgIntro = `Olá, **${primeiroNome}**! 👋 Sou o **Bartolomeu**, assistente virtual do Grupo GPS.\n\nVocê selecionou o assunto: **${assunto}** (${state.gestao.toUpperCase()}).\n\nComo posso te ajudar com isso hoje? Pode digitar sua dúvida abaixo.`;
+  // Mensagem inicial de acolhimento
+  const primeiroNome = (state.nome && state.nome !== 'COLABORADOR') ? state.nome.split(' ')[0] : 'Colaborador';
+  const infoPosto = state.posto ? `alocado no empreendimento **${state.posto}**` : `da **Gestão ${state.gestao}**`;
+
+  const msgIntro = `Olá, **${primeiroNome}**! 👋 Sou o **Bartolomeu**, assistente virtual oficial do Grupo GPS 🛡️.\n\n` +
+    `Identifiquei seu chamado sobre **${assunto}** (${infoPosto}).\n\n` +
+    `Por favor, **descreva o que você precisa ou qual sua dúvida** abaixo. Se for uma dúvida simples (como holerite, datas de pagamento, atestado, etc.), responderei imediatamente por aqui com nossa inteligência virtual!\n\n` +
+    `Caso necessite de atendimento humano, eu mesmo direciono sua solicitação para o responsável correto pelo WhatsApp.`;
 
   adicionarBolha('ia', msgIntro, null);
 
@@ -1387,17 +1559,44 @@ function adicionarBolha(sender, texto, escalonamento) {
 
   let wppCardHtml = '';
   if (escalonamento && escalonamento.link) {
-    wppCardHtml = `
-      <div class="wpp-action-card">
-        <div class="wpp-action-info">
-          📲 Deseja falar com o responsável agora?<br>
-          <strong>${escalonamento.responsavel}</strong> (${escalonamento.setor})
+    if (state.assunto && state.assunto.includes('Supervis')) {
+      const proto = state.protocolo || `#GPS-${Date.now().toString().slice(-4)}`;
+      const nomeColab = state.nome || 'Colaborador';
+      const msgDiurno = encodeURIComponent(`*GRUPO GPS — ATENDIMENTO AO EFETIVO* 🛡️\n*Protocolo:* ${proto}\n*Colaborador:* ${nomeColab}\n*Matrícula:* ${state.matricula || 'Não informada'}\n*Gestão:* ${state.gestao}\n*Empreendimento/Posto:* ${state.posto || 'Geral'}\n*Assunto:* Supervisão (Diurno)\n\n*Demanda / Mensagem:*\n"Preciso de apoio operacional do Supervisor Diurno."\n\n_Encaminhado automaticamente pelo Atendimento Virtual (Grupo GPS)_`);
+      const linkDiurno = `https://api.whatsapp.com/send?phone=5541992148064&text=${msgDiurno}`;
+
+      const msgNoturno = encodeURIComponent(`*GRUPO GPS — ATENDIMENTO AO EFETIVO* 🛡️\n*Protocolo:* ${proto}\n*Colaborador:* ${nomeColab}\n*Matrícula:* ${state.matricula || 'Não informada'}\n*Gestão:* ${state.gestao}\n*Empreendimento/Posto:* ${state.posto || 'Geral'}\n*Assunto:* Supervisão (Noturno)\n\n*Demanda / Mensagem:*\n"Preciso de apoio operacional do Supervisor Noturno."\n\n_Encaminhado automaticamente pelo Atendimento Virtual (Grupo GPS)_`);
+      const linkNoturno = `https://api.whatsapp.com/send?phone=5541984721699&text=${msgNoturno}`;
+
+      wppCardHtml = `
+        <div class="wpp-action-card">
+          <div class="wpp-action-info">
+            🚨 <strong>Plantão da Supervisão Operacional:</strong><br>
+            Fale diretamente com o supervisor do seu turno:
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+            <a class="btn-abrir-whatsapp" style="background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);" href="${linkDiurno}" target="_blank">
+              <span>☀️</span> Supervisor Diurno • (41) 99214-8064
+            </a>
+            <a class="btn-abrir-whatsapp" style="background:linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);" href="${linkNoturno}" target="_blank">
+              <span>🌙</span> Supervisor Noturno • (41) 98472-1699
+            </a>
+          </div>
         </div>
-        <a class="btn-abrir-whatsapp" href="${escalonamento.link}" target="_blank">
-          <span>💬</span> Abrir no WhatsApp Agora
-        </a>
-      </div>
-    `;
+      `;
+    } else {
+      wppCardHtml = `
+        <div class="wpp-action-card">
+          <div class="wpp-action-info">
+            📲 Deseja falar com o responsável agora?<br>
+            <strong>${escalonamento.responsavel}</strong> (${escalonamento.setor})
+          </div>
+          <a class="btn-abrir-whatsapp" href="${escalonamento.link}" target="_blank">
+            <span>💬</span> Abrir no WhatsApp Agora
+          </a>
+        </div>
+      `;
+    }
   }
 
   if (sender === 'ia') {
@@ -1494,9 +1693,65 @@ async function enviarMensagem() {
   }
 }
 
+async function solicitarHumanoImediato() {
+  const inp = document.getElementById('chat-input');
+  const txt = (inp && inp.value.trim()) ? inp.value.trim() : 'Solicitação direta de atendimento humano pelo colaborador';
+  if (inp) {
+    inp.value = '';
+    inp.style.height = 'auto';
+  }
+
+  adicionarBolha('user', '👤 Solicitei atendimento humano com o responsável pelo WhatsApp.', null);
+  const typingEl = mostrarDigitando();
+
+  try {
+    const payload = {
+      atendimento_id: state.atendimentoId,
+      colaborador_nome: state.nome || 'COLABORADOR',
+      colaborador_matricula: state.matricula,
+      colaborador_id: state.colaboradorId,
+      gestao: state.gestao,
+      empreendimento: state.posto,
+      assunto: state.assunto,
+      mensagem: txt,
+      solicitar_humano: true
+    };
+
+    const res = await fetch('/api/ia/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    typingEl.remove();
+
+    if (data.atendimento_id) {
+      state.atendimentoId = data.atendimento_id;
+      state.protocolo = data.protocolo;
+      document.getElementById('chat-proto-label').textContent = data.protocolo;
+    }
+
+    adicionarBolha('ia', data.resposta, data.destino_whatsapp);
+
+    if (data.destino_whatsapp && data.destino_whatsapp.link) {
+      setTimeout(() => {
+        window.open(data.destino_whatsapp.link, '_blank');
+      }, 400);
+    }
+  } catch(e) {
+    typingEl.remove();
+    adicionarBolha('ia', 'Não consegui transferir agora. Clique no botão abaixo para abrir o WhatsApp diretamente:', {
+      responsavel: 'Supervisão Geral',
+      setor: 'Plantão 24h',
+      link: 'https://api.whatsapp.com/send?phone=5541992148064'
+    });
+  }
+}
+
 function mandarPerguntaRapida(txt) {
-  if (txt.includes('WhatsApp')) {
-    abrirModalWhatsApp();
+  if (txt.includes('Humano') || txt.includes('WhatsApp')) {
+    solicitarHumanoImediato();
     return;
   }
   document.getElementById('chat-input').value = txt;
@@ -1511,22 +1766,57 @@ function onChatKey(e) {
 }
 
 // =====================================================
-// MODAL WHATSAPP RÁPIDO
+// MODAL WHATSAPP RÁPIDO & CARREGAMENTO DINÂMICO
 // =====================================================
-function abrirModalWhatsApp() {
+let contatosCarregados = null;
+
+async function carregarContatosApi() {
+  try {
+    const res = await fetch('/api/ia/contatos');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        contatosCarregados = data.filter(c => c.ativo === 1);
+      }
+    }
+  } catch(e) {}
+}
+
+async function carregarEmpreendimentos() {
+  try {
+    const res = await fetch('/api/postos');
+    if (res.ok) {
+      const postos = await res.json();
+      const datalist = document.getElementById('lista-empreendimentos');
+      if (datalist && Array.isArray(postos)) {
+        datalist.innerHTML = postos.map(p => `<option value="${p.name}">`).join('');
+      }
+    }
+  } catch(e) {}
+}
+
+async function abrirModalWhatsApp() {
   const lista = document.getElementById('lista-wpp-cards');
   const proto = state.protocolo || `#GPS-${Date.now().toString().slice(-4)}`;
   const nomeColab = state.nome;
 
-  lista.innerHTML = contatosFixos.map(c => {
-    const msg = `*GRUPO GPS — ATENDIMENTO* 🛡️%0A*Protocolo:* ${proto}%0A*Colaborador:* ${nomeColab} (Gestão: ${state.gestao})%0A*Assunto:* ${state.assunto}%0AOlá, preciso de orientações.`;
-    const link = `https://api.whatsapp.com/send?phone=55${c.fone}&text=${msg}`;
+  let listaExibicao = contatosCarregados || contatosFixos;
+
+  lista.innerHTML = listaExibicao.map(c => {
+    const fone = (c.whatsapp || c.fone || '').replace(/\D/g, '');
+    const nomeResp = c.responsavel || c.nome;
+    const setorResp = c.setor || '';
+    const gestaoBadge = (c.gestao || 'Geral').toLowerCase();
+    const tagClass = gestaoBadge.includes('rumo') ? 'tag-rumo' : (gestaoBadge.includes('base') ? 'tag-base' : 'tag-geral');
+
+    const msg = `*GRUPO GPS — ATENDIMENTO* 🛡️%0A*Protocolo:* ${proto}%0A*Colaborador:* ${nomeColab} (Gestão: ${state.gestao})%0A*Posto:* ${state.posto || 'Geral'}%0A*Assunto:* ${state.assunto}%0AOlá, solicito atendimento.`;
+    const link = `https://api.whatsapp.com/send?phone=55${fone}&text=${msg}`;
 
     return `
       <a class="wpp-contact-card" href="${link}" target="_blank">
         <div class="wpp-contact-info">
-          <h4>${c.nome} <span class="wpp-badge-tag ${c.tag}">${c.tag.replace('tag-','').toUpperCase()}</span></h4>
-          <p>${c.setor}</p>
+          <h4>${nomeResp} <span class="wpp-badge-tag ${tagClass}">${gestaoBadge.toUpperCase()}</span></h4>
+          <p>${setorResp} ${c.observacoes ? '• ' + c.observacoes : ''}</p>
         </div>
         <div class="btn-call-wpp-circle">💬</div>
       </a>
@@ -1546,9 +1836,17 @@ function fecharModalWppFora(e) {
 
 // Fechar auto-complete ao clicar fora
 document.addEventListener('click', e => {
-  if (!document.getElementById('wrap-busca').contains(e.target)) {
-    document.getElementById('auto-box').style.display = 'none';
+  const wrap = document.getElementById('wrap-busca');
+  if (wrap && !wrap.contains(e.target)) {
+    const box = document.getElementById('auto-box');
+    if (box) box.style.display = 'none';
   }
+});
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', () => {
+  carregarEmpreendimentos();
+  carregarContatosApi();
 });
 </script>
 </body>

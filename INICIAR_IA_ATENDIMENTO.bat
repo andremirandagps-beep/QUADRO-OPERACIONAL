@@ -5,6 +5,7 @@ cls
 
 echo ============================================================
 echo       ASSISTENTE VIRTUAL BARTOLOMEU - GRUPO GPS
+echo        Numero Principal WhatsApp: (41) 98472-1699
 echo ============================================================
 echo.
 cd /d "%~dp0"
@@ -13,14 +14,14 @@ echo [1/3] Verificando servidor central GPS na porta 3333...
 
 set PORTA=3333
 
-netstat -ano | findstr :%PORTA% | findstr LISTENING >nul 2>&1
-if %ERRORLEVEL% EQU 0 (
-    echo Servidor ja esta ativo na porta %PORTA%.
-) else (
-    echo Iniciando servidor Node.js...
-    start "GPS-Servidor" /min cmd /c "node server.js"
-    timeout /t 4 >nul
-)
+:: Mata processos node anteriores e reinicia sempre do zero
+echo Encerrando processos anteriores (se houver)...
+taskkill /F /IM node.exe >nul 2>&1
+timeout /t 2 >nul
+
+echo Iniciando servidor Node.js + Bartolomeu WhatsApp...
+start "GPS-Servidor-Bartolomeu" /min cmd /c "cd /d %~dp0 && node server.js"
+timeout /t 5 >nul
 
 echo.
 echo [2/3] Obtendo IP de rede local...

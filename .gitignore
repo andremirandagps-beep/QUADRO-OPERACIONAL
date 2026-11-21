@@ -25,3 +25,6 @@ database/*.db-shm
 # Binários e arquivos temporários de túnel
 cloudflared.exe
 tunnel-url.txt
+
+# Sessão WhatsApp Baileys
+auth_whatsapp_bartolomeu/

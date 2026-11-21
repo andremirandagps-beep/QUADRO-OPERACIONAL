@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel – Assistente Virtual Bartolomeu | Grupo GPS</title>
+<title>Painel – Atendimento Virtual | Grupo GPS</title>
 <meta name="theme-color" content="#0b1120">
 <link rel="icon" type="image/png" href="logo-gps.png">
 <style>
@@ -279,13 +279,14 @@
     <img src="logo-gps.png" alt="GPS" onerror="this.style.display='none'; this.parentElement.innerHTML='🛡️';">
   </div>
   <div class="topbar-title">
-    <h1>🤖 PAINEL DE CONTROLE – ASSISTENTE VIRTUAL BARTOLOMEU</h1>
+    <h1>🤖 PAINEL DE CONTROLE – ATENDIMENTO VIRTUAL AO EFETIVO</h1>
     <p id="last-update-txt">Grupo GPS · Carregando dados...</p>
   </div>
   <div class="topbar-links">
     <a class="link-btn" href="index.html">📋 Quadro Operacional</a>
     <a class="link-btn" href="solicitacoes.html">📂 Solicitações</a>
-    <a class="link-btn" href="atendimento.html" target="_blank">💬 Falar com Bartolomeu</a>
+    <a class="link-btn" id="btn-status-whatsapp" href="conectar-whatsapp.html" target="_blank" style="background: rgba(34, 197, 94, 0.15); border: 1px solid #22c55e; color: #86efac; font-weight: 700;">📲 WhatsApp Bartolomeu</a>
+    <a class="link-btn" href="atendimento.html" target="_blank">💬 Simulador Web</a>
   </div>
 </header>
 
@@ -393,12 +394,18 @@
         </select>
         <select class="select-filter" id="fil-assunto" onchange="filtrarAtendimentos()">
           <option value="Todos">Todos Assuntos</option>
+          <option>RH / Folha-ponto</option>
+          <option>Pagamento / Holerite</option>
+          <option>Benefícios</option>
+          <option>Férias</option>
+          <option>Cursos / Reciclagem</option>
+          <option>Supervisão</option>
+          <option>Uniformes / Materiais</option>
+          <option>Outros assuntos</option>
           <option>Folha-ponto</option>
           <option>Holerite</option>
           <option>Pagamento</option>
-          <option>Benefícios</option>
           <option>Reciclagem</option>
-          <option>Supervisão</option>
           <option>Uniformes</option>
           <option>Material de apoio</option>
           <option>Combustível</option>
@@ -509,10 +516,11 @@
       <select id="cont-setor">
         <option>RH</option>
         <option>Benefícios</option>
+        <option>Treinamento</option>
         <option>Supervisão</option>
-        <option>Gestão / RH</option>
         <option>Operacional</option>
         <option>Administrativo</option>
+        <option>Gestão / RH</option>
       </select>
     </div>
     <div class="form-group">
@@ -557,12 +565,18 @@
     <div class="form-group">
       <label>Assunto *</label>
       <select id="conh-assunto">
+        <option>RH / Folha-ponto</option>
+        <option>Pagamento / Holerite</option>
+        <option>Benefícios</option>
+        <option>Férias</option>
+        <option>Cursos / Reciclagem</option>
+        <option>Supervisão</option>
+        <option>Uniformes / Materiais</option>
+        <option>Outros assuntos</option>
         <option>Folha-ponto</option>
         <option>Holerite</option>
         <option>Pagamento</option>
-        <option>Benefícios</option>
         <option>Reciclagem</option>
-        <option>Supervisão</option>
         <option>Uniformes</option>
         <option>Material de apoio</option>
         <option>Combustível</option>
@@ -844,7 +858,7 @@ async function abrirDrawer(id) {
 
     const convHtml = historico.length > 0 ? historico.map(m => `
       <div class="conv-msg ${m.sender}">
-        <div class="conv-sender">${m.sender === 'user' ? '👤 ' + (a.colaborador_nome || 'Colaborador') : '🤖 Bartolomeu (IA)'} · ${m.time || ''}</div>
+        <div class="conv-sender">${m.sender === 'user' ? '👤 ' + (a.colaborador_nome || 'Colaborador') : '🤖 Atendimento Virtual (IA)'} · ${m.time || ''}</div>
         ${(m.text || '').replace(/</g, '&lt;').replace(/\n/g, '<br>')}
       </div>
     `).join('') : '<div style="color:var(--text3); font-size:12px; padding:8px;">Nenhuma mensagem registrada.</div>';
@@ -1161,6 +1175,26 @@ function carregarTudo() {
 }
 
 carregarTudo();
+
+async function checarStatusWhatsapp() {
+  try {
+    const res = await fetch('/api/whatsapp/status');
+    const data = await res.json();
+    const btn = document.getElementById('btn-status-whatsapp');
+    if (!btn) return;
+    if (data.status === 'conectado') {
+      btn.style.borderColor = '#22c55e';
+      btn.style.color = '#86efac';
+      btn.innerHTML = '🟢 WhatsApp: Online (+' + data.numero + ')';
+    } else {
+      btn.style.borderColor = '#f59e0b';
+      btn.style.color = '#fbbf24';
+      btn.innerHTML = '🟡 Conectar WhatsApp Bartolomeu';
+    }
+  } catch(e) {}
+}
+checarStatusWhatsapp();
+setInterval(checarStatusWhatsapp, 10000);
 
 // Auto-atualizar a cada 90 segundos
 setInterval(() => {

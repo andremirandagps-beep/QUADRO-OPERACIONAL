@@ -35,11 +35,17 @@ function buscarColaborador(query) {
     if (porMat) return porMat;
   }
 
-  // 2. Busca por nome completo ou parcial
-  const porNome = todos.find(c => {
-    const nomeNorm = normalizar(c.nome);
-    return nomeNorm.includes(qNorm) || qNorm.includes(nomeNorm);
-  });
+  // 2. Busca exata por nome
+  const porNomeExato = todos.find(c => normalizar(c.nome) === qNorm);
+  if (porNomeExato) return porNomeExato;
+
+  // 3. Busca por nome completo ou parcial (priorizando correspondência mais próxima)
+  const porNome = todos
+    .filter(c => {
+      const nomeNorm = normalizar(c.nome);
+      return nomeNorm.includes(qNorm) || qNorm.includes(nomeNorm);
+    })
+    .sort((a, b) => Math.abs(normalizar(a.nome).length - qNorm.length) - Math.abs(normalizar(b.nome).length - qNorm.length))[0];
 
   return porNome || null;
 }
@@ -91,27 +97,31 @@ function determinarDestinoWhatsApp(gestao, assunto, empreendimento, mensagem = '
   const assuntoNorm = normalizar(assunto || '');
   const msgNorm = normalizar(mensagem);
 
-  // 1. Verificar se há contato específico para este empreendimento
+  // 1. Contato específico cadastrado para este empreendimento
   if (empreendimento && empreendimento !== 'Todos') {
     const empNorm = normalizar(empreendimento);
     const contatoEmp = contatos.find(c => normalizar(c.empreendimento) === empNorm);
     if (contatoEmp) return contatoEmp;
   }
 
-  // 2. Assuntos de RH (Folha-ponto, Holerite, Pagamento, Atestados)
-  if (
+  // 2. RH / Folha-ponto | Pagamento / Holerite | Férias -> RH responsável
+  const isRH = (
     assuntoNorm.includes('folha') ||
     assuntoNorm.includes('ponto') ||
     assuntoNorm.includes('holerite') ||
     assuntoNorm.includes('pagamento') ||
     assuntoNorm.includes('salario') ||
+    assuntoNorm.includes('ferias') ||
     assuntoNorm.includes('atestado') ||
-    msgNorm.includes('holerite') ||
     msgNorm.includes('folha') ||
-    msgNorm.includes('contracheque')
-  ) {
+    msgNorm.includes('holerite') ||
+    msgNorm.includes('pagamento') ||
+    msgNorm.includes('ferias')
+  );
+
+  if (isRH) {
     if (gestaoNorm.includes('rumo')) {
-      const cRumo = contatos.find(c => normalizar(c.gestao) === 'rumo' && normalizar(c.setor).includes('rh'));
+      const cRumo = contatos.find(c => normalizar(c.gestao) === 'rumo' && (normalizar(c.setor).includes('rh') || normalizar(c.setor).includes('gestao')));
       if (cRumo) return cRumo;
     } else {
       // Base - Dayana ou Engel
@@ -122,8 +132,8 @@ function determinarDestinoWhatsApp(gestao, assunto, empreendimento, mensagem = '
     }
   }
 
-  // 3. Benefícios (VT, VR, VA, Plano de Saúde, Odonto)
-  if (
+  // 3. Benefícios -> Responsável por benefícios
+  const isBeneficios = (
     assuntoNorm.includes('beneficio') ||
     assuntoNorm.includes('transporte') ||
     assuntoNorm.includes('refeicao') ||
@@ -136,31 +146,102 @@ function determinarDestinoWhatsApp(gestao, assunto, empreendimento, mensagem = '
     msgNorm.includes('alelo') ||
     msgNorm.includes('ticket') ||
     msgNorm.includes('unimed')
-  ) {
+  );
+
+  if (isBeneficios) {
     if (gestaoNorm.includes('rumo')) {
+      const cRumoBen = contatos.find(c => normalizar(c.gestao) === 'rumo' && normalizar(c.setor).includes('beneficio'));
+      if (cRumoBen) return cRumoBen;
       const cRumo = contatos.find(c => normalizar(c.gestao) === 'rumo');
       if (cRumo) return cRumo;
     } else {
       // Base - Débora ou Engel
-      const cDebora = contatos.find(c => normalizar(c.responsavel).includes('debora'));
+      const cDebora = contatos.find(c => normalizar(c.responsavel).includes('debora') || (normalizar(c.setor).includes('beneficio') && normalizar(c.gestao) === 'base'));
       if (cDebora) return cDebora;
       const cEngel = contatos.find(c => normalizar(c.responsavel).includes('engel') && normalizar(c.setor).includes('beneficio'));
       if (cEngel) return cEngel;
     }
   }
 
-  // 4. Operacional e Noturno (Supervisão, Reciclagem, Uniforme, Material, Combustível, Manutenção)
+  // 4. Cursos / Reciclagem -> Responsável pelo treinamento
+  const isCursos = (
+    assuntoNorm.includes('curso') ||
+    assuntoNorm.includes('reciclagem') ||
+    assuntoNorm.includes('treinamento') ||
+    assuntoNorm.includes('academia') ||
+    assuntoNorm.includes('cnv')
+  );
+
+  if (isCursos) {
+    const cTreino = contatos.find(c => normalizar(c.setor).includes('treinamento') || normalizar(c.responsavel).includes('treinamento'));
+    if (cTreino) return cTreino;
+  }
+
+  // 5. Uniformes / Materiais -> Responsável operacional
+  const isUniformesMateriais = (
+    assuntoNorm.includes('uniforme') ||
+    assuntoNorm.includes('material') ||
+    assuntoNorm.includes('epi') ||
+    assuntoNorm.includes('farda') ||
+    assuntoNorm.includes('coturno')
+  );
+
+  if (isUniformesMateriais) {
+    const cOp = contatos.find(c => normalizar(c.setor).includes('operacional') || normalizar(c.responsavel).includes('operacional'));
+    if (cOp) return cOp;
+  }
+
+  // 6. Supervisão -> Supervisão responsável (Supervisor Diurno ou Supervisor Noturno)
+  const isSupervisao = (
+    assuntoNorm.includes('supervis') ||
+    assuntoNorm.includes('plantao') ||
+    assuntoNorm.includes('emergencia') ||
+    assuntoNorm.includes('ronda') ||
+    assuntoNorm.includes('rendicao')
+  );
+
+  if (isSupervisao) {
+    const querNoturno = (
+      assuntoNorm.includes('noturno') ||
+      assuntoNorm.includes('noite') ||
+      msgNorm.includes('noturno') ||
+      msgNorm.includes('noite') ||
+      (isNoturno && !assuntoNorm.includes('diurno') && !msgNorm.includes('diurno'))
+    );
+
+    if (querNoturno) {
+      const cNoturno = contatos.find(c => normalizar(c.setor).includes('supervisao') && (normalizar(c.responsavel).includes('noturno') || normalizar(c.responsavel).includes('noite')));
+      if (cNoturno) return cNoturno;
+      const cNoturnoAny = contatos.find(c => normalizar(c.responsavel).includes('noturno') || normalizar(c.responsavel).includes('noite'));
+      if (cNoturnoAny) return cNoturnoAny;
+    } else {
+      const cDiurno = contatos.find(c => normalizar(c.setor).includes('supervisao') && normalizar(c.responsavel).includes('diurno'));
+      if (cDiurno) return cDiurno;
+      const cDiurnoFallback = contatos.find(c => normalizar(c.responsavel).includes('diurno'));
+      if (cDiurnoFallback) return cDiurnoFallback;
+      const cSup = contatos.find(c => normalizar(c.setor).includes('supervisao') && !normalizar(c.responsavel).includes('noturno') && !normalizar(c.responsavel).includes('noite'));
+      if (cSup) return cSup;
+    }
+
+    const cSupQualquer = contatos.find(c => normalizar(c.setor).includes('supervisao'));
+    if (cSupQualquer) return cSupQualquer;
+  }
+
+  // 7. Outros assuntos -> Atendimento administrativo
+  const cAdmin = contatos.find(c => normalizar(c.setor).includes('administrativo') || normalizar(c.responsavel).includes('administrativo'));
+  if (cAdmin) return cAdmin;
+
+  // Fallback geral: se for horário noturno, noturno; caso contrário, diurno
   if (isNoturno) {
-    const cNoite = contatos.find(c => normalizar(c.responsavel).includes('noite'));
+    const cNoite = contatos.find(c => normalizar(c.responsavel).includes('noturno') || normalizar(c.responsavel).includes('noite'));
     if (cNoite) return cNoite;
   }
 
-  const c24h = contatos.find(c => normalizar(c.responsavel).includes('24h') || normalizar(c.setor).includes('supervisao'));
-  if (c24h) return c24h;
+  const cDiurnoPadrao = contatos.find(c => normalizar(c.responsavel).includes('diurno') || c.whatsapp.includes('992148064'));
+  if (cDiurnoPadrao) return cDiurnoPadrao;
 
-  // Fallback geral
   return contatos[0] || {
-    responsavel: 'Supervisão Geral',
+    responsavel: 'Supervisor Diurno',
     setor: 'Supervisão',
     whatsapp: '41992148064',
     gestao: 'Geral'
@@ -273,22 +354,39 @@ function processarChatIA(dados) {
   let respostaTexto = '';
   let exigirEscalonamento = false;
 
-  // Saudação personalizada
-  const saudacao = `Olá, **${nomeExibicao}**! Sou o **Bartolomeu**, assistente virtual do Grupo GPS. `;
+  // Saudação personalizada do Bartolomeu
+  const saudacao = `Olá, **${nomeExibicao}**! Sou o **Bartolomeu**, assistente virtual oficial do Grupo GPS 🛡️. `;
   const infoPosto = colabCadastrado 
     ? `Identifiquei seu cadastro como **${colabCadastrado.funcao || 'Vigilante'}** alocado no posto **${colabCadastrado.posto_nome || 'Operacional'}** (${colabCadastrado.escala || '12x36'}).\n\n`
-    : `Estou aqui para te orientar em seu atendimento.\n\n`;
+    : `Estou à sua disposição para te orientar em seu atendimento.\n\n`;
 
-  if (melhorMatch && maiorScore >= 5) {
-    respostaTexto = saudacao + infoPosto + melhorMatch.resposta_oficial;
+  const pedirHumano = (dados.solicitar_humano === true) || 
+    msgNorm.includes('falar com humano') || 
+    msgNorm.includes('atendimento humano') || 
+    msgNorm.includes('falar com atendente') || 
+    msgNorm.includes('solicitar humano') || 
+    msgNorm.includes('chamar humano') || 
+    msgNorm.includes('falar com responsavel') ||
+    msgNorm === 'humano';
+
+  if (pedirHumano) {
+    respostaTexto = saudacao + infoPosto + 
+      `Entendido! Conforme sua solicitação, estou direcionando seu atendimento para o **${contatoDestino.responsavel}** (*${contatoDestino.setor}*).\n\n` +
+      `Seu protocolo oficial é **${protocolo}**. Já organizei todos os seus dados e o assunto **${assunto}** para você não precisar repetir nada.\n\n` +
+      `Clique no botão verde abaixo para abrir a conversa no WhatsApp agora mesmo:`;
+    exigirEscalonamento = true;
+  } else if (melhorMatch && maiorScore >= 5) {
+    // A IA responde diretamente pela inteligência virtual para dúvidas mais simples
+    respostaTexto = saudacao + infoPosto + melhorMatch.resposta_oficial +
+      `\n\n---\n💡 _Consegui esclarecer sua dúvida? Se você ainda precisar de ajuda ou preferir falar diretamente com o responsável humano pelo WhatsApp, basta clicar no botão abaixo._`;
     exigirEscalonamento = (melhorMatch.exigir_escalonamento === 1);
   } else {
     // Resposta padrão inteligente
     respostaTexto = saudacao + infoPosto + 
       `Recebi sua mensagem sobre **${assunto}**:\n\n` +
       `_"${mensagem}"_\n\n` +
-      `Para garantir que sua solicitação seja atendida com a máxima agilidade e pelas pessoas certas da gestão **${gestao.toUpperCase()}**, organizei todos os dados do seu atendimento.\n\n` +
-      `Se você deseja que o responsável analise seu caso agora, basta clicar no botão verde abaixo para abrir uma conversa direta no WhatsApp.`;
+      `Para garantir que sua solicitação seja analisada pela pessoa certa da gestão **${gestao.toUpperCase()}**, organizei seus dados e preparei seu direcionamento.\n\n` +
+      `Clique no botão verde abaixo para falar diretamente com **${contatoDestino.responsavel}** (${contatoDestino.setor}) no WhatsApp:`;
     exigirEscalonamento = true;
   }
 
@@ -338,6 +436,8 @@ function processarChatIA(dados) {
     }
   });
 
+  const resolvidoPor = pedirHumano ? 'WhatsApp' : (exigirEscalonamento ? 'WhatsApp' : 'IA');
+
   if (!atendimentoExistente) {
     database.criarIaAtendimento({
       id: idAtend,
@@ -350,7 +450,7 @@ function processarChatIA(dados) {
       assunto,
       mensagem_inicial: mensagem,
       historico_conversa: JSON.stringify(historico),
-      resolvido_por: 'Pendente',
+      resolvido_por: resolvidoPor,
       responsavel_destino: `${contatoDestino.responsavel} (${contatoDestino.setor})`,
       responsavel_whatsapp: contatoDestino.whatsapp,
       status: 'Aberto'
@@ -358,6 +458,7 @@ function processarChatIA(dados) {
   } else {
     database.atualizarIaAtendimento(idAtend, {
       historico_conversa: JSON.stringify(historico),
+      resolvido_por: (atendimentoExistente.resolvido_por === 'Resolvido' ? 'Resolvido' : resolvidoPor),
       responsavel_destino: `${contatoDestino.responsavel} (${contatoDestino.setor})`,
       responsavel_whatsapp: contatoDestino.whatsapp,
       status: atendimentoExistente.status || 'Aberto'

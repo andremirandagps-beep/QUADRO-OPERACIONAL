@@ -292,13 +292,18 @@ function initSchema() {
   const iaContatosCount = db.prepare('SELECT COUNT(*) as c FROM ia_contatos').get().c;
   if (iaContatosCount === 0) {
     const seedContatos = [
-      { responsavel: 'Supervisor da Noite', setor: 'Supervisão', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41984721699', observacoes: 'Plantão Noturno / Ronda Noturna', ativo: 1 },
-      { responsavel: 'Supervisão 24h', setor: 'Supervisão', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41992148064', observacoes: 'Supervisão Operacional 24h', ativo: 1 },
+      { responsavel: 'Bartolomeu (Central Principal GPS)', setor: 'Atendimento Virtual IA', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41984721699', observacoes: 'Número Principal do Assistente Virtual Bartolomeu', ativo: 1 },
+      { responsavel: 'Supervisor Diurno', setor: 'Supervisão', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41992148064', observacoes: 'Plantão Diurno (07:00 às 19:00)', ativo: 1 },
+      { responsavel: 'Supervisor Noturno', setor: 'Supervisão', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41984721699', observacoes: 'Plantão Noturno / Ronda Noturna (19:00 às 07:00)', ativo: 1 },
       { responsavel: 'Gestão Rumo / RH', setor: 'Gestão / RH', gestao: 'Rumo', empreendimento: 'Todos', whatsapp: '41992642985', observacoes: 'Gestão e RH específico para funcionários da Rumo', ativo: 1 },
       { responsavel: 'Dayana', setor: 'RH', gestao: 'Base', empreendimento: 'Todos', whatsapp: '41992908312', observacoes: 'RH Base - Folha, Ponto e Atendimento ao Efetivo', ativo: 1 },
       { responsavel: 'Engel', setor: 'RH', gestao: 'Base', empreendimento: 'Todos', whatsapp: '4199900829', observacoes: 'RH Base - Ponto e Admissões', ativo: 1 },
       { responsavel: 'Débora', setor: 'Benefícios', gestao: 'Base', empreendimento: 'Todos', whatsapp: '41992642985', observacoes: 'Benefícios Base (VT, VR, VA, Saúde e Odonto)', ativo: 1 },
-      { responsavel: 'Engel (Benefícios)', setor: 'Benefícios', gestao: 'Base', empreendimento: 'Todos', whatsapp: '4199900829', observacoes: 'Benefícios Base - Suporte e Cartões', ativo: 1 }
+      { responsavel: 'Engel (Benefícios)', setor: 'Benefícios', gestao: 'Base', empreendimento: 'Todos', whatsapp: '4199900829', observacoes: 'Benefícios Base - Suporte e Cartões', ativo: 1 },
+      { responsavel: 'Benefícios Rumo', setor: 'Benefícios', gestao: 'Rumo', empreendimento: 'Todos', whatsapp: '41992642985', observacoes: 'Benefícios Gestão Rumo (VT, VR, VA e Saúde)', ativo: 1 },
+      { responsavel: 'Coordenação de Treinamento', setor: 'Treinamento', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41992148064', observacoes: 'Cursos de Formação, Reciclagem e Academia GPS', ativo: 1 },
+      { responsavel: 'Responsável Operacional', setor: 'Operacional', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41992148064', observacoes: 'Uniformes, EPIs e Materiais de Apoio', ativo: 1 },
+      { responsavel: 'Atendimento Administrativo', setor: 'Administrativo', gestao: 'Geral', empreendimento: 'Todos', whatsapp: '41992148064', observacoes: 'Dúvidas Gerais e Atendimento Administrativo', ativo: 1 }
     ];
     const insContato = db.prepare('INSERT INTO ia_contatos (responsavel, setor, gestao, empreendimento, whatsapp, observacoes, ativo) VALUES (@responsavel, @setor, @gestao, @empreendimento, @whatsapp, @observacoes, @ativo)');
     seedContatos.forEach(c => insContato.run(c));
@@ -344,6 +349,15 @@ function initSchema() {
         gestao_aplicavel: 'Todas',
         exigir_escalonamento: 0,
         ordem: 4
+      },
+      {
+        assunto: 'Férias',
+        titulo: 'Programação de Férias, Período Aquisitivo e Pagamento',
+        palavras_chave: 'ferias, programacao de ferias, quando tiro ferias, periodo aquisitivo, 30 dias, abono pecuniario, vender ferias, adiantamento de 13, decimo terceiro ferias, recibo de ferias',
+        resposta_oficial: '🏖️ **Orientações sobre Férias no Grupo GPS:**\n\n1. **Aviso Prévio de Férias:** Por legislação e norma interna, a empresa comunica a data de início com no mínimo **30 dias de antecedência** mediante assinatura do aviso.\n2. **Pagamento:** A remuneração das férias (salário + 1/3 constitucional) é paga até **2 dias antes** do início do período de gozo.\n3. **Abono Pecuniário (Venda de 10 dias):** Deve ser solicitado formalmente até 15 dias antes do término do período aquisitivo.\n4. **Retorno:** O colaborador deve se reapresentar ao posto no dia seguinte ao término das férias conforme escala.\n\nPara verificar sua previsão de férias ou assinar seu recibo, fale diretamente com o RH da sua gestão (Rumo ou Base) pelo WhatsApp.',
+        gestao_aplicavel: 'Todas',
+        exigir_escalonamento: 0,
+        ordem: 5
       },
       {
         assunto: 'Reciclagem',
